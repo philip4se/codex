@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>판타킹 클론 - 판타지 축구 게임</title>
+    <title>판타킹 for Kakao - RTS 전략 게임</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -11,20 +11,26 @@
         <!-- Header -->
         <header class="game-header">
             <div class="header-content">
-                <h1>⚽ 판타지 킹</h1>
+                <h1>🏰 판타킹</h1>
                 <div class="user-info">
-                    <div class="currency">
-                        <span class="gold">💰 골드: <span id="gold">10000</span></span>
-                        <span class="diamond">💎 다이아: <span id="diamond">100</span></span>
+                    <div class="resources">
+                        <span class="gold">💰 골드: <span id="gold">5000</span></span>
+                        <span class="gem">💎 보석: <span id="gem">50</span></span>
+                        <span class="power">⚡ 파워: <span id="power">0</span></span>
+                    </div>
+                    <div class="race-info">
+                        <span>종족: <span id="current-race">미선택</span></span>
                     </div>
                 </div>
             </div>
             <nav class="main-nav">
                 <button class="nav-btn active" data-page="home">홈</button>
-                <button class="nav-btn" data-page="squad">스쿼드</button>
-                <button class="nav-btn" data-page="gacha">카드뽑기</button>
-                <button class="nav-btn" data-page="upgrade">강화</button>
-                <button class="nav-btn" data-page="league">리그</button>
+                <button class="nav-btn" data-page="campaign">캠페인</button>
+                <button class="nav-btn" data-page="invasion">침공</button>
+                <button class="nav-btn" data-page="survival">서바이벌</button>
+                <button class="nav-btn" data-page="raid">레이드</button>
+                <button class="nav-btn" data-page="units">병력</button>
+                <button class="nav-btn" data-page="items">아이템</button>
             </nav>
         </header>
 
@@ -33,157 +39,235 @@
             <!-- Home Page -->
             <div id="home-page" class="page active">
                 <div class="welcome-section">
-                    <h2>환영합니다!</h2>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <h3>내 팀 파워</h3>
-                            <p class="stat-value" id="team-power">0</p>
-                        </div>
-                        <div class="stat-card">
-                            <h3>보유 선수</h3>
-                            <p class="stat-value" id="player-count">0</p>
-                        </div>
-                        <div class="stat-card">
-                            <h3>리그 순위</h3>
-                            <p class="stat-value" id="league-rank">-</p>
-                        </div>
-                        <div class="stat-card">
-                            <h3>승률</h3>
-                            <p class="stat-value" id="win-rate">0%</p>
-                        </div>
-                    </div>
-                    <div class="quick-actions">
-                        <button class="action-btn" onclick="navigateTo('gacha')">
-                            🎰 카드 뽑기
-                        </button>
-                        <button class="action-btn" onclick="navigateTo('squad')">
-                            ⚽ 스쿼드 구성
-                        </button>
-                        <button class="action-btn" onclick="navigateTo('league')">
-                            🏆 경기 시작
-                        </button>
-                    </div>
-                </div>
-            </div>
+                    <h2>판타킹에 오신 것을 환영합니다!</h2>
 
-            <!-- Squad Page -->
-            <div id="squad-page" class="page">
-                <h2>스쿼드 관리</h2>
-                <div class="formation-selector">
-                    <label>포메이션:</label>
-                    <select id="formation-select">
-                        <option value="4-4-2">4-4-2</option>
-                        <option value="4-3-3">4-3-3</option>
-                        <option value="3-5-2">3-5-2</option>
-                        <option value="4-2-3-1">4-2-3-1</option>
-                        <option value="3-4-3">3-4-3</option>
-                    </select>
-                </div>
-                <div class="field-container">
-                    <div class="football-field" id="football-field">
-                        <!-- Positions will be dynamically generated -->
-                    </div>
-                </div>
-                <div class="bench-section">
-                    <h3>보유 선수</h3>
-                    <div class="player-list" id="player-inventory">
-                        <!-- Player cards will be displayed here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Gacha Page -->
-            <div id="gacha-page" class="page">
-                <h2>카드 뽑기</h2>
-                <div class="gacha-container">
-                    <div class="gacha-options">
-                        <div class="gacha-option">
-                            <h3>일반 뽑기</h3>
-                            <p class="gacha-desc">기본 등급 선수 카드</p>
-                            <p class="gacha-cost">💰 1,000 골드</p>
-                            <div class="gacha-rates">
-                                <p>⭐ 일반: 60%</p>
-                                <p>⭐⭐ 레어: 30%</p>
-                                <p>⭐⭐⭐ 에픽: 10%</p>
+                    <!-- Race Selection -->
+                    <div id="race-selection" class="race-selection">
+                        <h3>종족을 선택하세요</h3>
+                        <div class="race-cards">
+                            <div class="race-card" data-race="human">
+                                <div class="race-icon">⚔️</div>
+                                <h4>인간 (Human)</h4>
+                                <p class="race-desc">강력한 공격력과 높은 체력</p>
+                                <ul class="race-stats">
+                                    <li>공격력: ★★★★★</li>
+                                    <li>체력: ★★★★★</li>
+                                    <li>속도: ★★★</li>
+                                    <li>특성: 정면 돌파</li>
+                                </ul>
+                                <button class="select-race-btn" onclick="selectRace('human')">선택</button>
                             </div>
-                            <button class="gacha-btn" onclick="drawCard('normal', 1)">1회 뽑기</button>
-                            <button class="gacha-btn" onclick="drawCard('normal', 10)">10회 뽑기 (9,000G)</button>
-                        </div>
-                        <div class="gacha-option premium">
-                            <h3>프리미엄 뽑기</h3>
-                            <p class="gacha-desc">고급 등급 선수 카드</p>
-                            <p class="gacha-cost">💎 10 다이아</p>
-                            <div class="gacha-rates">
-                                <p>⭐⭐ 레어: 50%</p>
-                                <p>⭐⭐⭐ 에픽: 35%</p>
-                                <p>⭐⭐⭐⭐ 전설: 15%</p>
+                            <div class="race-card" data-race="elf">
+                                <div class="race-icon">🏹</div>
+                                <h4>엘프 (Elf)</h4>
+                                <p class="race-desc">빠른 이동속도와 높은 민첩성</p>
+                                <ul class="race-stats">
+                                    <li>공격력: ★★★</li>
+                                    <li>체력: ★★★</li>
+                                    <li>속도: ★★★★★</li>
+                                    <li>특성: 치명타</li>
+                                </ul>
+                                <button class="select-race-btn" onclick="selectRace('elf')">선택</button>
                             </div>
-                            <button class="gacha-btn premium" onclick="drawCard('premium', 1)">1회 뽑기</button>
-                            <button class="gacha-btn premium" onclick="drawCard('premium', 10)">10회 뽑기 (100💎)</button>
+                            <div class="race-card" data-race="undead">
+                                <div class="race-icon">💀</div>
+                                <h4>언데드 (Undead)</h4>
+                                <p class="race-desc">강력한 마법과 특수 능력</p>
+                                <ul class="race-stats">
+                                    <li>공격력: ★★★★</li>
+                                    <li>체력: ★★★</li>
+                                    <li>마법: ★★★★★</li>
+                                    <li>특성: 마법 특화</li>
+                                </ul>
+                                <button class="select-race-btn" onclick="selectRace('undead')">선택</button>
+                            </div>
                         </div>
                     </div>
-                    <div class="gacha-result" id="gacha-result">
-                        <!-- Gacha results will be shown here -->
+
+                    <!-- Game Stats -->
+                    <div id="game-stats" class="stats-grid" style="display: none;">
+                        <div class="stat-card">
+                            <h3>총 전투력</h3>
+                            <p class="stat-value" id="total-power">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>승리</h3>
+                            <p class="stat-value" id="wins">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>패배</h3>
+                            <p class="stat-value" id="losses">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>레벨</h3>
+                            <p class="stat-value" id="player-level">1</p>
+                        </div>
+                    </div>
+
+                    <div id="quick-actions" class="quick-actions" style="display: none;">
+                        <button class="action-btn" onclick="navigateTo('campaign')">
+                            🎯 캠페인 시작
+                        </button>
+                        <button class="action-btn" onclick="navigateTo('invasion')">
+                            ⚔️ 침공 모드
+                        </button>
+                        <button class="action-btn" onclick="navigateTo('units')">
+                            🛡️ 병력 관리
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Upgrade Page -->
-            <div id="upgrade-page" class="page">
-                <h2>선수 강화</h2>
-                <div class="upgrade-container">
-                    <div class="upgrade-selection">
-                        <h3>강화할 선수 선택</h3>
-                        <div class="player-list" id="upgrade-player-list">
-                            <!-- Available players for upgrade -->
+            <!-- Campaign Page -->
+            <div id="campaign-page" class="page">
+                <h2>캠페인</h2>
+                <div class="stage-list" id="stage-list">
+                    <!-- Stages will be dynamically generated -->
+                </div>
+            </div>
+
+            <!-- Battle Page -->
+            <div id="battle-page" class="page">
+                <div class="battle-container">
+                    <div class="battle-header">
+                        <h2>전투 진행 중</h2>
+                        <div class="battle-stats">
+                            <div>아군 체력: <span id="player-hp">100</span>%</div>
+                            <div>적군 체력: <span id="enemy-hp">100</span>%</div>
                         </div>
                     </div>
-                    <div class="upgrade-panel" id="upgrade-panel">
-                        <p class="placeholder">선수를 선택해주세요</p>
+
+                    <!-- Battle Map -->
+                    <div class="battle-map" id="battle-map">
+                        <!-- Player Base -->
+                        <div class="base player-base" id="player-base" style="left: 5%; top: 50%;">
+                            <div class="base-icon">🏰</div>
+                            <div class="base-hp">
+                                <div class="hp-bar">
+                                    <div class="hp-fill" style="width: 100%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Enemy Base -->
+                        <div class="base enemy-base" id="enemy-base" style="right: 5%; top: 50%;">
+                            <div class="base-icon">🏯</div>
+                            <div class="base-hp">
+                                <div class="hp-bar">
+                                    <div class="hp-fill" style="width: 100%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Outposts will be dynamically generated -->
+                        <div id="outposts-container"></div>
+
+                        <!-- Units will be dynamically generated -->
+                        <div id="units-container"></div>
+                    </div>
+
+                    <!-- Magic Panel -->
+                    <div class="magic-panel">
+                        <h3>마법</h3>
+                        <div class="magic-buttons" id="magic-buttons">
+                            <!-- Magic buttons will be dynamically generated -->
+                        </div>
+                    </div>
+
+                    <!-- Battle Controls -->
+                    <div class="battle-controls">
+                        <button class="control-btn" id="pause-btn" onclick="togglePause()">⏸️ 일시정지</button>
+                        <button class="control-btn" id="speed-btn" onclick="changeSpeed()">⏩ 속도: x1</button>
+                        <button class="control-btn danger" onclick="retreatBattle()">🏳️ 후퇴</button>
                     </div>
                 </div>
             </div>
 
-            <!-- League Page -->
-            <div id="league-page" class="page">
-                <h2>리그</h2>
-                <div class="league-container">
-                    <div class="league-info">
-                        <h3>현재 시즌</h3>
-                        <div class="season-info">
-                            <p>시즌 1</p>
-                            <p>순위: <span id="current-rank">-</span></p>
-                            <p>포인트: <span id="league-points">0</span></p>
+            <!-- Invasion Page -->
+            <div id="invasion-page" class="page">
+                <h2>침공</h2>
+                <p class="page-desc">다른 플레이어의 자원을 약탈하세요!</p>
+                <div class="opponent-list" id="invasion-list">
+                    <!-- Opponents will be generated -->
+                </div>
+            </div>
+
+            <!-- Survival Page -->
+            <div id="survival-page" class="page">
+                <h2>서바이벌</h2>
+                <p class="page-desc">끝없이 밀려오는 적을 막아내세요!</p>
+                <div class="survival-info">
+                    <p>최고 기록: <span id="survival-record">0</span> 웨이브</p>
+                    <button class="action-btn large" onclick="startSurvival()">
+                        서바이벌 시작
+                    </button>
+                </div>
+            </div>
+
+            <!-- Raid Page -->
+            <div id="raid-page" class="page">
+                <h2>레이드</h2>
+                <p class="page-desc">강력한 보스를 처치하고 보상을 획득하세요!</p>
+                <div class="raid-bosses" id="raid-bosses">
+                    <!-- Raid bosses will be generated -->
+                </div>
+            </div>
+
+            <!-- Units Page -->
+            <div id="units-page" class="page">
+                <h2>병력 관리</h2>
+                <div class="units-container">
+                    <div class="unit-types" id="unit-types">
+                        <!-- Unit types will be displayed -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items Page -->
+            <div id="items-page" class="page">
+                <h2>아이템 & 합성</h2>
+                <div class="items-section">
+                    <div class="inventory">
+                        <h3>보유 아이템</h3>
+                        <div class="item-grid" id="item-inventory">
+                            <!-- Items will be displayed -->
                         </div>
                     </div>
-                    <div class="match-section">
-                        <h3>경기하기</h3>
-                        <div class="opponent-list" id="opponent-list">
-                            <!-- Opponents will be generated here -->
+                    <div class="synthesis">
+                        <h3>아이템 합성</h3>
+                        <div class="synthesis-slots">
+                            <div class="synth-slot" id="synth-slot-1">
+                                <p>아이템 1</p>
+                            </div>
+                            <div class="synth-plus">+</div>
+                            <div class="synth-slot" id="synth-slot-2">
+                                <p>아이템 2</p>
+                            </div>
+                            <div class="synth-arrow">→</div>
+                            <div class="synth-result" id="synth-result">
+                                <p>결과</p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="match-history">
-                        <h3>최근 경기</h3>
-                        <div id="recent-matches">
-                            <p class="placeholder">아직 경기 기록이 없습니다</p>
-                        </div>
+                        <button class="action-btn" onclick="synthesizeItems()">합성하기</button>
                     </div>
                 </div>
             </div>
         </main>
 
-        <!-- Modal for match results -->
-        <div id="match-modal" class="modal">
+        <!-- Battle Result Modal -->
+        <div id="result-modal" class="modal">
             <div class="modal-content">
-                <span class="close" onclick="closeModal()">&times;</span>
-                <div id="match-result-content">
-                    <!-- Match results will be shown here -->
+                <h2 id="result-title">전투 결과</h2>
+                <div id="result-content">
+                    <!-- Result content will be shown here -->
                 </div>
+                <button class="action-btn" onclick="closeResultModal()">확인</button>
             </div>
         </div>
     </div>
 
     <script src="js/data.js"></script>
+    <script src="js/battle.js"></script>
     <script src="js/game.js"></script>
     <script src="js/ui.js"></script>
 </body>

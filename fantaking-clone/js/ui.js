@@ -1,36 +1,177 @@
-// UI Helper Functions and Utilities
+// UI Update and Animation
 
-// Toast notification system
-function showToast(message, type = 'info', duration = 3000) {
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.textContent = message;
+// Battle UI Update
+window.updateBattleUI = function(battle) {
+    const state = battle.getState();
 
-    toast.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 25px;
-        background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
-        color: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        z-index: 10000;
-        animation: slideInRight 0.3s, slideOutRight 0.3s ${duration - 300}ms;
-        font-weight: bold;
-    `;
+    // Update HP bars
+    updateHPBar('player-base', state.playerBase);
+    updateHPBar('enemy-base', state.enemyBase);
 
-    document.body.appendChild(toast);
+    // Update HP percentages
+    document.getElementById('player-hp').textContent = Math.floor((state.playerBase.hp / state.playerBase.maxHp) * 100);
+    document.getElementById('enemy-hp').textContent = Math.floor((state.enemyBase.hp / state.enemyBase.maxHp) * 100);
 
-    setTimeout(() => {
-        toast.remove();
-    }, duration);
+    // Update outposts
+    renderOutposts(state.outposts);
+
+    // Update units
+    renderUnits(state.playerUnits, state.enemyUnits);
+
+    // Update spell cooldowns
+    updateSpellCooldowns(state.spellCooldowns);
+
+    // Update mana display (if element exists)
+    updateResourceDisplay(state);
+};
+
+function updateHPBar(baseId, baseData) {
+    const base = document.getElementById(baseId);
+    if (!base) return;
+
+    const hpBar = base.querySelector('.hp-fill');
+    if (hpBar) {
+        const percentage = (baseData.hp / baseData.maxHp) * 100;
+        hpBar.style.width = percentage + '%';
+
+        // Color changes based on HP
+        if (percentage > 60) {
+            hpBar.style.background = 'linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%)';
+        } else if (percentage > 30) {
+            hpBar.style.background = 'linear-gradient(90deg, #FFC107 0%, #FFB300 100%)';
+        } else {
+            hpBar.style.background = 'linear-gradient(90deg, #f44336 0%, #d32f2f 100%)';
+        }
+    }
 }
 
-// Add CSS for toast animations
+function renderOutposts(outposts) {
+    const container = document.getElementById('outposts-container');
+    if (!container) return;
+
+    // Clear existing outposts
+    container.innerHTML = '';
+
+    outposts.forEach(outpost => {
+        let existingOutpost = container.querySelector(`[data-outpost-id="${outpost.id}"]`);
+
+        if (!existingOutpost) {
+            existingOutpost = document.createElement('div');
+            existingOutpost.className = 'outpost neutral';
+            existingOutpost.dataset.outpostId = outpost.id;
+            existingOutpost.style.left = outpost.x + '%';
+            existingOutpost.style.top = outpost.y + '%';
+            existingOutpost.style.transform = 'translate(-50%, -50%)';
+
+            existingOutpost.innerHTML = `
+                <div class="outpost-icon">🏛️</div>
+                <div class="outpost-layer">L${outpost.layer}</div>
+            `;
+
+            container.appendChild(existingOutpost);
+        }
+
+        // Update outpost state
+        existingOutpost.className = `outpost ${outpost.owner}`;
+        const layerDiv = existingOutpost.querySelector('.outpost-layer');
+        if (layerDiv) {
+            layerDiv.textContent = `L${outpost.layer}`;
+        }
+
+        // Add click handler for player to capture
+        if (outpost.owner === 'neutral' || outpost.owner === 'enemy') {
+            existingOutpost.onclick = () => {
+                if (currentBattle) {
+                    currentBattle.captureOutpost(outpost, 'player');
+                    showNotification('거점 공격!', 'info');
+                }
+            };
+        }
+    });
+}
+
+function renderUnits(playerUnits, enemyUnits) {
+    const container = document.getElementById('units-container');
+    if (!container) return;
+
+    // Clear existing units
+    container.innerHTML = '';
+
+    // Render player units
+    playerUnits.forEach(unit => {
+        const unitEl = createUnitElement(unit, 'player');
+        container.appendChild(unitEl);
+    });
+
+    // Render enemy units
+    enemyUnits.forEach(unit => {
+        const unitEl = createUnitElement(unit, 'enemy');
+        container.appendChild(unitEl);
+    });
+}
+
+function createUnitElement(unit, side) {
+    const unitEl = document.createElement('div');
+    unitEl.className = `unit ${side}`;
+    unitEl.style.left = unit.x + '%';
+    unitEl.style.top = unit.y + '%';
+    unitEl.style.transform = 'translate(-50%, -50%)';
+    unitEl.innerHTML = unit.icon;
+    unitEl.title = `${unit.name}\nHP: ${Math.floor(unit.hp)}/${unit.maxHp}`;
+
+    // HP indicator
+    const hpPercent = (unit.hp / unit.maxHp);
+    if (hpPercent < 1) {
+        unitEl.style.boxShadow = `0 0 10px ${hpPercent > 0.5 ? '#4CAF50' : hpPercent > 0.2 ? '#FFC107' : '#f44336'}`;
+    }
+
+    return unitEl;
+}
+
+function updateSpellCooldowns(cooldowns) {
+    Object.keys(cooldowns).forEach(spellId => {
+        const btn = document.querySelector(`[data-spell-id="${spellId}"]`);
+        if (btn) {
+            btn.disabled = true;
+
+            // Add or update cooldown indicator
+            let cooldownDiv = btn.querySelector('.cooldown');
+            if (!cooldownDiv) {
+                cooldownDiv = document.createElement('div');
+                cooldownDiv.className = 'cooldown';
+                btn.appendChild(cooldownDiv);
+            }
+
+            cooldownDiv.textContent = Math.ceil(cooldowns[spellId]);
+        }
+    });
+
+    // Re-enable spells not on cooldown
+    document.querySelectorAll('.magic-btn').forEach(btn => {
+        const spellId = btn.dataset.spellId;
+        if (!cooldowns[spellId]) {
+            btn.disabled = false;
+            const cooldownDiv = btn.querySelector('.cooldown');
+            if (cooldownDiv) {
+                cooldownDiv.remove();
+            }
+        }
+    });
+}
+
+function updateResourceDisplay(state) {
+    // You can add a resource panel if needed
+    // For now, we'll just log it
+    if (window.DEBUG) {
+        console.log('Mana:', state.playerMana, '/', state.maxMana);
+        console.log('Gold:', state.playerGold);
+    }
+}
+
+// Add notification styles
 const style = document.createElement('style');
 style.textContent = `
-    @keyframes slideInRight {
+    @keyframes slideIn {
         from {
             transform: translateX(400px);
             opacity: 0;
@@ -41,7 +182,7 @@ style.textContent = `
         }
     }
 
-    @keyframes slideOutRight {
+    @keyframes slideOut {
         from {
             transform: translateX(0);
             opacity: 1;
@@ -52,41 +193,10 @@ style.textContent = `
         }
     }
 
-    .loading-spinner {
-        border: 4px solid #f3f3f3;
-        border-top: 4px solid #667eea;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
-        margin: 20px auto;
-    }
-
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    .fade-in {
-        animation: fadeIn 0.3s;
-    }
-
-    .slide-up {
-        animation: slideUp 0.3s;
-    }
-
-    @keyframes slideUp {
-        from {
-            transform: translateY(20px);
-            opacity: 0;
-        }
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-
-    .pulse {
+    .level-up {
+        font-size: 24px;
+        color: #ffd700;
+        text-align: center;
         animation: pulse 1s infinite;
     }
 
@@ -95,426 +205,245 @@ style.textContent = `
             transform: scale(1);
         }
         50% {
-            transform: scale(1.05);
+            transform: scale(1.1);
         }
     }
 
-    .shake {
-        animation: shake 0.5s;
-    }
-
-    @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
-        20%, 40%, 60%, 80% { transform: translateX(10px); }
-    }
-
-    /* Loading overlay */
-    .loading-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.7);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-        flex-direction: column;
-        color: white;
-    }
-
-    .loading-overlay .loading-text {
-        margin-top: 20px;
-        font-size: 18px;
-        font-weight: bold;
-    }
-
-    /* Confirmation dialog */
-    .confirm-dialog {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: white;
-        padding: 30px;
-        border-radius: 15px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        z-index: 10001;
-        min-width: 300px;
-        text-align: center;
-    }
-
-    .confirm-dialog h3 {
-        margin-bottom: 15px;
-        color: #1e3c72;
-    }
-
-    .confirm-dialog .buttons {
-        display: flex;
-        gap: 10px;
-        margin-top: 20px;
-    }
-
-    .confirm-dialog button {
-        flex: 1;
-        padding: 12px;
-        border: none;
-        border-radius: 8px;
-        font-size: 16px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
-    .confirm-dialog .btn-confirm {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-    }
-
-    .confirm-dialog .btn-cancel {
-        background: #e0e0e0;
-        color: #333;
-    }
-
-    .confirm-dialog button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-
-    /* Number counter animation */
-    .number-pop {
-        display: inline-block;
-        animation: numberPop 0.5s;
-    }
-
-    @keyframes numberPop {
-        0% {
-            transform: scale(1);
-        }
-        50% {
-            transform: scale(1.3);
-            color: #4CAF50;
-        }
-        100% {
-            transform: scale(1);
-        }
-    }
-
-    /* Card flip animation for gacha */
-    .card-flip {
-        animation: cardFlip 0.6s;
-    }
-
-    @keyframes cardFlip {
-        0% {
-            transform: rotateY(0deg);
-        }
-        50% {
-            transform: rotateY(90deg);
-        }
-        100% {
-            transform: rotateY(0deg);
-        }
-    }
-
-    /* Sparkle effect for legendary cards */
-    .sparkle {
-        position: relative;
-        overflow: hidden;
-    }
-
-    .sparkle::before {
-        content: '';
+    /* Tooltip styles */
+    .tooltip {
         position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: linear-gradient(
-            45deg,
-            transparent,
-            rgba(255, 255, 255, 0.3),
-            transparent
-        );
-        animation: sparkleMove 2s infinite;
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        pointer-events: none;
+        z-index: 10000;
+        white-space: nowrap;
     }
 
-    @keyframes sparkleMove {
+    /* Loading animation */
+    .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Battle effect animations */
+    @keyframes explosion {
         0% {
-            transform: translate(-50%, -50%) rotate(0deg);
+            transform: scale(0);
+            opacity: 1;
         }
         100% {
-            transform: translate(-50%, -50%) rotate(360deg);
+            transform: scale(3);
+            opacity: 0;
+        }
+    }
+
+    .explosion-effect {
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        background: radial-gradient(circle, #ff6b6b, transparent);
+        border-radius: 50%;
+        animation: explosion 0.5s ease-out;
+        pointer-events: none;
+    }
+
+    /* Damage numbers */
+    @keyframes damageFloat {
+        0% {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+    }
+
+    .damage-number {
+        position: absolute;
+        color: #f44336;
+        font-weight: bold;
+        font-size: 18px;
+        animation: damageFloat 1s ease-out;
+        pointer-events: none;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
+
+    .heal-number {
+        color: #4CAF50;
+    }
+
+    /* Glow effect for active units */
+    .unit.active {
+        animation: unitGlow 1s ease-in-out infinite;
+    }
+
+    @keyframes unitGlow {
+        0%, 100% {
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        50% {
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.9);
         }
     }
 `;
 document.head.appendChild(style);
 
-// Loading overlay
-function showLoading(text = 'Loading...') {
-    const overlay = document.createElement('div');
-    overlay.className = 'loading-overlay';
-    overlay.id = 'loading-overlay';
-    overlay.innerHTML = `
-        <div class="loading-spinner"></div>
-        <div class="loading-text">${text}</div>
-    `;
-    document.body.appendChild(overlay);
+// Utility functions
+function createExplosion(x, y) {
+    const battleMap = document.getElementById('battle-map');
+    if (!battleMap) return;
+
+    const explosion = document.createElement('div');
+    explosion.className = 'explosion-effect';
+    explosion.style.left = x + '%';
+    explosion.style.top = y + '%';
+
+    battleMap.appendChild(explosion);
+
+    setTimeout(() => {
+        explosion.remove();
+    }, 500);
 }
 
-function hideLoading() {
-    const overlay = document.getElementById('loading-overlay');
-    if (overlay) {
-        overlay.remove();
-    }
+function showDamageNumber(x, y, damage, isHeal = false) {
+    const battleMap = document.getElementById('battle-map');
+    if (!battleMap) return;
+
+    const damageNum = document.createElement('div');
+    damageNum.className = `damage-number ${isHeal ? 'heal-number' : ''}`;
+    damageNum.textContent = isHeal ? `+${damage}` : `-${damage}`;
+    damageNum.style.left = x + '%';
+    damageNum.style.top = y + '%';
+
+    battleMap.appendChild(damageNum);
+
+    setTimeout(() => {
+        damageNum.remove();
+    }, 1000);
 }
 
-// Confirmation dialog
-function showConfirm(message, onConfirm, onCancel) {
-    const backdrop = document.createElement('div');
-    backdrop.className = 'loading-overlay';
-    backdrop.style.background = 'rgba(0, 0, 0, 0.5)';
+function showTooltip(element, text) {
+    const tooltip = document.createElement('div');
+    tooltip.className = 'tooltip';
+    tooltip.textContent = text;
 
-    const dialog = document.createElement('div');
-    dialog.className = 'confirm-dialog slide-up';
-    dialog.innerHTML = `
-        <h3>확인</h3>
-        <p>${message}</p>
-        <div class="buttons">
-            <button class="btn-cancel">취소</button>
-            <button class="btn-confirm">확인</button>
-        </div>
-    `;
+    document.body.appendChild(tooltip);
 
-    backdrop.appendChild(dialog);
-    document.body.appendChild(backdrop);
+    const rect = element.getBoundingClientRect();
+    tooltip.style.left = rect.left + rect.width / 2 - tooltip.offsetWidth / 2 + 'px';
+    tooltip.style.top = rect.top - tooltip.offsetHeight - 10 + 'px';
 
-    dialog.querySelector('.btn-cancel').onclick = () => {
-        backdrop.remove();
-        if (onCancel) onCancel();
-    };
-
-    dialog.querySelector('.btn-confirm').onclick = () => {
-        backdrop.remove();
-        if (onConfirm) onConfirm();
-    };
-
-    backdrop.onclick = (e) => {
-        if (e.target === backdrop) {
-            backdrop.remove();
-            if (onCancel) onCancel();
-        }
-    };
+    element.addEventListener('mouseleave', () => {
+        tooltip.remove();
+    }, { once: true });
 }
 
-// Number animation
-function animateNumber(element, start, end, duration = 1000) {
-    const range = end - start;
-    const increment = range / (duration / 16);
-    let current = start;
-
-    const timer = setInterval(() => {
-        current += increment;
-        if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
-            current = end;
-            clearInterval(timer);
-        }
-        element.textContent = Math.floor(current).toLocaleString();
-    }, 16);
-}
-
-// Add sparkle effect to legendary cards
-function addSparkleEffect(element) {
-    element.classList.add('sparkle');
-}
-
-// Particle effect for rewards
-function createParticleEffect(x, y, color = '#FFD700') {
-    for (let i = 0; i < 20; i++) {
-        const particle = document.createElement('div');
-        particle.style.cssText = `
-            position: fixed;
-            left: ${x}px;
-            top: ${y}px;
-            width: 8px;
-            height: 8px;
-            background: ${color};
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 10000;
-        `;
-
-        document.body.appendChild(particle);
-
-        const angle = (Math.PI * 2 * i) / 20;
-        const velocity = 2 + Math.random() * 3;
-        const vx = Math.cos(angle) * velocity;
-        const vy = Math.sin(angle) * velocity;
-
-        let px = x, py = y;
-        let opacity = 1;
-
-        const animate = () => {
-            px += vx;
-            py += vy;
-            opacity -= 0.02;
-
-            particle.style.left = px + 'px';
-            particle.style.top = py + 'px';
-            particle.style.opacity = opacity;
-
-            if (opacity > 0) {
-                requestAnimationFrame(animate);
-            } else {
-                particle.remove();
-            }
-        };
-
-        animate();
-    }
-}
-
-// Format large numbers
-function formatNumber(num) {
-    if (num >= 1000000) {
-        return (num / 1000000).toFixed(1) + 'M';
-    } else if (num >= 1000) {
-        return (num / 1000).toFixed(1) + 'K';
-    }
-    return num.toLocaleString();
-}
-
-// Get rarity color
-function getRarityColor(rarity) {
-    const colors = {
-        1: '#757F9A',
-        2: '#4facfe',
-        3: '#a044ff',
-        4: '#f093fb'
-    };
-    return colors[rarity] || '#666';
-}
-
-// Add sound effects (simple beep using Web Audio API)
-function playSound(frequency = 440, duration = 100, type = 'sine') {
-    try {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        oscillator.frequency.value = frequency;
-        oscillator.type = type;
-
-        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
-
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + duration / 1000);
-    } catch (e) {
-        // Silently fail if audio context is not available
-    }
-}
-
-// Sound effects
-const sounds = {
-    click: () => playSound(800, 50),
-    success: () => {
-        playSound(523, 100);
-        setTimeout(() => playSound(659, 100), 100);
-        setTimeout(() => playSound(784, 150), 200);
-    },
-    error: () => playSound(200, 200, 'sawtooth'),
-    coin: () => {
-        playSound(988, 50);
-        setTimeout(() => playSound(1047, 100), 50);
-    },
-    cardDraw: () => {
-        for (let i = 0; i < 3; i++) {
-            setTimeout(() => playSound(440 + i * 100, 100), i * 100);
+// Add tooltips to units
+document.addEventListener('mouseover', (e) => {
+    if (e.target.classList.contains('unit')) {
+        const title = e.target.title;
+        if (title) {
+            showTooltip(e.target, title);
         }
     }
-};
+});
 
-// Smooth scroll to element
-function smoothScrollTo(element) {
-    element.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
+// Smooth scrolling
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
     });
-}
+});
 
-// Copy to clipboard
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        showToast('클립보드에 복사되었습니다!', 'success');
-    }).catch(() => {
-        showToast('복사에 실패했습니다', 'error');
-    });
-}
+// Performance monitoring (optional)
+let fps = 0;
+let lastFrameTime = Date.now();
+let frameCount = 0;
 
-// Get relative time (e.g., "2 hours ago")
-function getRelativeTime(timestamp) {
+function updateFPS() {
+    frameCount++;
     const now = Date.now();
-    const diff = now - timestamp;
 
-    const seconds = Math.floor(diff / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
+    if (now - lastFrameTime >= 1000) {
+        fps = frameCount;
+        frameCount = 0;
+        lastFrameTime = now;
 
-    if (days > 0) return `${days}일 전`;
-    if (hours > 0) return `${hours}시간 전`;
-    if (minutes > 0) return `${minutes}분 전`;
-    return '방금 전';
-}
-
-// Debounce function
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-// Throttle function
-function throttle(func, limit) {
-    let inThrottle;
-    return function(...args) {
-        if (!inThrottle) {
-            func.apply(this, args);
-            inThrottle = true;
-            setTimeout(() => inThrottle = false, limit);
+        if (window.DEBUG) {
+            console.log('FPS:', fps);
         }
-    };
+    }
+
+    requestAnimationFrame(updateFPS);
 }
 
-// Export utility functions to global scope
-window.uiUtils = {
-    showToast,
-    showLoading,
-    hideLoading,
-    showConfirm,
-    animateNumber,
-    addSparkleEffect,
-    createParticleEffect,
-    formatNumber,
-    getRarityColor,
-    sounds,
-    smoothScrollTo,
-    copyToClipboard,
-    getRelativeTime,
-    debounce,
-    throttle
+if (window.DEBUG) {
+    updateFPS();
+}
+
+// Sound effects (optional, can be expanded)
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioContext;
+
+function playSound(frequency, duration, type = 'sine') {
+    if (!audioContext) {
+        audioContext = new AudioContext();
+    }
+
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.value = frequency;
+    oscillator.type = type;
+
+    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + duration);
+}
+
+// Export sound functions
+window.sounds = {
+    click: () => playSound(800, 0.1),
+    cast: () => playSound(600, 0.2),
+    hit: () => playSound(200, 0.1, 'square'),
+    victory: () => {
+        playSound(523, 0.15);
+        setTimeout(() => playSound(659, 0.15), 150);
+        setTimeout(() => playSound(784, 0.3), 300);
+    },
+    defeat: () => playSound(200, 0.5, 'sawtooth')
 };
 
-console.log('UI utilities loaded');
+// Add click sounds to buttons
+document.addEventListener('click', (e) => {
+    if (e.target.tagName === 'BUTTON' && window.sounds) {
+        window.sounds.click();
+    }
+});
+
+console.log('UI system loaded');

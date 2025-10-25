@@ -1,278 +1,441 @@
 // Game Data and Configuration
 
-// Player name pools by nationality
-const playerNamePools = {
-    korean: [
-        '손흥민', '이강인', '김민재', '황희찬', '이재성',
-        '황인범', '백승호', '정우영', '조현우', '김승규',
-        '이기제', '권창훈', '나상호', '정승현', '김진수',
-        '윤종규', '김영권', '송범근', '박지성', '차범근'
+// Race Definitions
+const RACES = {
+    human: {
+        name: '인간',
+        icon: '⚔️',
+        description: '강력한 공격력과 높은 체력을 가진 종족',
+        bonuses: {
+            attack: 1.2,
+            health: 1.3,
+            speed: 1.0
+        }
+    },
+    elf: {
+        name: '엘프',
+        icon: '🏹',
+        description: '빠른 이동속도와 높은 민첩성을 가진 종족',
+        bonuses: {
+            attack: 1.0,
+            health: 0.9,
+            speed: 1.5,
+            critChance: 0.25
+        }
+    },
+    undead: {
+        name: '언데드',
+        icon: '💀',
+        description: '강력한 마법과 특수 능력을 가진 종족',
+        bonuses: {
+            attack: 1.1,
+            health: 1.0,
+            speed: 0.9,
+            magicPower: 1.4
+        }
+    }
+};
+
+// Unit Types
+const UNIT_TYPES = {
+    human: [
+        {
+            id: 'warrior',
+            name: '전사',
+            icon: '🗡️',
+            cost: 50,
+            hp: 100,
+            attack: 15,
+            defense: 10,
+            speed: 5,
+            range: 1,
+            description: '기본 근접 전투 유닛'
+        },
+        {
+            id: 'knight',
+            name: '기사',
+            icon: '🛡️',
+            cost: 100,
+            hp: 150,
+            attack: 20,
+            defense: 20,
+            speed: 4,
+            range: 1,
+            description: '강력한 방어력을 가진 중장갑 유닛'
+        },
+        {
+            id: 'archer',
+            name: '궁수',
+            icon: '🏹',
+            cost: 75,
+            hp: 60,
+            attack: 18,
+            defense: 5,
+            speed: 6,
+            range: 3,
+            description: '원거리 공격 유닛'
+        },
+        {
+            id: 'paladin',
+            name: '팔라딘',
+            icon: '⚜️',
+            cost: 150,
+            hp: 180,
+            attack: 25,
+            defense: 25,
+            speed: 5,
+            range: 1,
+            description: '신성한 힘을 가진 최상급 유닛'
+        }
     ],
-    foreign: [
-        'Messi', 'Ronaldo', 'Neymar', 'Mbappé', 'Haaland',
-        'De Bruyne', 'Salah', 'Benzema', 'Lewandowski', 'Kane',
-        'Vinicius', 'Modrić', 'Kimmich', 'Van Dijk', 'Alisson',
-        'Courtois', 'Neuer', 'Son', 'Grealish', 'Foden',
-        'Rodri', 'Casemiro', 'Bellingham', 'Pedri', 'Gavi',
-        'Valverde', 'Müller', 'Gnabry', 'Sané', 'Kvaratskhelia'
+    elf: [
+        {
+            id: 'ranger',
+            name: '레인저',
+            icon: '🏹',
+            cost: 60,
+            hp: 70,
+            attack: 16,
+            defense: 6,
+            speed: 8,
+            range: 3,
+            description: '빠르고 정확한 원거리 유닛'
+        },
+        {
+            id: 'scout',
+            name: '정찰병',
+            icon: '👁️',
+            cost: 40,
+            hp: 50,
+            attack: 12,
+            defense: 4,
+            speed: 10,
+            range: 2,
+            description: '매우 빠른 이동속도'
+        },
+        {
+            id: 'druid',
+            name: '드루이드',
+            icon: '🌿',
+            cost: 120,
+            hp: 80,
+            attack: 14,
+            defense: 8,
+            speed: 6,
+            range: 2,
+            description: '자연 마법을 사용하는 유닛'
+        },
+        {
+            id: 'windwalker',
+            name: '바람술사',
+            icon: '🌪️',
+            cost: 140,
+            hp: 90,
+            attack: 22,
+            defense: 10,
+            speed: 9,
+            range: 2,
+            description: '바람의 힘을 다루는 엘프 최강 유닛'
+        }
+    ],
+    undead: [
+        {
+            id: 'skeleton',
+            name: '스켈레톤',
+            icon: '☠️',
+            cost: 45,
+            hp: 60,
+            attack: 12,
+            defense: 5,
+            speed: 5,
+            range: 1,
+            description: '기본 언데드 전사'
+        },
+        {
+            id: 'necromancer',
+            name: '네크로맨서',
+            icon: '🧙',
+            cost: 130,
+            hp: 70,
+            attack: 20,
+            defense: 7,
+            speed: 4,
+            range: 3,
+            description: '죽은 자를 소환하는 마법사'
+        },
+        {
+            id: 'vampire',
+            name: '뱀파이어',
+            icon: '🧛',
+            cost: 110,
+            hp: 100,
+            attack: 24,
+            defense: 12,
+            speed: 7,
+            range: 1,
+            description: '흡혈로 체력을 회복하는 유닛'
+        },
+        {
+            id: 'lich',
+            name: '리치',
+            icon: '👻',
+            cost: 160,
+            hp: 120,
+            attack: 28,
+            defense: 15,
+            speed: 5,
+            range: 3,
+            description: '강력한 암흑 마법을 사용하는 최상급 언데드'
+        }
     ]
 };
 
-// Position configurations
-const positions = {
-    GK: { name: '골키퍼', abbr: 'GK' },
-    CB: { name: '중앙 수비수', abbr: 'CB' },
-    LB: { name: '좌측 수비수', abbr: 'LB' },
-    RB: { name: '우측 수비수', abbr: 'RB' },
-    CDM: { name: '수비형 미드필더', abbr: 'CDM' },
-    CM: { name: '중앙 미드필더', abbr: 'CM' },
-    CAM: { name: '공격형 미드필더', abbr: 'CAM' },
-    LM: { name: '좌측 미드필더', abbr: 'LM' },
-    RM: { name: '우측 미드필더', abbr: 'RM' },
-    LW: { name: '좌측 윙어', abbr: 'LW' },
-    RW: { name: '우측 윙어', abbr: 'RW' },
-    ST: { name: '스트라이커', abbr: 'ST' },
-    CF: { name: '중앙 공격수', abbr: 'CF' }
-};
-
-// Formation configurations
-const formations = {
-    '4-4-2': [
-        { pos: 'GK', x: 50, y: 95 },
-        { pos: 'LB', x: 15, y: 75 },
-        { pos: 'CB', x: 35, y: 75 },
-        { pos: 'CB', x: 65, y: 75 },
-        { pos: 'RB', x: 85, y: 75 },
-        { pos: 'LM', x: 15, y: 45 },
-        { pos: 'CM', x: 35, y: 50 },
-        { pos: 'CM', x: 65, y: 50 },
-        { pos: 'RM', x: 85, y: 45 },
-        { pos: 'ST', x: 35, y: 15 },
-        { pos: 'ST', x: 65, y: 15 }
+// Magic Spells
+const SPELLS = {
+    human: [
+        {
+            id: 'heal',
+            name: '치유',
+            icon: '💚',
+            cost: 30,
+            cooldown: 15,
+            description: '아군 유닛의 체력 회복',
+            effect: { type: 'heal', value: 50 }
+        },
+        {
+            id: 'berserk',
+            name: '광폭화',
+            icon: '💢',
+            cost: 40,
+            cooldown: 20,
+            description: '아군의 공격력 증가',
+            effect: { type: 'buff_attack', value: 1.5, duration: 10 }
+        },
+        {
+            id: 'shield',
+            name: '보호막',
+            icon: '🛡️',
+            cost: 35,
+            cooldown: 18,
+            description: '아군의 방어력 증가',
+            effect: { type: 'buff_defense', value: 2.0, duration: 12 }
+        }
     ],
-    '4-3-3': [
-        { pos: 'GK', x: 50, y: 95 },
-        { pos: 'LB', x: 15, y: 75 },
-        { pos: 'CB', x: 35, y: 75 },
-        { pos: 'CB', x: 65, y: 75 },
-        { pos: 'RB', x: 85, y: 75 },
-        { pos: 'CM', x: 25, y: 50 },
-        { pos: 'CM', x: 50, y: 50 },
-        { pos: 'CM', x: 75, y: 50 },
-        { pos: 'LW', x: 15, y: 15 },
-        { pos: 'ST', x: 50, y: 10 },
-        { pos: 'RW', x: 85, y: 15 }
+    elf: [
+        {
+            id: 'arrow_rain',
+            name: '화살 폭격',
+            icon: '🌧️',
+            cost: 50,
+            cooldown: 25,
+            description: '범위 공격 마법',
+            effect: { type: 'area_damage', value: 40, radius: 100 }
+        },
+        {
+            id: 'swift',
+            name: '질주',
+            icon: '💨',
+            cost: 30,
+            cooldown: 15,
+            description: '이동속도 대폭 증가',
+            effect: { type: 'buff_speed', value: 2.0, duration: 8 }
+        },
+        {
+            id: 'nature_blessing',
+            name: '자연의 축복',
+            icon: '🍀',
+            cost: 45,
+            cooldown: 20,
+            description: '모든 능력치 소폭 증가',
+            effect: { type: 'buff_all', value: 1.3, duration: 15 }
+        }
     ],
-    '3-5-2': [
-        { pos: 'GK', x: 50, y: 95 },
-        { pos: 'CB', x: 25, y: 75 },
-        { pos: 'CB', x: 50, y: 75 },
-        { pos: 'CB', x: 75, y: 75 },
-        { pos: 'LM', x: 10, y: 50 },
-        { pos: 'CM', x: 30, y: 50 },
-        { pos: 'CM', x: 50, y: 50 },
-        { pos: 'CM', x: 70, y: 50 },
-        { pos: 'RM', x: 90, y: 50 },
-        { pos: 'ST', x: 35, y: 15 },
-        { pos: 'ST', x: 65, y: 15 }
-    ],
-    '4-2-3-1': [
-        { pos: 'GK', x: 50, y: 95 },
-        { pos: 'LB', x: 15, y: 75 },
-        { pos: 'CB', x: 35, y: 75 },
-        { pos: 'CB', x: 65, y: 75 },
-        { pos: 'RB', x: 85, y: 75 },
-        { pos: 'CDM', x: 35, y: 55 },
-        { pos: 'CDM', x: 65, y: 55 },
-        { pos: 'LM', x: 15, y: 35 },
-        { pos: 'CAM', x: 50, y: 35 },
-        { pos: 'RM', x: 85, y: 35 },
-        { pos: 'ST', x: 50, y: 10 }
-    ],
-    '3-4-3': [
-        { pos: 'GK', x: 50, y: 95 },
-        { pos: 'CB', x: 25, y: 75 },
-        { pos: 'CB', x: 50, y: 75 },
-        { pos: 'CB', x: 75, y: 75 },
-        { pos: 'LM', x: 15, y: 50 },
-        { pos: 'CM', x: 40, y: 50 },
-        { pos: 'CM', x: 60, y: 50 },
-        { pos: 'RM', x: 85, y: 50 },
-        { pos: 'LW', x: 20, y: 15 },
-        { pos: 'ST', x: 50, y: 10 },
-        { pos: 'RW', x: 80, y: 15 }
+    undead: [
+        {
+            id: 'dark_bolt',
+            name: '암흑 화살',
+            icon: '⚡',
+            cost: 40,
+            cooldown: 12,
+            description: '강력한 단일 공격',
+            effect: { type: 'damage', value: 80 }
+        },
+        {
+            id: 'plague',
+            name: '역병',
+            icon: '☠️',
+            cost: 60,
+            cooldown: 30,
+            description: '적 전체에 지속 피해',
+            effect: { type: 'dot', value: 5, duration: 10 }
+        },
+        {
+            id: 'summon',
+            name: '소환',
+            icon: '👻',
+            cost: 50,
+            cooldown: 22,
+            description: '스켈레톤 소환',
+            effect: { type: 'summon', unitId: 'skeleton', count: 3 }
+        },
+        {
+            id: 'life_drain',
+            name: '생명력 흡수',
+            icon: '🩸',
+            cost: 45,
+            cooldown: 18,
+            description: '적의 체력을 흡수',
+            effect: { type: 'drain', value: 60 }
+        }
     ]
 };
 
-// Rarity definitions
-const rarities = {
-    1: { name: '일반', stars: '⭐', color: '#757F9A' },
-    2: { name: '레어', stars: '⭐⭐', color: '#4facfe' },
-    3: { name: '에픽', stars: '⭐⭐⭐', color: '#a044ff' },
-    4: { name: '전설', stars: '⭐⭐⭐⭐', color: '#f093fb' }
+// Campaign Stages
+const CAMPAIGN_STAGES = [
+    {
+        id: 1,
+        name: '첫 번째 전투',
+        difficulty: 'easy',
+        enemyRace: 'human',
+        enemyLevel: 1,
+        outposts: 3,
+        reward: { gold: 100, exp: 50, gem: 5 },
+        unlocked: true
+    },
+    {
+        id: 2,
+        name: '숲의 수호자',
+        difficulty: 'easy',
+        enemyRace: 'elf',
+        enemyLevel: 2,
+        outposts: 4,
+        reward: { gold: 150, exp: 75, gem: 5 },
+        unlocked: false
+    },
+    {
+        id: 3,
+        name: '어둠의 습격',
+        difficulty: 'normal',
+        enemyRace: 'undead',
+        enemyLevel: 3,
+        outposts: 4,
+        reward: { gold: 200, exp: 100, gem: 10 },
+        unlocked: false
+    },
+    {
+        id: 4,
+        name: '요새 공략',
+        difficulty: 'normal',
+        enemyRace: 'human',
+        enemyLevel: 4,
+        outposts: 5,
+        reward: { gold: 300, exp: 150, gem: 10 },
+        unlocked: false
+    },
+    {
+        id: 5,
+        name: '엘프 왕국',
+        difficulty: 'hard',
+        enemyRace: 'elf',
+        enemyLevel: 5,
+        outposts: 5,
+        reward: { gold: 400, exp: 200, gem: 15 },
+        unlocked: false
+    },
+    {
+        id: 6,
+        name: '언데드 성채',
+        difficulty: 'hard',
+        enemyRace: 'undead',
+        enemyLevel: 6,
+        outposts: 6,
+        reward: { gold: 500, exp: 300, gem: 20 },
+        unlocked: false
+    }
+];
+
+// Item Types
+const ITEM_TYPES = {
+    weapon: {
+        name: '무기',
+        icon: '⚔️',
+        statBonus: 'attack'
+    },
+    armor: {
+        name: '방어구',
+        icon: '🛡️',
+        statBonus: 'defense'
+    },
+    accessory: {
+        name: '장신구',
+        icon: '💍',
+        statBonus: 'all'
+    },
+    consumable: {
+        name: '소비 아이템',
+        icon: '🧪',
+        statBonus: 'temp'
+    }
 };
 
-// Stat ranges by rarity
-const statRanges = {
-    1: { min: 50, max: 65 },  // Normal
-    2: { min: 65, max: 78 },  // Rare
-    3: { min: 78, max: 88 },  // Epic
-    4: { min: 88, max: 99 }   // Legendary
+// Rarity Levels
+const RARITIES = {
+    1: { name: '일반', color: '#999', multiplier: 1.0 },
+    2: { name: '고급', color: '#4ecdc4', multiplier: 1.5 },
+    3: { name: '희귀', color: '#a044ff', multiplier: 2.0 },
+    4: { name: '영웅', color: '#ffd700', multiplier: 3.0 },
+    5: { name: '전설', color: '#ff6b6b', multiplier: 5.0 }
 };
 
-// Player class
-class Player {
-    constructor(id, name, position, rarity, level = 1) {
-        this.id = id;
-        this.name = name;
-        this.position = position;
+// Item class
+class Item {
+    constructor(type, rarity, level = 1) {
+        this.id = Date.now() + Math.random();
+        this.type = type;
         this.rarity = rarity;
         this.level = level;
-        this.stats = this.generateStats();
-        this.overall = this.calculateOverall();
+        this.name = this.generateName();
+        this.bonus = this.calculateBonus();
     }
 
-    generateStats() {
-        const range = statRanges[this.rarity];
-        const baseStats = {
-            pace: this.randomStat(range),
-            shooting: this.randomStat(range),
-            passing: this.randomStat(range),
-            dribbling: this.randomStat(range),
-            defense: this.randomStat(range),
-            physical: this.randomStat(range)
-        };
-
-        // Adjust stats based on position
-        if (this.position === 'GK') {
-            baseStats.diving = this.randomStat(range);
-            baseStats.handling = this.randomStat(range);
-            baseStats.reflexes = this.randomStat(range);
-        }
-
-        return baseStats;
+    generateName() {
+        const prefixes = ['낡은', '평범한', '날카로운', '견고한', '빛나는', '신비한', '전설의'];
+        const prefix = prefixes[Math.min(this.rarity, prefixes.length - 1)];
+        return `${prefix} ${ITEM_TYPES[this.type].name}`;
     }
 
-    randomStat(range) {
-        return Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
-    }
-
-    calculateOverall() {
-        const stats = this.stats;
-        if (this.position === 'GK') {
-            return Math.floor((stats.diving + stats.handling + stats.reflexes + stats.physical) / 4);
-        }
-
-        let weights = { pace: 1, shooting: 1, passing: 1, dribbling: 1, defense: 1, physical: 1 };
-
-        // Position-based weights
-        if (['ST', 'CF'].includes(this.position)) {
-            weights = { pace: 1.2, shooting: 1.5, passing: 0.8, dribbling: 1.2, defense: 0.3, physical: 1 };
-        } else if (['CB'].includes(this.position)) {
-            weights = { pace: 0.8, shooting: 0.3, passing: 0.8, dribbling: 0.5, defense: 1.5, physical: 1.3 };
-        } else if (['CM', 'CDM', 'CAM'].includes(this.position)) {
-            weights = { pace: 1, shooting: 1, passing: 1.5, dribbling: 1.2, defense: 1, physical: 1 };
-        } else if (['LW', 'RW', 'LM', 'RM'].includes(this.position)) {
-            weights = { pace: 1.5, shooting: 1.2, passing: 1, dribbling: 1.3, defense: 0.5, physical: 0.8 };
-        } else if (['LB', 'RB'].includes(this.position)) {
-            weights = { pace: 1.2, shooting: 0.5, passing: 1, dribbling: 0.8, defense: 1.3, physical: 1.2 };
-        }
-
-        const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0);
-        const weightedSum = Object.keys(weights).reduce((sum, stat) => {
-            return sum + (stats[stat] || 0) * weights[stat];
-        }, 0);
-
-        const overall = Math.floor(weightedSum / totalWeight);
-
-        // Level bonus
-        return overall + (this.level - 1) * 2;
-    }
-
-    upgrade() {
-        this.level++;
-        // Slightly improve stats on upgrade
-        Object.keys(this.stats).forEach(stat => {
-            if (Math.random() > 0.5) {
-                this.stats[stat] = Math.min(99, this.stats[stat] + 1);
-            }
-        });
-        this.overall = this.calculateOverall();
-    }
-
-    getUpgradeCost() {
-        return Math.floor(1000 * Math.pow(1.5, this.level - 1));
+    calculateBonus() {
+        const base = 10 * this.level;
+        return Math.floor(base * RARITIES[this.rarity].multiplier);
     }
 }
 
-// Game state
+// Game State class
 class GameState {
     constructor() {
-        this.gold = 10000;
-        this.diamond = 100;
-        this.players = [];
-        this.squad = new Array(11).fill(null);
-        this.formation = '4-4-2';
-        this.leaguePoints = 0;
-        this.matchHistory = [];
+        this.selectedRace = null;
+        this.gold = 5000;
+        this.gem = 50;
+        this.level = 1;
+        this.exp = 0;
         this.wins = 0;
         this.losses = 0;
-        this.draws = 0;
-        this.nextPlayerId = 1;
-
-        // Initialize with starter players
-        this.initializeStarterPlayers();
+        this.units = [];
+        this.items = [];
+        this.unlockedStages = [1];
+        this.survivalRecord = 0;
+        this.currentBattle = null;
     }
 
-    initializeStarterPlayers() {
-        // Give some starter players
-        const starterPositions = ['GK', 'CB', 'CB', 'CM', 'ST'];
-        starterPositions.forEach(pos => {
-            this.players.push(this.generateRandomPlayer(1, pos));
-        });
-    }
-
-    generateRandomPlayer(rarity, position = null) {
-        const availablePositions = position ? [position] : Object.keys(positions);
-        const selectedPosition = availablePositions[Math.floor(Math.random() * availablePositions.length)];
-
-        const namePool = Math.random() > 0.5 ? playerNamePools.korean : playerNamePools.foreign;
-        const name = namePool[Math.floor(Math.random() * namePool.length)];
-
-        const player = new Player(this.nextPlayerId++, name, selectedPosition, rarity);
-        return player;
-    }
-
-    addPlayer(player) {
-        this.players.push(player);
-    }
-
-    removePlayer(playerId) {
-        this.players = this.players.filter(p => p.id !== playerId);
-    }
-
-    getPlayer(playerId) {
-        return this.players.find(p => p.id === playerId);
-    }
-
-    setSquadPlayer(index, playerId) {
-        this.squad[index] = playerId;
-    }
-
-    getSquadPlayer(index) {
-        const playerId = this.squad[index];
-        return playerId ? this.getPlayer(playerId) : null;
-    }
-
-    getTeamPower() {
-        let totalPower = 0;
-        this.squad.forEach(playerId => {
-            if (playerId) {
-                const player = this.getPlayer(playerId);
-                if (player) totalPower += player.overall;
+    selectRace(race) {
+        this.selectedRace = race;
+        // Give starting units
+        const startingUnitTypes = UNIT_TYPES[race].slice(0, 2);
+        startingUnitTypes.forEach(unitType => {
+            for (let i = 0; i < 3; i++) {
+                this.units.push({ ...unitType, id: Date.now() + Math.random() });
             }
         });
-        return totalPower;
     }
 
     addGold(amount) {
@@ -287,92 +450,76 @@ class GameState {
         return false;
     }
 
-    addDiamond(amount) {
-        this.diamond += amount;
+    addGem(amount) {
+        this.gem += amount;
     }
 
-    spendDiamond(amount) {
-        if (this.diamond >= amount) {
-            this.diamond -= amount;
+    spendGem(amount) {
+        if (this.gem >= amount) {
+            this.gem -= amount;
             return true;
         }
         return false;
     }
 
-    addMatchResult(result) {
-        this.matchHistory.unshift(result);
-        if (this.matchHistory.length > 10) {
-            this.matchHistory.pop();
+    addExp(amount) {
+        this.exp += amount;
+        // Level up check
+        const requiredExp = this.level * 100;
+        if (this.exp >= requiredExp) {
+            this.level++;
+            this.exp -= requiredExp;
+            return true; // Leveled up
         }
+        return false;
+    }
 
-        if (result.result === 'win') {
-            this.wins++;
-            this.leaguePoints += 3;
-        } else if (result.result === 'draw') {
-            this.draws++;
-            this.leaguePoints += 1;
-        } else {
-            this.losses++;
+    unlockStage(stageId) {
+        if (!this.unlockedStages.includes(stageId)) {
+            this.unlockedStages.push(stageId);
         }
     }
 
-    getWinRate() {
-        const totalMatches = this.wins + this.losses + this.draws;
-        if (totalMatches === 0) return 0;
-        return Math.floor((this.wins / totalMatches) * 100);
+    getTotalPower() {
+        return this.units.reduce((sum, unit) => {
+            return sum + (unit.attack + unit.defense + unit.hp / 10);
+        }, 0);
+    }
+
+    addItem(item) {
+        this.items.push(item);
+    }
+
+    removeItem(itemId) {
+        this.items = this.items.filter(item => item.id !== itemId);
     }
 
     save() {
         const saveData = {
+            selectedRace: this.selectedRace,
             gold: this.gold,
-            diamond: this.diamond,
-            players: this.players.map(p => ({
-                id: p.id,
-                name: p.name,
-                position: p.position,
-                rarity: p.rarity,
-                level: p.level,
-                stats: p.stats
-            })),
-            squad: this.squad,
-            formation: this.formation,
-            leaguePoints: this.leaguePoints,
-            matchHistory: this.matchHistory,
+            gem: this.gem,
+            level: this.level,
+            exp: this.exp,
             wins: this.wins,
             losses: this.losses,
-            draws: this.draws,
-            nextPlayerId: this.nextPlayerId
+            units: this.units,
+            items: this.items,
+            unlockedStages: this.unlockedStages,
+            survivalRecord: this.survivalRecord
         };
-        localStorage.setItem('fantakingGameSave', JSON.stringify(saveData));
+        localStorage.setItem('fantakingSave', JSON.stringify(saveData));
     }
 
     load() {
-        const saveData = localStorage.getItem('fantakingGameSave');
+        const saveData = localStorage.getItem('fantakingSave');
         if (saveData) {
             try {
                 const data = JSON.parse(saveData);
-                this.gold = data.gold;
-                this.diamond = data.diamond;
-                this.squad = data.squad;
-                this.formation = data.formation;
-                this.leaguePoints = data.leaguePoints;
-                this.matchHistory = data.matchHistory || [];
-                this.wins = data.wins || 0;
-                this.losses = data.losses || 0;
-                this.draws = data.draws || 0;
-                this.nextPlayerId = data.nextPlayerId;
-
-                // Restore players
-                this.players = data.players.map(p => {
-                    const player = new Player(p.id, p.name, p.position, p.rarity, p.level);
-                    player.stats = p.stats;
-                    player.overall = player.calculateOverall();
-                    return player;
-                });
-
+                Object.assign(this, data);
                 return true;
             } catch (e) {
-                console.error('Failed to load save data:', e);
+                console.error('Failed to load save:', e);
                 return false;
             }
         }
@@ -380,132 +527,54 @@ class GameState {
     }
 }
 
-// Gacha system
-class GachaSystem {
-    static drawCard(type) {
-        let rarity;
-        const roll = Math.random() * 100;
+// Generate random opponents
+function generateOpponent(playerLevel) {
+    const races = Object.keys(RACES);
+    const race = races[Math.floor(Math.random() * races.length)];
+    const level = playerLevel + Math.floor(Math.random() * 3) - 1;
+    const power = level * 100 + Math.floor(Math.random() * 100);
 
-        if (type === 'normal') {
-            if (roll < 60) rarity = 1;      // 60% normal
-            else if (roll < 90) rarity = 2; // 30% rare
-            else rarity = 3;                 // 10% epic
-        } else { // premium
-            if (roll < 50) rarity = 2;      // 50% rare
-            else if (roll < 85) rarity = 3; // 35% epic
-            else rarity = 4;                 // 15% legendary
-        }
+    const names = [
+        '어둠의 군주', '붉은 기사', '얼음 마법사', '불의 전사',
+        '그림자 암살자', '빛의 수호자', '폭풍의 왕', '대지의 거인',
+        '달빛 궁수', '천둥 술사', '독사의 여왕', '강철 수호자'
+    ];
 
-        return rarity;
-    }
-
-    static draw(game, type, count) {
-        const results = [];
-        const costPerDraw = type === 'normal' ? 1000 : 10;
-        const currency = type === 'normal' ? 'gold' : 'diamond';
-        const totalCost = count === 10 ? costPerDraw * count * 0.9 : costPerDraw * count;
-
-        let canAfford = false;
-        if (currency === 'gold') {
-            canAfford = game.spendGold(totalCost);
-        } else {
-            canAfford = game.spendDiamond(totalCost);
-        }
-
-        if (!canAfford) {
-            return { success: false, message: '재화가 부족합니다!' };
-        }
-
-        for (let i = 0; i < count; i++) {
-            const rarity = this.drawCard(type);
-            const player = game.generateRandomPlayer(rarity);
-            game.addPlayer(player);
-            results.push(player);
-        }
-
-        game.save();
-        return { success: true, players: results };
-    }
+    return {
+        name: names[Math.floor(Math.random() * names.length)],
+        race: race,
+        level: level,
+        power: power
+    };
 }
 
-// Match simulation
-class MatchSimulator {
-    static simulate(playerTeam, opponentTeam) {
-        const playerPower = playerTeam.power;
-        const opponentPower = opponentTeam.power;
-
-        // Base probabilities
-        const powerDiff = playerPower - opponentPower;
-        const winProbability = 50 + (powerDiff / 10);
-
-        const roll = Math.random() * 100;
-
-        let result;
-        if (roll < winProbability) {
-            result = 'win';
-        } else if (roll < winProbability + 20) {
-            result = 'draw';
-        } else {
-            result = 'loss';
-        }
-
-        // Generate scores
-        let playerScore, opponentScore;
-        if (result === 'win') {
-            playerScore = Math.floor(Math.random() * 3) + 2; // 2-4
-            opponentScore = Math.floor(Math.random() * playerScore);
-        } else if (result === 'draw') {
-            playerScore = Math.floor(Math.random() * 3) + 1; // 1-3
-            opponentScore = playerScore;
-        } else {
-            opponentScore = Math.floor(Math.random() * 3) + 2; // 2-4
-            playerScore = Math.floor(Math.random() * opponentScore);
-        }
-
-        // Generate match stats
-        const stats = {
-            possession: Math.floor(45 + (powerDiff / 5) + Math.random() * 10),
-            shots: Math.floor(8 + (powerDiff / 10) + Math.random() * 8),
-            shotsOnTarget: Math.floor(4 + (powerDiff / 15) + Math.random() * 4),
-            corners: Math.floor(4 + Math.random() * 6),
-            fouls: Math.floor(8 + Math.random() * 8)
-        };
-
-        stats.possession = Math.max(30, Math.min(70, stats.possession));
-
-        // Rewards
-        const rewards = {
-            gold: 0,
-            diamond: 0,
-            exp: 0
-        };
-
-        if (result === 'win') {
-            rewards.gold = Math.floor(500 + Math.random() * 500);
-            rewards.exp = 100;
-            if (Math.random() < 0.1) rewards.diamond = 5;
-        } else if (result === 'draw') {
-            rewards.gold = Math.floor(200 + Math.random() * 300);
-            rewards.exp = 50;
-        } else {
-            rewards.gold = Math.floor(100 + Math.random() * 200);
-            rewards.exp = 25;
-        }
-
-        return {
-            result,
-            playerScore,
-            opponentScore,
-            playerStats: stats,
-            opponentStats: {
-                possession: 100 - stats.possession,
-                shots: Math.floor(8 + Math.random() * 8),
-                shotsOnTarget: Math.floor(4 + Math.random() * 4),
-                corners: Math.floor(4 + Math.random() * 6),
-                fouls: Math.floor(8 + Math.random() * 8)
-            },
-            rewards,
-            opponent: opponentTeam.name
-        };
+// Boss data
+const RAID_BOSSES = [
+    {
+        id: 'dragon',
+        name: '고대 드래곤',
+        icon: '🐉',
+        hp: 5000,
+        attack: 50,
+        level: 10,
+        reward: { gold: 1000, gem: 50, itemChance: 0.8 }
+    },
+    {
+        id: 'demon',
+        name: '악마 군주',
+        icon: '😈',
+        hp: 8000,
+        attack: 60,
+        level: 15,
+        reward: { gold: 1500, gem: 75, itemChance: 0.9 }
+    },
+    {
+        id: 'titan',
+        name: '고대 타이탄',
+        icon: '🗿',
+        hp: 12000,
+        attack: 70,
+        level: 20,
+        reward: { gold: 2000, gem: 100, itemChance: 1.0 }
     }
-}
+];
