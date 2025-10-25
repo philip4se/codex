@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>판타킹 클론 - 판타지 축구 게임</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="game-header">
+            <div class="header-content">
+                <h1>⚽ 판타지 킹</h1>
+                <div class="user-info">
+                    <div class="currency">
+                        <span class="gold">💰 골드: <span id="gold">10000</span></span>
+                        <span class="diamond">💎 다이아: <span id="diamond">100</span></span>
+                    </div>
+                </div>
+            </div>
+            <nav class="main-nav">
+                <button class="nav-btn active" data-page="home">홈</button>
+                <button class="nav-btn" data-page="squad">스쿼드</button>
+                <button class="nav-btn" data-page="gacha">카드뽑기</button>
+                <button class="nav-btn" data-page="upgrade">강화</button>
+                <button class="nav-btn" data-page="league">리그</button>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Home Page -->
+            <div id="home-page" class="page active">
+                <div class="welcome-section">
+                    <h2>환영합니다!</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>내 팀 파워</h3>
+                            <p class="stat-value" id="team-power">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>보유 선수</h3>
+                            <p class="stat-value" id="player-count">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>리그 순위</h3>
+                            <p class="stat-value" id="league-rank">-</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>승률</h3>
+                            <p class="stat-value" id="win-rate">0%</p>
+                        </div>
+                    </div>
+                    <div class="quick-actions">
+                        <button class="action-btn" onclick="navigateTo('gacha')">
+                            🎰 카드 뽑기
+                        </button>
+                        <button class="action-btn" onclick="navigateTo('squad')">
+                            ⚽ 스쿼드 구성
+                        </button>
+                        <button class="action-btn" onclick="navigateTo('league')">
+                            🏆 경기 시작
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Squad Page -->
+            <div id="squad-page" class="page">
+                <h2>스쿼드 관리</h2>
+                <div class="formation-selector">
+                    <label>포메이션:</label>
+                    <select id="formation-select">
+                        <option value="4-4-2">4-4-2</option>
+                        <option value="4-3-3">4-3-3</option>
+                        <option value="3-5-2">3-5-2</option>
+                        <option value="4-2-3-1">4-2-3-1</option>
+                        <option value="3-4-3">3-4-3</option>
+                    </select>
+                </div>
+                <div class="field-container">
+                    <div class="football-field" id="football-field">
+                        <!-- Positions will be dynamically generated -->
+                    </div>
+                </div>
+                <div class="bench-section">
+                    <h3>보유 선수</h3>
+                    <div class="player-list" id="player-inventory">
+                        <!-- Player cards will be displayed here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gacha Page -->
+            <div id="gacha-page" class="page">
+                <h2>카드 뽑기</h2>
+                <div class="gacha-container">
+                    <div class="gacha-options">
+                        <div class="gacha-option">
+                            <h3>일반 뽑기</h3>
+                            <p class="gacha-desc">기본 등급 선수 카드</p>
+                            <p class="gacha-cost">💰 1,000 골드</p>
+                            <div class="gacha-rates">
+                                <p>⭐ 일반: 60%</p>
+                                <p>⭐⭐ 레어: 30%</p>
+                                <p>⭐⭐⭐ 에픽: 10%</p>
+                            </div>
+                            <button class="gacha-btn" onclick="drawCard('normal', 1)">1회 뽑기</button>
+                            <button class="gacha-btn" onclick="drawCard('normal', 10)">10회 뽑기 (9,000G)</button>
+                        </div>
+                        <div class="gacha-option premium">
+                            <h3>프리미엄 뽑기</h3>
+                            <p class="gacha-desc">고급 등급 선수 카드</p>
+                            <p class="gacha-cost">💎 10 다이아</p>
+                            <div class="gacha-rates">
+                                <p>⭐⭐ 레어: 50%</p>
+                                <p>⭐⭐⭐ 에픽: 35%</p>
+                                <p>⭐⭐⭐⭐ 전설: 15%</p>
+                            </div>
+                            <button class="gacha-btn premium" onclick="drawCard('premium', 1)">1회 뽑기</button>
+                            <button class="gacha-btn premium" onclick="drawCard('premium', 10)">10회 뽑기 (100💎)</button>
+                        </div>
+                    </div>
+                    <div class="gacha-result" id="gacha-result">
+                        <!-- Gacha results will be shown here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upgrade Page -->
+            <div id="upgrade-page" class="page">
+                <h2>선수 강화</h2>
+                <div class="upgrade-container">
+                    <div class="upgrade-selection">
+                        <h3>강화할 선수 선택</h3>
+                        <div class="player-list" id="upgrade-player-list">
+                            <!-- Available players for upgrade -->
+                        </div>
+                    </div>
+                    <div class="upgrade-panel" id="upgrade-panel">
+                        <p class="placeholder">선수를 선택해주세요</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- League Page -->
+            <div id="league-page" class="page">
+                <h2>리그</h2>
+                <div class="league-container">
+                    <div class="league-info">
+                        <h3>현재 시즌</h3>
+                        <div class="season-info">
+                            <p>시즌 1</p>
+                            <p>순위: <span id="current-rank">-</span></p>
+                            <p>포인트: <span id="league-points">0</span></p>
+                        </div>
+                    </div>
+                    <div class="match-section">
+                        <h3>경기하기</h3>
+                        <div class="opponent-list" id="opponent-list">
+                            <!-- Opponents will be generated here -->
+                        </div>
+                    </div>
+                    <div class="match-history">
+                        <h3>최근 경기</h3>
+                        <div id="recent-matches">
+                            <p class="placeholder">아직 경기 기록이 없습니다</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Modal for match results -->
+        <div id="match-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <div id="match-result-content">
+                    <!-- Match results will be shown here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/ui.js"></script>
+</body>
+</html>
