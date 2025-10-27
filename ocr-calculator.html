@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>스크린샷 검산·오류검증 계산기 (개선판)</title>
+  <!-- PDF.js (first page rendering) -->
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+  <script>
+    if (window['pdfjsLib']) {
+      window['pdfjsLib'].GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+    }
+  </script>
+  <!-- Tesseract.js CDN (한글+영문) -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <style>
+    :root {
+      --bg: #111827;
+      --panel: #1f2937;
+      --border: #374151;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --brand: #818cf8;
+      --brand-hover: #a78bfa;
+      --ok: #4ade80;
+      --warn: #facc15;
+      --err: #f87171;
+      --overlay: #0f172a;
+      color-scheme: dark;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: rgba(17, 24, 39, .85);
+      backdrop-filter: blur(12px);
+      z-index: 10;
+    }
+    h1 {
+      font-weight: 800;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    main {
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 24px;
+      padding: 24px;
+      align-items: flex-start;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .card h2 {
+      margin: 0;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 16px;
+      font-weight: 700;
+      color: #f3f4f6;
+    }
+    .card h3 {
+      margin: 0 0 12px 0;
+      font-size: 14px;
+      font-weight: 700;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card .content { padding: 20px; }
+    .drop {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      background: var(--bg);
+      transition: background .2s, border-color .2s;
+    }
+    .drop:hover {
+      background: #374151;
+      border-color: var(--brand);
+    }
+    .muted { color: var(--muted); font-size: 13px; }
+    .grid { display: grid; gap: 16px; }
+    .btn {
+      background: var(--brand);
+      color: #111827;
+      border: none;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color .2s, opacity .2s;
+    }
+    .btn:hover:not(:disabled) { background: var(--brand-hover); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn.secondary { background: #4b5563; color: var(--text); }
+    .btn.secondary:hover:not(:disabled) { background: #6b7280; }
+    .btn.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn.ghost:hover:not(:disabled) { border-color: var(--brand); color: var(--brand); }
+    .row { display: flex; align-items: center; gap: 12px; justify-content: space-between; }
+    .badge { font-size: 11px; padding: 4px 10px; border-radius: 999px; background: var(--border); color: var(--muted); font-weight: 600; }
+    input[type="text"], input[type="number"], select {
+      width: auto;
+      flex-grow: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 2px rgba(129, 140, 248, .4);
+    }
+    .table-container { border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; background: var(--bg); }
+    .table { width: 100%; min-width: 800px; border-collapse: collapse; }
+    .table th, .table td { border-bottom: 1px solid var(--border); padding: 12px 10px; font-size: 13px; vertical-align: middle; text-align: left; }
+    .table th { color: #d1d5db; font-weight: 600; background: rgba(55, 65, 81, .3); }
+    .table thead th:first-child {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .table tbody tr:last-child td { border-bottom: none; }
+    .table tbody tr:hover { background: rgba(55, 65, 81, .2); }
+    .table td:nth-child(1), .table th:nth-child(1) { text-align: center; }
+    .table td:nth-child(2), .table th:nth-child(2) { text-align: center; }
+    .code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; line-height: 1.7; font-size: 13px; }
+    .progress { height: 6px; background: var(--bg); border-radius: 99px; overflow: hidden; border: 1px solid var(--border); }
+    .progress > div { height: 100%; background: var(--brand); width: 0%; transition: width .3s ease-in-out; }
+    .num { font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono" }
+    .hint { font-size: 12px; color: var(--muted); background: var(--bg); padding: 10px 12px; border-radius: 8px; }
+    .k { color: var(--brand-hover); font-weight: 600; }
+    .target-row { background: rgba(129, 140, 248, 0.1); }
+    .confidence { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; font-size: 12px; }
+    .confidence.ok { color: var(--ok); }
+    .confidence.warn { color: var(--warn); }
+    .confidence.err { color: var(--err); }
+    .preview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .preview-grid figure { margin: 0; background: var(--overlay); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+    .preview-grid img { width: 100%; height: auto; display: block; }
+    .preview-grid figcaption { border-top: 1px solid var(--border); padding: 10px 14px; font-size: 12px; color: var(--muted); background: var(--panel); text-align: center; }
+    .insight-card { margin-bottom: 24px; }
+    .insight-card h3 span { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:999px; background:var(--brand); color:#111827; font-size:12px; font-weight:700; }
+    .insight-list { display:flex; flex-direction:column; gap:12px; }
+    .insight-empty { color:var(--muted); font-size:13px; padding:24px; text-align:center; border:1px dashed var(--border); border-radius:12px; background:var(--bg); }
+    .insight-item { border-left-width: 4px; border-style: solid; border-color: transparent; border-radius: 8px; padding: 14px 16px; background: var(--bg); display: flex; flex-direction: column; gap: 8px; }
+    .insight-item header { display:flex; align-items:flex-start; gap:12px; }
+    .insight-icon { font-size:16px; line-height:1.5; }
+    .insight-title { font-size:14px; font-weight:700; color:#e2e8f0; margin-bottom: 4px; }
+    .insight-meta { font-size:12px; color:var(--muted); display:flex; flex-wrap:wrap; gap:8px; }
+    .insight-meta span { background:var(--panel); border-radius:999px; padding:3px 10px; border:1px solid var(--border); }
+    .insight-body { font-size:13px; line-height:1.6; color:#cbd5f5; padding-left: 28px; }
+    .insight-body ul { margin:0; padding-left:18px; }
+    .insight-body li { margin:2px 0; }
+    .insight-item.ok { border-left-color:var(--ok); }
+    .insight-item.warn { border-left-color:var(--warn); }
+    .insight-item.err { border-left-color:var(--err); }
+    .layout-card { margin-bottom: 24px; }
+    .layout-table-wrap { border: 1px solid var(--border); border-radius: 12px; overflow: auto; max-height: 360px; background: var(--bg); }
+    .layout-table { width: 100%; min-width: 420px; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+    .layout-table td { border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); padding: 8px 10px; font-size: 12px; white-space: pre-wrap; word-break: break-word; }
+    .layout-table tr:nth-child(odd) { background: rgba(148, 163, 184, 0.04); }
+    .layout-table tr:last-child td { border-bottom: none; }
+    .layout-table td:last-child { border-right: none; }
+    .layout-empty { color: var(--muted); font-size: 12px; padding: 24px 0; text-align: center; }
+    .calculation-display {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono";
+      font-variant-numeric: tabular-nums;
+      font-size: 13px;
+    }
+    .calc-operand, .calc-result {
+      display: flex;
+      justify-content: flex-end;
+      align-items: baseline;
+      gap: 0.75em;
+      padding: 1px 0;
+    }
+    .calc-operator {
+      color: var(--muted);
+      font-size: 0.9em;
+    }
+    .calc-result {
+      border-top: 1px solid var(--border);
+      margin-top: 5px;
+      padding-top: 5px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .verification-badge {
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      text-align: center;
+    }
+    .verification-badge.ok { background-color: rgba(74, 222, 128, 0.1); color: var(--ok); }
+    .verification-badge.warn { background-color: rgba(250, 204, 21, 0.1); color: var(--warn); }
+    .verification-badge.err { background-color: rgba(248, 113, 113, 0.1); color: var(--err); }
+    .context-details { list-style: none; padding-left: 16px; margin-top: 8px; font-size: 12px; color: var(--muted); }
+    .context-details li { position: relative; }
+    .context-details li::before { content: '↳'; position: absolute; left: -16px; }
+
+    @media (max-width: 1100px) {
+      main { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      h1 { font-size: 18px; flex-direction: column; gap: 4px; align-items: flex-start;}
+      main { padding: 16px; gap: 16px; }
+      .card h2 { padding: 12px 16px; font-size: 15px; }
+      .card .content { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>스크린샷 기반 자동 검산·오류검증 계산기 <span class="badge">OCR 정확도 개선판</span></h1>
+  </header>
+
+  <main>
+    <!-- 좌측: 입력/설정 -->
+    <aside>
+      <div class="card" style="margin-bottom: 24px;">
+        <h2>1) 스크린샷 입력</h2>
+        <div class="content grid">
+          <label class="drop" id="drop">
+            <input id="file" type="file" accept="image/*,.pdf" multiple hidden />
+            <div class="grid" style="place-items:center; gap:6px">
+              <div style="font-weight:800; font-size:15px;">이미지 드래그&드롭 또는 클릭</div>
+              <div class="muted">견적서, 품의서, 엑셀 캡처 등 (PNG/JPG/PDF)</div>
+            </div>
+          </label>
+          <div class="grid">
+            <div class="row">
+              <span class="muted">언어 설정</span>
+              <select id="lang">
+                <option value="kor+eng" selected>한국어 + 영어</option>
+                <option value="kor">한국어</option>
+                <option value="eng">영어</option>
+              </select>
+            </div>
+            <div class="row">
+              <span class="muted">전처리 프로필</span>
+              <select id="preprocess-profile">
+                <option value="aggressive" selected>강력 (정확도 최우선)</option>
+                <option value="balanced">균형 (속도+정확도)</option>
+                <option value="fast">빠름 (속도 우선)</option>
+              </select>
+            </div>
+            <div class="row">
+              <span class="muted">OCR 엔진 모드</span>
+              <select id="oem-mode">
+                <option value="1" selected>LSTM 전용 (최신, 가장 정확)</option>
+                <option value="0">레거시 엔진</option>
+                <option value="2">레거시 + LSTM</option>
+              </select>
+            </div>
+            <div class="row">
+              <span class="muted">다중 패스 OCR</span>
+              <select id="multi-pass">
+                <option value="true" selected>활성화 (느리지만 정확)</option>
+                <option value="false">비활성화 (빠름)</option>
+              </select>
+            </div>
+            <div class="row">
+              <span class="muted">반올림/허용 오차 (원)</span>
+              <input id="tolerance" type="number" value="1" min="0" step="1" style="flex-grow:0; width:80px;" />
+            </div>
+            <button id="run" class="btn" disabled>OCR 시작</button>
+            <div class="progress"><div id="bar"></div></div>
+            <div id="status" class="muted" style="text-align:center; font-size:12px;">파일을 추가하면 OCR 버튼이 활성화됩니다.</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>2) 검증 모드</h2>
+        <div class="content grid">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <button id="check-sum" class="btn secondary" disabled>선택 합계 검증</button>
+            <button id="check-auto" class="btn secondary" disabled>자동 합계 검증</button>
+            <button id="export" class="btn ghost" disabled>CSV 내보내기</button>
+          </div>
+          <div class="hint">※ OCR 후, 각 행 좌측 체크박스로 합계 항목을 선택하고, <span class="k">대상값</span>으로 지정할 행의 버튼을 클릭하세요.</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 우측: 결과/리뷰 -->
+    <section>
+      <div class="card">
+        <h2>결과 · 라인아이템</h2>
+        <div class="content">
+          <div class="preview-grid" id="preview" style="display:none"></div>
+
+          <div class="insight-card" id="insight-card" style="display:none">
+            <h3><span>AI</span>검증 요약</h3>
+            <div class="insight-empty" id="insight-empty">검증을 실행하면 요약 결과가 여기에 표시됩니다.</div>
+            <div class="insight-list" id="insight-list"></div>
+          </div>
+
+          <div class="layout-card" id="layout-card" style="display:none">
+            <h3>OCR 레이아웃 재구성 (간격 보정)</h3>
+            <div class="layout-table-wrap">
+              <table class="layout-table" id="layout-table"></table>
+            </div>
+          </div>
+
+          <h3>상세 라인 아이템</h3>
+          <div class="table-container">
+            <table class="table" id="lines">
+              <thead>
+                <tr>
+                  <th style="width:50px;">
+                    <input type="checkbox" id="check-all" title="전체 선택">
+                  </th>
+                  <th style="width:90px">대상</th>
+                  <th style="width:90px">신뢰도</th>
+                  <th>문장/맥락</th>
+                  <th style="width:140px">계산 근거</th>
+                  <th style="width:180px">자동 곱셈 검증 결과</th>
+                </tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top: 24px;">
+        <h2>검증 로그</h2>
+        <div class="content">
+          <div id="log" class="code" style="white-space:pre-wrap; min-height:140px; max-height: 400px; overflow-y: auto;"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const fileInput = $("file");
+    const drop = $("drop");
+    const runBtn = $("run");
+    const bar = $("bar");
+    const statusEl = $("status");
+    const tbody = $("tbody");
+    const langSel = $("lang");
+    const preprocessSel = $("preprocess-profile");
+    const oemSel = $("oem-mode");
+    const multiPassSel = $("multi-pass");
+    const preview = $("preview");
+    const insightCard = $("insight-card");
+    const insightList = $("insight-list");
+    const insightEmpty = $("insight-empty");
+    const layoutCard = $("layout-card");
+    const layoutTable = $("layout-table");
+    const logEl = $("log");
+    const tolEl = $("tolerance");
+    const checkSumBtn = $("check-sum");
+    const checkAutoBtn = $("check-auto");
+    const exportBtn = $("export");
+
+    let rows = [];
+    let displayItems = [];
+    let insights = [];
+    let cachedWorker = null;
+    let cachedWorkerLang = null;
+
+    function log(msg){
+      const t = new Date().toLocaleTimeString();
+      logEl.textContent += `[${t}] ${msg}\n`;
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    const flagIcons = { ok: '✅', warn: '⚠️', err: '❌', info: 'ℹ️' };
+
+    function renderInsights(){
+      insightList.innerHTML = '';
+      if (!insights.length){
+        if (!rows.length){
+          insightCard.style.display = 'none';
+          return;
+        }
+        insightCard.style.display = 'block';
+        insightEmpty.style.display = 'block';
+        insightList.style.display = 'none';
+        return;
+      }
+      insightCard.style.display = 'block';
+      insightEmpty.style.display = 'none';
+      insightList.style.display = 'flex';
+      insights
+        .slice()
+        .sort((a, b) => {
+          const ao = a.order ?? 0;
+          const bo = b.order ?? 0;
+          if (ao !== bo) return ao - bo;
+          return a.key.localeCompare(b.key);
+        })
+        .forEach(entry => {
+          const item = document.createElement('article');
+          item.className = `insight-item ${entry.flag || 'info'}`;
+
+          const header = document.createElement('header');
+          const icon = document.createElement('span');
+          icon.className = 'insight-icon';
+          icon.textContent = flagIcons[entry.flag] || flagIcons.info;
+          header.appendChild(icon);
+
+          const headingWrap = document.createElement('div');
+          const title = document.createElement('div');
+          title.className = 'insight-title';
+          title.textContent = entry.title || '요약';
+          headingWrap.appendChild(title);
+
+          if (Array.isArray(entry.meta) && entry.meta.length){
+            const metaWrap = document.createElement('div');
+            metaWrap.className = 'insight-meta';
+            entry.meta.forEach(text => {
+              const badge = document.createElement('span');
+              badge.textContent = text;
+              metaWrap.appendChild(badge);
+            });
+            headingWrap.appendChild(metaWrap);
+          }
+
+          header.appendChild(headingWrap);
+          item.appendChild(header);
+
+          if (entry.body){
+            const body = document.createElement('div');
+            body.className = 'insight-body';
+            if (Array.isArray(entry.body)){
+              const ul = document.createElement('ul');
+              entry.body.forEach(text => {
+                const li = document.createElement('li');
+                li.textContent = text;
+                ul.appendChild(li);
+              });
+              body.appendChild(ul);
+            } else {
+              body.textContent = entry.body;
+            }
+            item.appendChild(body);
+          }
+
+          insightList.appendChild(item);
+        });
+    }
+
+    function setInsightGroup(prefix, entries){
+      insights = insights.filter(item => !item.key.startsWith(prefix));
+      if (Array.isArray(entries) && entries.length){
+        insights = insights.concat(entries);
+      }
+      renderInsights();
+    }
+
+    function resetInsights(){
+      insights = [];
+      renderInsights();
+    }
+
+    function humanNumber(n){
+      if (n === null || n === undefined || Number.isNaN(n)) return "-";
+      return n.toLocaleString("ko-KR");
+    }
+
+    // ==================== 개선된 숫자 파싱 로직 ====================
+    function parseNumbersFromLine(line){
+      // 1. 한글 사이의 불필요한 공백 제거
+      let cleaned = line.replace(/([가-힣])\s+([가-힣])/g, '$1$2');
+
+      // 2. 일반적인 숫자 패턴 매칭
+      const patterns = [
+        /[-+]?\d{1,3}(?:[,\s]\d{3})+(?:\.\d+)?/g,  // 천단위 구분자
+        /[-+]?\d+(?:\.\d+)?/g                       // 일반 숫자
+      ];
+
+      let matches = [];
+      patterns.forEach(pattern => {
+        const found = cleaned.match(pattern);
+        if (found) matches = matches.concat(found);
+      });
+
+      if (!matches.length) return [];
+
+      // 3. 중복 제거 및 정제
+      const seen = new Set();
+      const numbers = [];
+
+      matches.forEach(match => {
+        // 쉼표/공백 제거 후 숫자로 변환
+        let cleaned = String(match).replace(/[,\s]/g, '');
+        const num = Number(cleaned);
+
+        if (Number.isFinite(num) && !seen.has(num)) {
+          seen.add(num);
+          numbers.push(num);
+        }
+      });
+
+      return numbers;
+    }
+
+    function confidenceBadge(conf){
+      if (!Number.isFinite(conf)) return '<span class="muted">-</span>';
+      const c = conf;
+      let cls = 'warn';
+      if (c >= 85) cls = 'ok';
+      else if (c < 70) cls = 'err';
+      return `<span class="confidence ${cls}">${c.toFixed(1)}%</span>`;
+    }
+
+    function groupAndVerifyRows() {
+        displayItems = [];
+        const processedIndices = new Set();
+        const tol = Number(tolEl.value || 0) || 0;
+
+        for (let i = 0; i < rows.length; i++) {
+            if (processedIndices.has(i)) continue;
+
+            const mainRow = rows[i];
+
+            if (mainRow.nums.length >= 3) {
+                const operands = mainRow.nums.slice(0, -1);
+                const ocrTotal = mainRow.nums[mainRow.nums.length - 1];
+                const calculatedTotal = operands.reduce((prod, num) => prod * num, 1);
+                const diff = calculatedTotal - ocrTotal;
+                const flag = Math.abs(diff) <= tol ? 'ok' : (Math.abs(diff) <= tol * 10 ? 'warn' : 'err');
+
+                displayItems.push({
+                    id: `item-${i}`,
+                    type: 'single',
+                    mainRow: mainRow,
+                    componentRows: [],
+                    ocrTotal,
+                    calculatedTotal,
+                    diff,
+                    flag,
+                    selected: false,
+                    isTarget: false,
+                });
+                processedIndices.add(i);
+                continue;
+            }
+
+            if (mainRow.nums.length <= 1) {
+                const componentRows = [];
+                let nextIndex = i + 1;
+                while (nextIndex < rows.length && rows[nextIndex].nums.length === 2) {
+                    componentRows.push(rows[nextIndex]);
+                    nextIndex++;
+                }
+
+                if (componentRows.length > 0) {
+                    const ocrTotal = mainRow.nums.length === 1 ? mainRow.nums[0] : null;
+                    const calculatedTotal = componentRows.reduce((sum, row) => sum + (row.nums[0] * row.nums[1]), 0);
+                    const diff = ocrTotal !== null ? calculatedTotal - ocrTotal : 0;
+                    const flag = ocrTotal !== null ? (Math.abs(diff) <= tol ? 'ok' : 'err') : 'info';
+
+                    displayItems.push({
+                        id: `group-${i}`,
+                        type: 'group',
+                        mainRow: mainRow,
+                        componentRows,
+                        ocrTotal,
+                        calculatedTotal,
+                        diff,
+                        flag,
+                        selected: false,
+                        isTarget: false,
+                    });
+
+                    processedIndices.add(i);
+                    componentRows.forEach(row => processedIndices.add(rows.indexOf(row)));
+                }
+            }
+        }
+    }
+
+
+    function renderTable(){
+      tbody.innerHTML = '';
+
+      const checkAll = $("check-all");
+      checkAll.checked = displayItems.length > 0 && displayItems.every(item => item.selected);
+
+      const newCheckAll = checkAll.cloneNode(true);
+      checkAll.parentNode.replaceChild(newCheckAll, checkAll);
+      newCheckAll.addEventListener('change', (e) => {
+        const isChecked = e.target.checked;
+        displayItems.forEach(item => item.selected = isChecked);
+        renderTable();
+      });
+
+      displayItems.forEach((item) => {
+        const tr = document.createElement('tr');
+        if (item.isTarget) tr.classList.add('target-row');
+
+        const tdSel = document.createElement('td');
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = !!item.selected;
+        cb.style.cursor = 'pointer';
+        cb.addEventListener('change', ()=>{ item.selected = cb.checked; renderTable(); });
+        tdSel.appendChild(cb);
+
+        const tdTarget = document.createElement('td');
+        const btnSetTarget = document.createElement('button');
+        btnSetTarget.textContent = item.isTarget ? '대상✓' : '대상 지정';
+        btnSetTarget.className = item.isTarget ? 'btn' : 'btn ghost';
+        btnSetTarget.style.padding = '4px 8px';
+        btnSetTarget.style.fontSize = '11px';
+        btnSetTarget.style.width = '70px';
+        btnSetTarget.addEventListener('click', ()=>{
+          displayItems.forEach(x => x.isTarget = false);
+          item.isTarget = true;
+          renderTable();
+        });
+        tdTarget.appendChild(btnSetTarget);
+
+        const tdConfidence = document.createElement('td');
+        tdConfidence.innerHTML = confidenceBadge(item.mainRow.confidence);
+
+        const tdText = document.createElement('td');
+        tdText.innerHTML = `<div>${item.mainRow.text}</div>`;
+        if (item.componentRows.length > 0) {
+            const details = item.componentRows.map(sr => `<li>${sr.text}</li>`).join('');
+            tdText.innerHTML += `<ul class="context-details">${details}</ul>`;
+        }
+
+        const tdNums = document.createElement('td');
+        let operandsHtml = '';
+        if (item.type === 'group') {
+             item.componentRows.forEach(sr => {
+                operandsHtml += `<div class="calc-operand">${humanNumber(sr.nums[0])} × ${humanNumber(sr.nums[1])}</div>`;
+             });
+        } else { // single
+             const operands = item.mainRow.nums.slice(0, -1);
+             operands.forEach((op, index) => {
+                operandsHtml += `<div class="calc-operand">${index > 0 ? '<span class="calc-operator">×</span>' : ''} <span class="calc-value">${humanNumber(op)}</span></div>`;
+             });
+        }
+
+        const finalValue = item.ocrTotal !== null ? item.ocrTotal : item.calculatedTotal;
+        tdNums.innerHTML = `
+          <div class="calculation-display">
+            ${operandsHtml}
+            <div class="calc-result">
+              <span class="calc-operator">=</span>
+              <span class="calc-value">${humanNumber(finalValue)}</span>
+            </div>
+          </div>
+        `;
+
+        const tdVerification = document.createElement('td');
+        let badgeText = '';
+        if (item.flag === 'ok') {
+            badgeText = '✅ 일치';
+        } else if (item.flag === 'info') {
+             badgeText = `계산 합계: ${humanNumber(item.calculatedTotal)}`;
+        } else {
+            badgeText = `차이: ${humanNumber(item.diff)}`;
+        }
+        tdVerification.innerHTML = `<div class="verification-badge ${item.flag}">${badgeText}</div>`;
+
+        tr.appendChild(tdSel);
+        tr.appendChild(tdTarget);
+        tr.appendChild(tdConfidence);
+        tr.appendChild(tdText);
+        tr.appendChild(tdNums);
+        tr.appendChild(tdVerification);
+        tbody.appendChild(tr);
+      });
+    }
+
+    function getSelectedSum(){
+      const tol = Number(tolEl.value || 0) || 0;
+      let sum = 0;
+      let count = 0;
+      displayItems.forEach(item => {
+        if (item.selected) {
+          sum += item.ocrTotal !== null ? item.ocrTotal : item.calculatedTotal;
+          count++;
+        }
+      });
+      return { sum: Math.round(sum), count, tol };
+    }
+
+    function getTargetValue(){
+      const targetItem = displayItems.find(item => item.isTarget);
+      if (!targetItem) return null;
+      return Math.round(targetItem.ocrTotal !== null ? targetItem.ocrTotal : targetItem.calculatedTotal);
+    }
+
+    function checkSelectedVsTarget(){
+      const target = getTargetValue();
+      const { sum, count, tol } = getSelectedSum();
+      if(target==null){
+        log('오류: 대상값이 지정되지 않았습니다. 합계가 될 행의 [대상 지정] 버튼을 클릭하세요.');
+        setInsightGroup('manual', []);
+        return;
+      }
+      if(!count){
+        log('오류: 합계에 포함할 행(체크박스)을 선택해 주세요.');
+        setInsightGroup('manual', []);
+        return;
+      }
+      const diff = sum - target;
+      const flag = Math.abs(diff) <= tol ? 'ok' : (Math.abs(diff) <= tol*10 ? 'warn' : 'err');
+      log(`[선택합계] 선택 ${count}개 합계 = ${humanNumber(sum)} | 대상 = ${humanNumber(target)} → 차이 ${humanNumber(diff)} [${flag}]`);
+      setInsightGroup('manual', [{
+        key: 'manual-sum',
+        order: 20,
+        flag,
+        title: '선택 합계 vs 대상값 비교',
+        meta: [`선택 ${count}행`, `허용오차 ±${humanNumber(tol)}`],
+        body: [
+          `선택 합계: ${humanNumber(sum)}원`,
+          `대상값: ${humanNumber(target)}원`,
+          `차이: ${humanNumber(diff)}원`
+        ]
+      }]);
+    }
+
+    function detectTotalCandidates(){
+      const keys = /(총?합계|총계|소계|계|합계금액|총액)/;
+      const cands = rows
+        .map((r, i) => ({ i, r, key: keys.test(r.text), val: (r.nums?.slice(-1)[0]) ?? NaN }))
+        .filter(x => x.key && Number.isFinite(x.val))
+        .sort((a,b)=> b.val - a.val)
+        .slice(0, 8);
+      return cands;
+    }
+
+    function autoCheckTotals(){
+      const tol = Number(tolEl.value || 0) || 0;
+      const totals = detectTotalCandidates();
+      if (totals.length === 0){
+        log('자동 합계 후보를 찾지 못했습니다.');
+        setInsightGroup('auto', []);
+        return;
+      }
+
+      const nums = rows.map(r=> (r.nums?.slice(-1)[0]) ?? NaN);
+      const entries = [];
+      totals.forEach(({i, r, val}, idx)=>{
+        let remaining = val;
+        let picked = [];
+        for(let k=i-1; k>=0; k--){
+          const v = nums[k];
+          if(!Number.isFinite(v) || Math.round(v) <= 0) continue;
+          if (remaining - v >= -tol){
+            remaining -= v;
+            picked.push({idx:k, value:v});
+          }
+        }
+        const sumPicked = picked.reduce((acc, cur)=> acc + cur.value, 0);
+        const diff = val - sumPicked;
+        const flag = Math.abs(diff) <= tol ? 'ok' : (Math.abs(diff) <= tol*10 ? 'warn' : 'err');
+        log(`[자동합계] 후보 "${r.text.slice(0,18)}…" (${humanNumber(val)}) / 추정 구성 ${picked.length}개 합(${humanNumber(sumPicked)}) → 차이 ${humanNumber(diff)} [${flag}]`);
+        const composition = picked
+          .slice()
+          .reverse()
+          .map(({ idx, value }) => `${idx+1}행 ${humanNumber(value)}원`)
+          .join(', ');
+        entries.push({
+          key: `auto-${idx}`,
+          order: 30 + idx,
+          flag,
+          title: `자동 합계 후보 ${idx+1}`,
+          meta: [`${i+1}행`, `구성 ${picked.length}건`],
+          body: [
+            `대상값: ${humanNumber(val)}원`,
+            `구성 합계: ${humanNumber(sumPicked)}원 (차이 ${humanNumber(diff)}원)`,
+            composition ? `구성 상세: ${composition}` : '구성에 사용할 수 있는 숫자를 찾지 못했습니다.'
+          ]
+        });
+      });
+      setInsightGroup('auto', entries.slice(0, 4));
+    }
+
+    function exportCSV(){
+      const header = ["타입", "메인 설명", "구성요소", "OCR 총합", "계산된 총합", "차이"].join(',');
+      const lines = displayItems.map(item => {
+          const mainDesc = `"${item.mainRow.text.replace(/"/g, '""')}"`;
+          const components = `"${item.componentRows.map(r => r.text).join('; ').replace(/"/g, '""')}"`;
+          return [item.type, mainDesc, components, item.ocrTotal, item.calculatedTotal, item.diff].join(',');
+      });
+      const csv = [header, ...lines].join('\n');
+      const blob = new Blob(["\uFEFF"+csv], {type:'text/csv;charset=utf-8;'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `ocr_check_results_${Date.now()}.csv`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    // ==================== OCR 워커 최적화 ====================
+    async function ensureWorker(lang){
+      const progress = (m) => {
+        if(m.status === 'recognizing text' && typeof m.progress === 'number'){
+          bar.style.width = Math.round(m.progress*100)+'%';
+        }
+      };
+
+      if(!cachedWorker){
+        statusEl.textContent = 'OCR 엔진 로딩 중... (최신 LSTM 모델)';
+        cachedWorker = await Tesseract.createWorker(lang, Number(oemSel.value) || 1, { logger: progress });
+        cachedWorkerLang = lang;
+      } else {
+        if (cachedWorkerLang !== lang){
+          statusEl.textContent = '언어 변경 중...';
+          await cachedWorker.reinitialize(lang);
+          cachedWorkerLang = lang;
+        }
+      }
+
+      // 최적화된 Tesseract 파라미터
+      await cachedWorker.setParameters({
+        tessedit_pageseg_mode: '6',  // 단일 균일 블록 (표에 최적)
+        tessedit_ocr_engine_mode: Number(oemSel.value) || 1,  // LSTM
+        preserve_interword_spaces: '1',
+        user_defined_dpi: '300',
+        tessjs_create_hocr: '1',
+        tessjs_create_tsv: '1',
+        // 한글 인식 개선
+        textord_heavy_nr: '1',
+        tosp_threshold_bias2: '0',
+        classify_bln_numeric_mode: '0',
+        // 숫자 인식 정확도 향상
+        tessedit_char_blacklist: '|[]{}~`'  // 혼동되기 쉬운 문자 제외
+      });
+
+      return cachedWorker;
+    }
+
+    async function loadImageFromFile(file){
+      return new Promise((resolve, reject)=>{
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = ()=>{
+          resolve({ img, url });
+        };
+        img.onerror = (err)=>{
+          URL.revokeObjectURL(url);
+          reject(err);
+        };
+        img.src = url;
+      });
+    }
+
+    async function renderPdfToCanvas(file){
+      if (!window['pdfjsLib']) throw new Error('PDF.js 로더를 찾을 수 없습니다.');
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await window['pdfjsLib'].getDocument({ data: arrayBuffer }).promise;
+      const page = await pdf.getPage(1);
+      const viewport = page.getViewport({ scale: 3.0 }); // PDF 스케일 상향
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      await page.render({ canvasContext: ctx, viewport }).promise;
+      return canvas;
+    }
+
+    // ==================== 강력한 전처리 함수 ====================
+    function enhanceCanvas(canvas, profile = 'balanced'){
+      // 1. 고해상도 업스케일링
+      let targetWidth;
+      switch(profile) {
+        case 'aggressive':
+          targetWidth = 3500;  // 매우 높은 해상도
+          break;
+        case 'balanced':
+          targetWidth = 2500;
+          break;
+        case 'fast':
+          targetWidth = 1800;
+          break;
+        default:
+          targetWidth = 2500;
+      }
+
+      const scale = targetWidth / canvas.width;
+      const targetHeight = Math.round(canvas.height * scale);
+      const out = document.createElement('canvas');
+      out.width = targetWidth;
+      out.height = targetHeight;
+      const ctx = out.getContext('2d', { willReadFrequently: true, alpha: false });
+
+      // 배경을 흰색으로 설정
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, targetWidth, targetHeight);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(canvas, 0, 0, targetWidth, targetHeight);
+
+      let imageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
+      let data = imageData.data;
+
+      // 2. 그레이스케일 변환
+      for (let i = 0; i < data.length; i += 4) {
+        const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+        data[i] = data[i + 1] = data[i + 2] = gray;
+      }
+
+      // 3. 노이즈 제거 (중간값 필터)
+      if (profile === 'aggressive' || profile === 'balanced') {
+        imageData = medianFilter(imageData, targetWidth, targetHeight);
+        data = imageData.data;
+      }
+
+      // 4. 대비 향상 (히스토그램 균등화)
+      imageData = enhanceContrast(imageData);
+      data = imageData.data;
+
+      // 5. 적응형 이진화 (Sauvola 방법)
+      imageData = sauvolaBinarization(imageData, targetWidth, targetHeight, profile);
+      data = imageData.data;
+
+      // 6. 선명화 (Unsharp Masking)
+      if (profile === 'aggressive') {
+        imageData = sharpenImage(imageData, targetWidth, targetHeight);
+        data = imageData.data;
+      }
+
+      // 7. 모폴로지 연산 (노이즈 제거)
+      if (profile === 'aggressive' || profile === 'balanced') {
+        imageData = morphologicalClose(imageData, targetWidth, targetHeight);
+      }
+
+      ctx.putImageData(imageData, 0, 0);
+      return out;
+    }
+
+    // 중간값 필터 (노이즈 제거)
+    function medianFilter(imageData, width, height) {
+      const data = imageData.data;
+      const output = new Uint8ClampedArray(data);
+
+      for (let y = 1; y < height - 1; y++) {
+        for (let x = 1; x < width - 1; x++) {
+          const neighbors = [];
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+              const idx = ((y + dy) * width + (x + dx)) * 4;
+              neighbors.push(data[idx]);
+            }
+          }
+          neighbors.sort((a, b) => a - b);
+          const median = neighbors[4]; // 중간값
+
+          const idx = (y * width + x) * 4;
+          output[idx] = output[idx + 1] = output[idx + 2] = median;
+        }
+      }
+
+      return new ImageData(output, width, height);
+    }
+
+    // 대비 향상 (히스토그램 균등화)
+    function enhanceContrast(imageData) {
+      const data = imageData.data;
+      const histogram = new Array(256).fill(0);
+
+      // 히스토그램 생성
+      for (let i = 0; i < data.length; i += 4) {
+        histogram[data[i]]++;
+      }
+
+      // 누적 분포 함수
+      const cdf = new Array(256);
+      cdf[0] = histogram[0];
+      for (let i = 1; i < 256; i++) {
+        cdf[i] = cdf[i - 1] + histogram[i];
+      }
+
+      // 정규화
+      const cdfMin = cdf.find(v => v > 0);
+      const totalPixels = data.length / 4;
+      const lookupTable = cdf.map(v =>
+        Math.round(((v - cdfMin) / (totalPixels - cdfMin)) * 255)
+      );
+
+      // 적용
+      for (let i = 0; i < data.length; i += 4) {
+        const newVal = lookupTable[data[i]];
+        data[i] = data[i + 1] = data[i + 2] = newVal;
+      }
+
+      return imageData;
+    }
+
+    // Sauvola 적응형 이진화
+    function sauvolaBinarization(imageData, width, height, profile) {
+      const data = imageData.data;
+      const output = new Uint8ClampedArray(data);
+
+      // 윈도우 크기 (프로필에 따라 조정)
+      const windowSize = profile === 'aggressive' ? 25 : (profile === 'balanced' ? 15 : 11);
+      const k = 0.5;  // Sauvola 파라미터
+      const R = 128;  // 동적 범위
+
+      // Integral Image 계산
+      const integralImg = new Float64Array(width * height);
+      const integralImgSq = new Float64Array(width * height);
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const idx = (y * width + x) * 4;
+          const val = data[idx];
+
+          const above = y > 0 ? integralImg[(y - 1) * width + x] : 0;
+          const left = x > 0 ? integralImg[y * width + (x - 1)] : 0;
+          const aboveLeft = (y > 0 && x > 0) ? integralImg[(y - 1) * width + (x - 1)] : 0;
+
+          integralImg[y * width + x] = val + above + left - aboveLeft;
+          integralImgSq[y * width + x] = val * val +
+            (y > 0 ? integralImgSq[(y - 1) * width + x] : 0) +
+            (x > 0 ? integralImgSq[y * width + (x - 1)] : 0) -
+            aboveLeft * aboveLeft;
+        }
+      }
+
+      const halfWindow = Math.floor(windowSize / 2);
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const x1 = Math.max(0, x - halfWindow);
+          const x2 = Math.min(width - 1, x + halfWindow);
+          const y1 = Math.max(0, y - halfWindow);
+          const y2 = Math.min(height - 1, y + halfWindow);
+
+          const area = (x2 - x1 + 1) * (y2 - y1 + 1);
+
+          const A = (y1 > 0 && x1 > 0) ? integralImg[(y1 - 1) * width + (x1 - 1)] : 0;
+          const B = (y1 > 0) ? integralImg[(y1 - 1) * width + x2] : 0;
+          const C = (x1 > 0) ? integralImg[y2 * width + (x1 - 1)] : 0;
+          const D = integralImg[y2 * width + x2];
+
+          const sum = D - B - C + A;
+          const mean = sum / area;
+
+          const ASq = (y1 > 0 && x1 > 0) ? integralImgSq[(y1 - 1) * width + (x1 - 1)] : 0;
+          const BSq = (y1 > 0) ? integralImgSq[(y1 - 1) * width + x2] : 0;
+          const CSq = (x1 > 0) ? integralImgSq[y2 * width + (x1 - 1)] : 0;
+          const DSq = integralImgSq[y2 * width + x2];
+
+          const sumSq = DSq - BSq - CSq + ASq;
+          const variance = (sumSq / area) - (mean * mean);
+          const stdDev = Math.sqrt(Math.max(0, variance));
+
+          const threshold = mean * (1 + k * ((stdDev / R) - 1));
+
+          const idx = (y * width + x) * 4;
+          const pixelVal = data[idx];
+
+          const newVal = pixelVal > threshold ? 255 : 0;
+          output[idx] = output[idx + 1] = output[idx + 2] = newVal;
+        }
+      }
+
+      return new ImageData(output, width, height);
+    }
+
+    // 언샵 마스킹 (선명화)
+    function sharpenImage(imageData, width, height) {
+      const data = imageData.data;
+      const output = new Uint8ClampedArray(data);
+
+      // 가우시안 블러 적용 후 차이 계산
+      const blurred = gaussianBlur(imageData, width, height);
+      const amount = 1.5;  // 선명화 강도
+
+      for (let i = 0; i < data.length; i += 4) {
+        const original = data[i];
+        const blur = blurred.data[i];
+        const sharpened = original + amount * (original - blur);
+        output[i] = output[i + 1] = output[i + 2] = Math.max(0, Math.min(255, sharpened));
+      }
+
+      return new ImageData(output, width, height);
+    }
+
+    // 가우시안 블러
+    function gaussianBlur(imageData, width, height) {
+      const data = imageData.data;
+      const output = new Uint8ClampedArray(data);
+
+      // 3x3 가우시안 커널
+      const kernel = [
+        1/16, 2/16, 1/16,
+        2/16, 4/16, 2/16,
+        1/16, 2/16, 1/16
+      ];
+
+      for (let y = 1; y < height - 1; y++) {
+        for (let x = 1; x < width - 1; x++) {
+          let sum = 0;
+          let ki = 0;
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+              const idx = ((y + dy) * width + (x + dx)) * 4;
+              sum += data[idx] * kernel[ki++];
+            }
+          }
+          const idx = (y * width + x) * 4;
+          output[idx] = output[idx + 1] = output[idx + 2] = sum;
+        }
+      }
+
+      return new ImageData(output, width, height);
+    }
+
+    // 모폴로지 닫힘 (작은 틈 메우기)
+    function morphologicalClose(imageData, width, height) {
+      // Dilation 후 Erosion
+      let result = dilate(imageData, width, height);
+      result = erode(result, width, height);
+      return result;
+    }
+
+    function dilate(imageData, width, height) {
+      const data = imageData.data;
+      const output = new Uint8ClampedArray(data);
+
+      for (let y = 1; y < height - 1; y++) {
+        for (let x = 1; x < width - 1; x++) {
+          let maxVal = 0;
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+              const idx = ((y + dy) * width + (x + dx)) * 4;
+              maxVal = Math.max(maxVal, data[idx]);
+            }
+          }
+          const idx = (y * width + x) * 4;
+          output[idx] = output[idx + 1] = output[idx + 2] = maxVal;
+        }
+      }
+
+      return new ImageData(output, width, height);
+    }
+
+    function erode(imageData, width, height) {
+      const data = imageData.data;
+      const output = new Uint8ClampedArray(data);
+
+      for (let y = 1; y < height - 1; y++) {
+        for (let x = 1; x < width - 1; x++) {
+          let minVal = 255;
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+              const idx = ((y + dy) * width + (x + dx)) * 4;
+              minVal = Math.min(minVal, data[idx]);
+            }
+          }
+          const idx = (y * width + x) * 4;
+          output[idx] = output[idx + 1] = output[idx + 2] = minVal;
+        }
+      }
+
+      return new ImageData(output, width, height);
+    }
+
+    async function preprocessFileForOCR(file){
+      let originalUrl = '';
+      let baseCanvas;
+      if (/pdf$/i.test(file.name) || file.type === 'application/pdf'){
+        log('PDF 감지: 첫 페이지를 고해상도로 렌더링합니다.');
+        baseCanvas = await renderPdfToCanvas(file);
+        originalUrl = baseCanvas.toDataURL('image/png');
+      } else {
+        const { img, url } = await loadImageFromFile(file);
+        baseCanvas = document.createElement('canvas');
+        baseCanvas.width = img.width;
+        baseCanvas.height = img.height;
+        const ctx = baseCanvas.getContext('2d', { willReadFrequently: true });
+        // 투명 배경을 흰색으로 설정 (검정색으로 표시되는 문제 방지)
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, img.width, img.height);
+        ctx.drawImage(img, 0, 0);
+        originalUrl = url;
+      }
+      const profile = preprocessSel.value;
+      log(`전처리 프로필: ${profile} (고급 이미지 처리 적용 중...)`);
+      const enhanced = enhanceCanvas(baseCanvas, profile);
+      const processedUrl = enhanced.toDataURL('image/png');
+      return { canvas: enhanced, originalUrl, processedUrl, width: enhanced.width, height: enhanced.height };
+    }
+
+    function showPreview(originalUrl, processedUrl){
+      preview.innerHTML = '';
+      if (!originalUrl && !processedUrl){
+        preview.style.display = 'none';
+        return;
+      }
+      preview.style.display = 'grid';
+      const originalFigure = document.createElement('figure');
+      if (originalUrl){
+        const img = document.createElement('img');
+        img.src = originalUrl;
+        img.alt = '원본 미리보기';
+        img.loading = 'lazy';
+        if (originalUrl.startsWith('blob:')){
+          img.addEventListener('load', ()=> URL.revokeObjectURL(originalUrl), { once: true });
+        }
+        originalFigure.appendChild(img);
+      }
+      const originalCaption = document.createElement('figcaption');
+      originalCaption.textContent = '원본/업로드 이미지';
+      originalFigure.appendChild(originalCaption);
+
+      preview.appendChild(originalFigure);
+      if (processedUrl){
+        const processedFigure = document.createElement('figure');
+        const imgProcessed = document.createElement('img');
+        imgProcessed.src = processedUrl;
+        imgProcessed.alt = '전처리 이미지';
+        imgProcessed.loading = 'lazy';
+        if (processedUrl.startsWith('blob:')){
+          imgProcessed.addEventListener('load', ()=> URL.revokeObjectURL(processedUrl), { once: true });
+        }
+        processedFigure.appendChild(imgProcessed);
+        const processedCaption = document.createElement('figcaption');
+        processedCaption.textContent = 'OCR 전처리 (노이즈제거+선명화+이진화)';
+        processedFigure.appendChild(processedCaption);
+        preview.appendChild(processedFigure);
+      }
+    }
+
+    function clusterColumns(lines, width){
+      const threshold = Math.max(18, width * 0.02);
+      const clusters = [];
+      lines.forEach(line => {
+        (line.words || []).forEach(word => {
+          const x = word.bbox.x0;
+          let found = false;
+          for (const cluster of clusters){
+            if (Math.abs(cluster.mean - x) <= threshold){
+              cluster.values.push(x);
+              cluster.mean = cluster.values.reduce((a,b)=>a+b,0) / cluster.values.length;
+              found = true;
+              break;
+            }
+          }
+          if (!found){
+            clusters.push({ mean: x, values: [x] });
+          }
+        });
+      });
+      clusters.sort((a,b)=> a.mean - b.mean);
+      return clusters.map(c=>c.mean);
+    }
+
+    function findNearestColumn(x, columns){
+      if (!columns.length) return 0;
+      let idx = 0;
+      let min = Infinity;
+      columns.forEach((col, i)=>{
+        const diff = Math.abs(col - x);
+        if (diff < min){
+          min = diff;
+          idx = i;
+        }
+      });
+      return idx;
+    }
+
+    function renderLayoutTable(lines, meta){
+      layoutTable.innerHTML = '';
+      if (!lines.length){
+        layoutTable.innerHTML = `<tbody><tr><td class="layout-empty">인식된 텍스트 라인이 없습니다.</td></tr></tbody>`;
+        layoutCard.style.display = 'none';
+        return;
+      }
+      layoutCard.style.display = 'block';
+      const width = meta?.width || 2000;
+      const columns = clusterColumns(lines, width).slice(0, 12);
+      if (!columns.length){
+        layoutTable.innerHTML = `<tbody><tr><td class="layout-empty">열 간격을 계산할 수 없습니다.</td></tr></tbody>`;
+        return;
+      }
+      const colgroup = document.createElement('colgroup');
+      columns.forEach((left, idx)=>{
+        const next = idx === columns.length-1 ? width : columns[idx+1];
+        const col = document.createElement('col');
+        const w = Math.max(80, next - left);
+        col.style.width = (w / width * 100).toFixed(2) + '%';
+        colgroup.appendChild(col);
+      });
+      layoutTable.appendChild(colgroup);
+      const tbody = document.createElement('tbody');
+      lines.forEach(line => {
+        const text = (line.text || '').trim();
+        if (!text) return;
+        const tr = document.createElement('tr');
+        const cells = new Array(columns.length).fill('');
+        (line.words || []).forEach(word => {
+          const idx = findNearestColumn(word.bbox.x0, columns);
+          const normalized = (word.text || '').replace(/\s+/g, ' ').trim();
+          if (!normalized) return;
+          cells[idx] = cells[idx] ? `${cells[idx]} ${normalized}` : normalized;
+        });
+        cells.forEach(text => {
+          const td = document.createElement('td');
+          td.textContent = text;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+      layoutTable.appendChild(tbody);
+    }
+
+    // ==================== 다중 패스 OCR ====================
+    async function multiPassOCR(worker, canvas) {
+      const results = [];
+
+      // 첫 번째 패스: 기본 인식
+      log('패스 1/3: 기본 OCR 실행 중...');
+      const result1 = await worker.recognize(canvas);
+      results.push(result1.data);
+
+      // 두 번째 패스: 약간 회전된 이미지
+      log('패스 2/3: 회전 보정 OCR 실행 중...');
+      const rotatedCanvas = rotateCanvas(canvas, 0.5);  // 0.5도 회전
+      const result2 = await worker.recognize(rotatedCanvas);
+      results.push(result2.data);
+
+      // 세 번째 패스: 추가 선명화
+      log('패스 3/3: 선명화 OCR 실행 중...');
+      const sharpCanvas = document.createElement('canvas');
+      sharpCanvas.width = canvas.width;
+      sharpCanvas.height = canvas.height;
+      const ctx = sharpCanvas.getContext('2d');
+      ctx.drawImage(canvas, 0, 0);
+      let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      imageData = sharpenImage(imageData, canvas.width, canvas.height);
+      ctx.putImageData(imageData, 0, 0);
+      const result3 = await worker.recognize(sharpCanvas);
+      results.push(result3.data);
+
+      // 결과 병합
+      return mergeOCRResults(results);
+    }
+
+    function rotateCanvas(canvas, degrees) {
+      const radians = degrees * Math.PI / 180;
+      const cos = Math.cos(radians);
+      const sin = Math.sin(radians);
+
+      const newWidth = Math.abs(canvas.width * cos) + Math.abs(canvas.height * sin);
+      const newHeight = Math.abs(canvas.width * sin) + Math.abs(canvas.height * cos);
+
+      const rotated = document.createElement('canvas');
+      rotated.width = newWidth;
+      rotated.height = newHeight;
+      const ctx = rotated.getContext('2d');
+
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, newWidth, newHeight);
+      ctx.translate(newWidth / 2, newHeight / 2);
+      ctx.rotate(radians);
+      ctx.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
+
+      return rotated;
+    }
+
+    function mergeOCRResults(results) {
+      // 가장 높은 신뢰도를 가진 결과를 기준으로 병합
+      let bestResult = results[0];
+      let maxConfidence = 0;
+
+      results.forEach(result => {
+        const lines = result.lines || [];
+        const avgConf = lines.reduce((sum, line) => sum + (line.confidence || 0), 0) / (lines.length || 1);
+        if (avgConf > maxConfidence) {
+          maxConfidence = avgConf;
+          bestResult = result;
+        }
+      });
+
+      log(`다중 패스 OCR 완료: 최고 신뢰도 ${maxConfidence.toFixed(1)}% 결과 선택`);
+      return bestResult;
+    }
+
+    function prepareRowsFromLines(lines, meta){
+      rows = lines
+        .map((line, idx)=>{
+          const text = (line.text || '').trim();
+          if (!text) return null;
+          return {
+            id: idx + 1,
+            text,
+            nums: parseNumbersFromLine(text),
+            confidence: Number.isFinite(line.confidence) ? line.confidence : null
+          };
+        })
+        .filter(Boolean);
+
+      groupAndVerifyRows();
+      renderTable();
+      renderLayoutTable(lines, meta);
+
+      const avg = rows.length ? rows.reduce((acc, cur)=> acc + (cur.confidence || 0), 0) / rows.length : 0;
+      log(`OCR 라인 ${rows.length}개 분석 완료. 평균 신뢰도 ${avg.toFixed(1)}%.`);
+      const ocrFlag = avg >= 85 ? 'ok' : (avg >= 70 ? 'warn' : 'err');
+      setInsightGroup('ocr', [{
+        key: 'ocr-summary',
+        order: 10,
+        flag: ocrFlag,
+        title: 'OCR 분석 완료',
+        meta: [
+          `라인 ${rows.length}개`,
+          `평균 신뢰도 ${avg.toFixed(1)}%`
+        ],
+        body: `자동으로 ${displayItems.length}개의 계산 항목을 감지했습니다. ${avg >= 85 ? '정확도가 매우 높습니다.' : '전처리 프로필을 "강력"으로 변경하면 더 나은 결과를 얻을 수 있습니다.'}`
+      }]);
+      checkSumBtn.disabled = false;
+      checkAutoBtn.disabled = false;
+      exportBtn.disabled = false;
+    }
+
+    function prepareRowsFromText(text){
+      const lines = text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+      rows = lines.map((line, i)=>({
+        id: i+1,
+        text: line,
+        nums: parseNumbersFromLine(line),
+        confidence: null
+      }));
+
+      groupAndVerifyRows();
+      renderTable();
+      renderLayoutTable([], {});
+
+      log(`OCR 라인 ${rows.length}개 분석 완료 (레이아웃 정보 없음).`);
+      setInsightGroup('ocr', [{
+        key: 'ocr-summary',
+        order: 10,
+        flag: rows.length ? 'warn' : 'err',
+        title: 'OCR 분석 완료',
+        meta: [`라인 ${rows.length}개`],
+        body: rows.length ? '레이아웃 정보 없이 텍스트만 추출되었습니다. 더 나은 결과를 위해 "강력" 프로필을 시도해보세요.' : '텍스트를 추출하지 못했습니다. 이미지 품질을 확인해주세요.'
+      }]);
+      checkSumBtn.disabled = false;
+      checkAutoBtn.disabled = false;
+      exportBtn.disabled = false;
+    }
+
+    async function handleOCR(file){
+      runBtn.disabled = true;
+      bar.style.width = '0%';
+      statusEl.textContent = '이미지 전처리 중…';
+      log('='.repeat(60));
+      log('OCR 시작: ' + file.name);
+      resetButtons();
+      try {
+        const lang = langSel.value || 'kor+eng';
+        const useMultiPass = multiPassSel.value === 'true';
+
+        const worker = await ensureWorker(lang);
+        const { canvas, originalUrl, processedUrl, width, height } = await preprocessFileForOCR(file);
+        showPreview(originalUrl, processedUrl);
+
+        statusEl.textContent = '텍스트 분석 중… (LSTM 엔진)';
+
+        let data;
+        if (useMultiPass) {
+          data = await multiPassOCR(worker, canvas);
+        } else {
+          const result = await worker.recognize(canvas);
+          data = result.data;
+        }
+
+        statusEl.textContent = 'OCR 완료';
+        log('OCR 처리 완료.');
+
+        if (data?.lines?.length){
+          prepareRowsFromLines(data.lines, { width, height });
+        } else {
+          prepareRowsFromText(data?.text || '');
+        }
+      } catch (e){
+        console.error(e);
+        statusEl.textContent = 'OCR 실패. 콘솔 로그를 확인하세요.';
+        log('오류: ' + (e?.message || e));
+        log('이미지 품질이 낮거나 텍스트가 명확하지 않을 수 있습니다.');
+      } finally {
+        runBtn.disabled = false;
+        setTimeout(()=> bar.style.width='0%', 800);
+      }
+    }
+
+    function resetButtons(){
+      checkSumBtn.disabled = true;
+      checkAutoBtn.disabled = true;
+      exportBtn.disabled = true;
+      layoutCard.style.display = 'none';
+      preview.style.display = 'none';
+      tbody.innerHTML = '';
+      rows = [];
+      displayItems = [];
+      resetInsights();
+    }
+
+    let images = [];
+
+    drop.addEventListener('click', ()=> fileInput.click());
+    ['dragover','drop'].forEach(ev=>{
+      drop.addEventListener(ev, e=>{
+        e.preventDefault();
+        e.stopPropagation();
+        if (ev === 'dragover') drop.classList.add('hover');
+        else drop.classList.remove('hover');
+      });
+    });
+    drop.addEventListener('drop', (e)=>{
+      images = Array.from(e.dataTransfer.files || []).filter(f => /image\//.test(f.type) || /pdf$/i.test(f.name) || /pdf/i.test(f.type));
+      runBtn.disabled = images.length === 0;
+      statusEl.textContent = `${images.length}개 파일 선택됨. [OCR 시작] 버튼을 누르세요.`;
+      resetButtons();
+      if (images[0] && images[0].type.startsWith('image/')){
+        showPreview(URL.createObjectURL(images[0]), null);
+      }
+    });
+    fileInput.addEventListener('change', ()=>{
+      images = Array.from(fileInput.files || []);
+      runBtn.disabled = images.length === 0;
+      statusEl.textContent = `${images.length}개 파일 선택됨. [OCR 시작] 버튼을 누르세요.`;
+      resetButtons();
+      if (images[0] && images[0].type.startsWith('image/')){
+        showPreview(URL.createObjectURL(images[0]), null);
+      }
+    });
+
+    runBtn.addEventListener('click', async ()=>{
+      if (!images.length) return;
+      await handleOCR(images[0]);
+    });
+
+    checkSumBtn.addEventListener('click', checkSelectedVsTarget);
+    checkAutoBtn.addEventListener('click', autoCheckTotals);
+    exportBtn.addEventListener('click', exportCSV);
+  </script>
+</body>
+</html>
