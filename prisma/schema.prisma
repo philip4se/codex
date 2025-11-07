@@ -1,0 +1,117 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 사용자 모델
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  age       Int
+  phone     String   @unique
+  job       String
+
+  // 주소 정보
+  country   String   @default("대한민국")
+  province  String   // 도/시
+  city      String   // 시/군/구
+  district  String?  // 읍/면/동
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  surveysCreated Survey[]   @relation("SurveyCreator")
+  responses      Response[]
+
+  @@map("users")
+}
+
+// 설문 모델
+model Survey {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+
+  // 설문 내용 (Google Sheets URL 또는 JSON)
+  contentType String   @default("google_sheet") // google_sheet, json
+  contentUrl  String?  // Google Sheets URL
+  contentJson String?  @db.Text // JSON 형식의 설문 내용
+
+  // 타겟팅 조건
+  targetAgeMin     Int?
+  targetAgeMax     Int?
+  targetProvince   String?
+  targetCity       String?
+  targetDistrict   String?
+  targetJob        String?
+
+  // 보상 정보
+  hasReward        Boolean  @default(false)
+  rewardType       String?  // gifticon, culture_voucher, etc
+  rewardValue      String?
+  rewardCondition  String?  // 완료 조건
+
+  // 설문 상태
+  status      String   @default("active") // active, closed, draft
+  maxResponses Int?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  creatorId   String
+
+  // Relations
+  creator     User       @relation("SurveyCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  responses   Response[]
+
+  @@map("surveys")
+  @@index([status])
+  @@index([creatorId])
+}
+
+// 응답 모델
+model Response {
+  id          String   @id @default(cuid())
+  surveyId    String
+  userId      String
+
+  // 응답 데이터 (JSON)
+  data        String   @db.Text
+
+  // 완료 상태
+  isCompleted Boolean  @default(false)
+  completedAt DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  survey      Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([surveyId, userId])
+  @@map("responses")
+  @@index([surveyId])
+  @@index([userId])
+  @@index([isCompleted])
+}
+
+// 행정구역 모델 (참고용)
+model Region {
+  id       String  @id @default(cuid())
+  country  String  @default("대한민국")
+  province String  // 서울특별시, 경기도 등
+  city     String? // 강남구, 수원시 등
+  district String? // 역삼동 등
+
+  @@unique([province, city, district])
+  @@map("regions")
+}
