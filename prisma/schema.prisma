@@ -5,7 +5,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -44,7 +44,7 @@ model Survey {
   // 설문 내용 (Google Sheets URL 또는 JSON)
   contentType String   @default("google_sheet") // google_sheet, json
   contentUrl  String?  // Google Sheets URL
-  contentJson String?  @db.Text // JSON 형식의 설문 내용
+  contentJson String?  // JSON 형식의 설문 내용
 
   // 타겟팅 조건
   targetAgeMin     Int?
@@ -84,7 +84,7 @@ model Response {
   userId      String
 
   // 응답 데이터 (JSON)
-  data        String   @db.Text
+  data        String
 
   // 완료 상태
   isCompleted Boolean  @default(false)
