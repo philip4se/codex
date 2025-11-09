@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>설문 매칭 플랫폼 - 데모</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .nav {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .nav-btn:hover {
+            background: #5568d3;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .survey-item {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .survey-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .survey-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .survey-desc {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .survey-info {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #28a745;
+            color: white;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .user-info {
+            color: #333;
+            font-size: 14px;
+        }
+
+        .success-msg {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-msg {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .question-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+
+        .welcome {
+            text-align: center;
+            padding: 50px 20px;
+            color: white;
+        }
+
+        .welcome h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .welcome p {
+            font-size: 20px;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Welcome Screen -->
+    <div id="welcomeScreen" class="container">
+        <div class="welcome">
+            <h1>🎯 설문 매칭 플랫폼</h1>
+            <p>설문 의뢰자와 참여자를 연결하는 플랫폼</p>
+            <button class="btn" onclick="showLogin()">시작하기</button>
+            <br><br>
+            <p style="font-size: 14px; opacity: 0.8;">
+                💡 이것은 데모 버전입니다. 모든 데이터는 브라우저에 저장됩니다.
+            </p>
+        </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="loginScreen" class="container hidden">
+        <div class="card" style="max-width: 400px; margin: 100px auto;">
+            <h2>로그인</h2>
+            <div id="loginMessage"></div>
+            <div class="form-group">
+                <label>이메일</label>
+                <input type="email" id="loginEmail" placeholder="test@example.com">
+            </div>
+            <div class="form-group">
+                <label>비밀번호</label>
+                <input type="password" id="loginPassword" placeholder="비밀번호">
+            </div>
+            <button class="btn" onclick="login()">로그인</button>
+            <button class="btn btn-secondary" onclick="showRegister()">회원가입</button>
+        </div>
+    </div>
+
+    <!-- Register Screen -->
+    <div id="registerScreen" class="container hidden">
+        <div class="card" style="max-width: 500px; margin: 50px auto;">
+            <h2>회원가입</h2>
+            <div id="registerMessage"></div>
+            <div class="form-group">
+                <label>이름</label>
+                <input type="text" id="regName" placeholder="홍길동">
+            </div>
+            <div class="form-group">
+                <label>이메일</label>
+                <input type="email" id="regEmail" placeholder="test@example.com">
+            </div>
+            <div class="form-group">
+                <label>비밀번호</label>
+                <input type="password" id="regPassword" placeholder="8자 이상">
+            </div>
+            <div class="form-group">
+                <label>전화번호</label>
+                <input type="tel" id="regPhone" placeholder="010-1234-5678">
+            </div>
+            <div class="form-group">
+                <label>생년월일</label>
+                <input type="date" id="regBirthDate">
+            </div>
+            <div class="form-group">
+                <label>지역</label>
+                <select id="regRegion">
+                    <option value="">선택하세요</option>
+                    <option value="서울">서울</option>
+                    <option value="경기">경기</option>
+                    <option value="인천">인천</option>
+                    <option value="부산">부산</option>
+                    <option value="대구">대구</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>직업</label>
+                <select id="regJob">
+                    <option value="">선택하세요</option>
+                    <option value="학생">학생</option>
+                    <option value="회사원">회사원</option>
+                    <option value="전문직">전문직</option>
+                    <option value="자영업">자영업</option>
+                    <option value="주부">주부</option>
+                    <option value="기타">기타</option>
+                </select>
+            </div>
+            <button class="btn" onclick="register()">가입하기</button>
+            <button class="btn btn-secondary" onclick="showLogin()">로그인으로</button>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboardScreen" class="container hidden">
+        <div class="header">
+            <div class="logo">🎯 설문 매칭 플랫폼</div>
+            <div class="nav">
+                <button class="nav-btn" onclick="showDashboard()">대시보드</button>
+                <button class="nav-btn" onclick="showMySurveys()">내 설문</button>
+                <button class="nav-btn" onclick="showAvailableSurveys()">참여하기</button>
+                <button class="nav-btn" onclick="logout()">로그아웃</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>안녕하세요, <span id="userName"></span>님! 👋</h2>
+            <div class="user-info" id="userInfo"></div>
+        </div>
+
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <div class="stat-number" id="mySurveysCount">0</div>
+                <div class="stat-label">내가 만든 설문</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="availableSurveysCount">0</div>
+                <div class="stat-label">참여 가능 설문</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="completedSurveysCount">0</div>
+                <div class="stat-label">참여 완료 설문</div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>내가 만든 설문</h2>
+                <button class="btn" onclick="showCreateSurvey()">+ 새 설문 만들기</button>
+                <div id="mySurveysList" style="margin-top: 20px;"></div>
+            </div>
+
+            <div class="card">
+                <h2>참여 가능한 설문</h2>
+                <div id="availableSurveysList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Survey -->
+    <div id="createSurveyScreen" class="container hidden">
+        <div class="header">
+            <div class="logo">🎯 설문 매칭 플랫폼</div>
+            <div class="nav">
+                <button class="nav-btn" onclick="showDashboard()">대시보드</button>
+                <button class="nav-btn" onclick="logout()">로그아웃</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>새 설문 만들기</h2>
+            <div id="createMessage"></div>
+            <div class="form-group">
+                <label>설문 제목</label>
+                <input type="text" id="surveyTitle" placeholder="예: 온라인 쇼핑 만족도 조사">
+            </div>
+            <div class="form-group">
+                <label>설문 설명</label>
+                <textarea id="surveyDesc" placeholder="설문에 대한 간단한 설명을 입력하세요"></textarea>
+            </div>
+            <div class="form-group">
+                <label>목표 응답 수</label>
+                <input type="number" id="surveyTarget" value="100">
+            </div>
+            <div class="form-group">
+                <label>보상</label>
+                <input type="text" id="surveyReward" placeholder="예: 스타벅스 기프티콘 5,000원">
+            </div>
+            <div class="form-group">
+                <label>타깃 지역 (선택사항)</label>
+                <select id="surveyTargetRegion">
+                    <option value="">전체</option>
+                    <option value="서울">서울</option>
+                    <option value="경기">경기</option>
+                    <option value="인천">인천</option>
+                    <option value="부산">부산</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>타깃 직업 (선택사항)</label>
+                <select id="surveyTargetJob">
+                    <option value="">전체</option>
+                    <option value="학생">학생</option>
+                    <option value="회사원">회사원</option>
+                    <option value="전문직">전문직</option>
+                    <option value="자영업">자영업</option>
+                </select>
+            </div>
+            <button class="btn" onclick="createSurvey()">설문 생성</button>
+            <button class="btn btn-secondary" onclick="showDashboard()">취소</button>
+        </div>
+    </div>
+
+    <!-- Survey Detail -->
+    <div id="surveyDetailScreen" class="container hidden">
+        <div class="header">
+            <div class="logo">🎯 설문 매칭 플랫폼</div>
+            <div class="nav">
+                <button class="nav-btn" onclick="showDashboard()">대시보드</button>
+                <button class="nav-btn" onclick="logout()">로그아웃</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 id="detailTitle"></h2>
+            <div id="detailContent"></div>
+            <div id="detailQuestions"></div>
+            <button class="btn" id="participateBtn" onclick="participateSurvey()">설문 참여하기</button>
+            <button class="btn btn-secondary" onclick="showDashboard()">돌아가기</button>
+        </div>
+    </div>
+
+    <script>
+        // 데이터 저장소 (로컬스토리지 사용)
+        let currentUser = null;
+        let currentSurvey = null;
+
+        // 초기화
+        function init() {
+            const user = localStorage.getItem('currentUser');
+            if (user) {
+                currentUser = JSON.parse(user);
+                showDashboard();
+            } else {
+                showScreen('welcomeScreen');
+            }
+        }
+
+        // 화면 전환
+        function showScreen(screenId) {
+            const screens = ['welcomeScreen', 'loginScreen', 'registerScreen', 'dashboardScreen', 'createSurveyScreen', 'surveyDetailScreen'];
+            screens.forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        function showLogin() {
+            showScreen('loginScreen');
+        }
+
+        function showRegister() {
+            showScreen('registerScreen');
+        }
+
+        // 회원가입
+        function register() {
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const phone = document.getElementById('regPhone').value;
+            const birthDate = document.getElementById('regBirthDate').value;
+            const region = document.getElementById('regRegion').value;
+            const job = document.getElementById('regJob').value;
+
+            if (!name || !email || !password || !phone || !birthDate || !region || !job) {
+                document.getElementById('registerMessage').innerHTML = '<div class="error-msg">모든 항목을 입력해주세요.</div>';
+                return;
+            }
+
+            if (password.length < 8) {
+                document.getElementById('registerMessage').innerHTML = '<div class="error-msg">비밀번호는 8자 이상이어야 합니다.</div>';
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+
+            if (users.find(u => u.email === email)) {
+                document.getElementById('registerMessage').innerHTML = '<div class="error-msg">이미 등록된 이메일입니다.</div>';
+                return;
+            }
+
+            const newUser = {
+                id: Date.now().toString(),
+                name, email, password, phone, birthDate, region, job,
+                createdAt: new Date().toISOString()
+            };
+
+            users.push(newUser);
+            localStorage.setItem('users', JSON.stringify(users));
+
+            document.getElementById('registerMessage').innerHTML = '<div class="success-msg">회원가입이 완료되었습니다!</div>';
+            setTimeout(() => showLogin(), 1500);
+        }
+
+        // 로그인
+        function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                document.getElementById('loginMessage').innerHTML = '<div class="error-msg">이메일과 비밀번호를 입력하세요.</div>';
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const user = users.find(u => u.email === email && u.password === password);
+
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                showDashboard();
+            } else {
+                document.getElementById('loginMessage').innerHTML = '<div class="error-msg">이메일 또는 비밀번호가 올바르지 않습니다.</div>';
+            }
+        }
+
+        // 로그아웃
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            showScreen('welcomeScreen');
+        }
+
+        // 대시보드
+        function showDashboard() {
+            showScreen('dashboardScreen');
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('userInfo').innerHTML = `
+                📧 ${currentUser.email} | 📍 ${currentUser.region} | 💼 ${currentUser.job}
+            `;
+
+            updateDashboardStats();
+            loadMySurveys();
+            loadAvailableSurveys();
+        }
+
+        function updateDashboardStats() {
+            const surveys = JSON.parse(localStorage.getItem('surveys') || '[]');
+            const mySurveys = surveys.filter(s => s.creatorId === currentUser.id);
+            const participations = JSON.parse(localStorage.getItem('participations') || '[]');
+            const myParticipations = participations.filter(p => p.userId === currentUser.id);
+
+            const availableSurveys = surveys.filter(s => {
+                if (s.creatorId === currentUser.id) return false;
+                if (myParticipations.find(p => p.surveyId === s.id)) return false;
+                if (s.targetRegion && s.targetRegion !== currentUser.region) return false;
+                if (s.targetJob && s.targetJob !== currentUser.job) return false;
+                return true;
+            });
+
+            document.getElementById('mySurveysCount').textContent = mySurveys.length;
+            document.getElementById('availableSurveysCount').textContent = availableSurveys.length;
+            document.getElementById('completedSurveysCount').textContent = myParticipations.length;
+        }
+
+        function loadMySurveys() {
+            const surveys = JSON.parse(localStorage.getItem('surveys') || '[]');
+            const mySurveys = surveys.filter(s => s.creatorId === currentUser.id);
+            const list = document.getElementById('mySurveysList');
+
+            if (mySurveys.length === 0) {
+                list.innerHTML = '<p style="color: #999; margin-top: 15px;">아직 만든 설문이 없습니다.</p>';
+                return;
+            }
+
+            list.innerHTML = mySurveys.map(survey => `
+                <div class="survey-item" onclick="viewSurveyDetail('${survey.id}')">
+                    <div class="survey-title">${survey.title}</div>
+                    <div class="survey-desc">${survey.description}</div>
+                    <div class="survey-info">
+                        목표: ${survey.targetResponses}명 |
+                        ${survey.reward ? '보상: ' + survey.reward : '보상 없음'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function loadAvailableSurveys() {
+            const surveys = JSON.parse(localStorage.getItem('surveys') || '[]');
+            const participations = JSON.parse(localStorage.getItem('participations') || '[]');
+            const myParticipations = participations.filter(p => p.userId === currentUser.id);
+
+            const available = surveys.filter(s => {
+                if (s.creatorId === currentUser.id) return false;
+                if (myParticipations.find(p => p.surveyId === s.id)) return false;
+                if (s.targetRegion && s.targetRegion !== currentUser.region) return false;
+                if (s.targetJob && s.targetJob !== currentUser.job) return false;
+                return true;
+            });
+
+            const list = document.getElementById('availableSurveysList');
+
+            if (available.length === 0) {
+                list.innerHTML = '<p style="color: #999; margin-top: 15px;">현재 참여 가능한 설문이 없습니다.</p>';
+                return;
+            }
+
+            list.innerHTML = available.map(survey => `
+                <div class="survey-item" onclick="viewSurveyDetail('${survey.id}')">
+                    <div class="survey-title">${survey.title} <span class="badge">참여 가능</span></div>
+                    <div class="survey-desc">${survey.description}</div>
+                    <div class="survey-info">
+                        ${survey.reward ? '🎁 ' + survey.reward : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 설문 생성
+        function showCreateSurvey() {
+            showScreen('createSurveyScreen');
+        }
+
+        function createSurvey() {
+            const title = document.getElementById('surveyTitle').value;
+            const description = document.getElementById('surveyDesc').value;
+            const targetResponses = document.getElementById('surveyTarget').value;
+            const reward = document.getElementById('surveyReward').value;
+            const targetRegion = document.getElementById('surveyTargetRegion').value;
+            const targetJob = document.getElementById('surveyTargetJob').value;
+
+            if (!title || !description) {
+                document.getElementById('createMessage').innerHTML = '<div class="error-msg">제목과 설명을 입력하세요.</div>';
+                return;
+            }
+
+            const surveys = JSON.parse(localStorage.getItem('surveys') || '[]');
+            const newSurvey = {
+                id: Date.now().toString(),
+                creatorId: currentUser.id,
+                title, description, targetResponses, reward,
+                targetRegion, targetJob,
+                createdAt: new Date().toISOString(),
+                participants: 0
+            };
+
+            surveys.push(newSurvey);
+            localStorage.setItem('surveys', JSON.stringify(surveys));
+
+            document.getElementById('createMessage').innerHTML = '<div class="success-msg">설문이 생성되었습니다!</div>';
+            setTimeout(() => showDashboard(), 1500);
+        }
+
+        // 설문 상세 보기
+        function viewSurveyDetail(surveyId) {
+            const surveys = JSON.parse(localStorage.getItem('surveys') || '[]');
+            const survey = surveys.find(s => s.id === surveyId);
+            currentSurvey = survey;
+
+            showScreen('surveyDetailScreen');
+            document.getElementById('detailTitle').textContent = survey.title;
+            document.getElementById('detailContent').innerHTML = `
+                <p style="color: #666; margin-bottom: 20px;">${survey.description}</p>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                    <p><strong>목표 응답 수:</strong> ${survey.targetResponses}명</p>
+                    <p><strong>보상:</strong> ${survey.reward || '없음'}</p>
+                    ${survey.targetRegion ? `<p><strong>대상 지역:</strong> ${survey.targetRegion}</p>` : ''}
+                    ${survey.targetJob ? `<p><strong>대상 직업:</strong> ${survey.targetJob}</p>` : ''}
+                </div>
+            `;
+
+            // 샘플 질문 표시
+            document.getElementById('detailQuestions').innerHTML = `
+                <h3 style="margin-top: 20px; margin-bottom: 15px;">설문 문항 미리보기</h3>
+                <div class="question-item">
+                    <p><strong>1. 귀하의 연령대는?</strong></p>
+                    <p style="font-size: 12px; color: #666;">○ 10대 ○ 20대 ○ 30대 ○ 40대 ○ 50대 이상</p>
+                </div>
+                <div class="question-item">
+                    <p><strong>2. 온라인 쇼핑 이용 빈도는?</strong></p>
+                    <p style="font-size: 12px; color: #666;">○ 주 1회 이상 ○ 월 1-3회 ○ 월 1회 미만</p>
+                </div>
+                <div class="question-item">
+                    <p><strong>3. 만족도는 어떠신가요?</strong></p>
+                    <p style="font-size: 12px; color: #666;">○ 매우 만족 ○ 만족 ○ 보통 ○ 불만족 ○ 매우 불만족</p>
+                </div>
+            `;
+
+            // 참여 버튼 표시/숨김
+            const participations = JSON.parse(localStorage.getItem('participations') || '[]');
+            const alreadyParticipated = participations.find(p => p.surveyId === surveyId && p.userId === currentUser.id);
+
+            if (survey.creatorId === currentUser.id) {
+                document.getElementById('participateBtn').style.display = 'none';
+            } else if (alreadyParticipated) {
+                document.getElementById('participateBtn').textContent = '이미 참여한 설문입니다';
+                document.getElementById('participateBtn').disabled = true;
+            } else {
+                document.getElementById('participateBtn').style.display = 'inline-block';
+                document.getElementById('participateBtn').textContent = '설문 참여하기';
+                document.getElementById('participateBtn').disabled = false;
+            }
+        }
+
+        // 설문 참여
+        function participateSurvey() {
+            const participations = JSON.parse(localStorage.getItem('participations') || '[]');
+
+            participations.push({
+                id: Date.now().toString(),
+                surveyId: currentSurvey.id,
+                userId: currentUser.id,
+                completedAt: new Date().toISOString()
+            });
+
+            localStorage.setItem('participations', JSON.stringify(participations));
+
+            alert('설문 참여가 완료되었습니다! 🎉\n보상은 설문 의뢰자가 직접 지급합니다.');
+            showDashboard();
+        }
+
+        function showMySurveys() {
+            showDashboard();
+        }
+
+        function showAvailableSurveys() {
+            showDashboard();
+        }
+
+        // 페이지 로드 시 초기화
+        window.onload = init;
+    </script>
+</body>
+</html>
