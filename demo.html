@@ -746,6 +746,180 @@
                                 options: ['5,000원 이하', '5,000-10,000원', '10,000-15,000원', '15,000원 이상']
                             }
                         ]
+                    },
+                    {
+                        id: 'sample5',
+                        creatorId: 'system',
+                        title: '💪 운동 습관 설문',
+                        description: '운동 빈도와 선호하는 운동 유형을 알아보는 간단한 설문입니다.',
+                        targetResponses: 100,
+                        rewardPoints: 80,
+                        targetRegion: '',
+                        targetJob: '',
+                        createdAt: new Date().toISOString(),
+                        participants: 0,
+                        questions: [
+                            {
+                                id: 1,
+                                type: 'radio',
+                                question: '일주일에 운동하는 횟수는?',
+                                required: true,
+                                options: ['거의 안 함', '주 1회', '주 2-3회', '주 4회 이상']
+                            },
+                            {
+                                id: 2,
+                                type: 'checkbox',
+                                question: '선호하는 운동 종류는? (복수선택)',
+                                required: true,
+                                options: ['걷기/러닝', '헬스/웨이트', '수영', '요가/필라테스', '구기종목', '자전거']
+                            },
+                            {
+                                id: 3,
+                                type: 'radio',
+                                question: '운동하는 주된 이유는?',
+                                required: true,
+                                options: ['건강 관리', '다이어트', '체력 증진', '스트레스 해소', '취미']
+                            }
+                        ]
+                    },
+                    {
+                        id: 'sample6',
+                        creatorId: 'system',
+                        title: '🍕 음식 선호도 조사',
+                        description: '좋아하는 음식과 식사 습관에 대한 간단한 설문입니다.',
+                        targetResponses: 150,
+                        rewardPoints: 60,
+                        targetRegion: '',
+                        targetJob: '학생',
+                        createdAt: new Date().toISOString(),
+                        participants: 0,
+                        questions: [
+                            {
+                                id: 1,
+                                type: 'checkbox',
+                                question: '좋아하는 음식 종류는? (복수선택)',
+                                required: true,
+                                options: ['한식', '중식', '일식', '양식', '분식', '패스트푸드']
+                            },
+                            {
+                                id: 2,
+                                type: 'radio',
+                                question: '하루 평균 외식 횟수는?',
+                                required: true,
+                                options: ['거의 안 함', '1회', '2회', '3회 이상']
+                            },
+                            {
+                                id: 3,
+                                type: 'select',
+                                question: '식사 메뉴 선택 시 가장 중요한 요소는?',
+                                required: true,
+                                options: ['맛', '가격', '건강', '편의성', '분위기']
+                            }
+                        ]
+                    },
+                    {
+                        id: 'sample7',
+                        creatorId: 'system',
+                        title: '🚗 출퇴근/통학 수단 설문',
+                        description: '일상적인 이동 수단과 소요 시간에 대한 설문입니다.',
+                        targetResponses: 120,
+                        rewardPoints: 90,
+                        targetRegion: '경기',
+                        targetJob: '',
+                        createdAt: new Date().toISOString(),
+                        participants: 0,
+                        questions: [
+                            {
+                                id: 1,
+                                type: 'radio',
+                                question: '주로 사용하는 이동 수단은?',
+                                required: true,
+                                options: ['지하철', '버스', '자가용', '도보', '자전거/킥보드', '택시/카풀']
+                            },
+                            {
+                                id: 2,
+                                type: 'radio',
+                                question: '평균 통근/통학 시간은?',
+                                required: true,
+                                options: ['30분 미만', '30분-1시간', '1-2시간', '2시간 이상']
+                            },
+                            {
+                                id: 3,
+                                type: 'checkbox',
+                                question: '이동 중 주로 하는 활동은? (복수선택)',
+                                required: true,
+                                options: ['스마트폰 사용', '음악 듣기', '독서', '수면', '업무/공부', '아무것도 안 함']
+                            }
+                        ]
+                    },
+                    {
+                        id: 'sample8',
+                        creatorId: 'system',
+                        title: '🎨 취미 생활 조사',
+                        description: '여가 시간 활용과 취미 활동에 대한 간단한 설문입니다.',
+                        targetResponses: 100,
+                        rewardPoints: 70,
+                        targetRegion: '',
+                        targetJob: '',
+                        createdAt: new Date().toISOString(),
+                        participants: 0,
+                        questions: [
+                            {
+                                id: 1,
+                                type: 'checkbox',
+                                question: '현재 즐기는 취미는? (복수선택)',
+                                required: true,
+                                options: ['운동', '독서', '영화/드라마', '게임', '요리', '여행', '음악 감상', '사진/영상']
+                            },
+                            {
+                                id: 2,
+                                type: 'radio',
+                                question: '주말에 취미 활동에 할애하는 시간은?',
+                                required: true,
+                                options: ['1시간 미만', '1-3시간', '3-5시간', '5시간 이상']
+                            },
+                            {
+                                id: 3,
+                                type: 'text',
+                                question: '새롭게 시작하고 싶은 취미가 있다면?',
+                                required: false
+                            }
+                        ]
+                    },
+                    {
+                        id: 'sample9',
+                        creatorId: 'system',
+                        title: '🏥 건강관리 실태 조사',
+                        description: '건강 관리와 생활 습관에 대한 설문입니다.',
+                        targetResponses: 80,
+                        rewardPoints: 110,
+                        targetRegion: '',
+                        targetJob: '전문직',
+                        createdAt: new Date().toISOString(),
+                        participants: 0,
+                        questions: [
+                            {
+                                id: 1,
+                                type: 'radio',
+                                question: '평균 수면 시간은?',
+                                required: true,
+                                options: ['5시간 미만', '5-6시간', '7-8시간', '8시간 이상']
+                            },
+                            {
+                                id: 2,
+                                type: 'checkbox',
+                                question: '건강을 위해 실천하는 것은? (복수선택)',
+                                required: true,
+                                options: ['규칙적인 운동', '건강식 섭취', '충분한 수면', '금연/금주', '건강검진', '특별히 없음']
+                            },
+                            {
+                                id: 3,
+                                type: 'radio',
+                                question: '스트레스 수준은?',
+                                required: true,
+                                options: ['매우 높음', '높음', '보통', '낮음', '매우 낮음']
+                            }
+                        ]
                     }
                 ];
                 localStorage.setItem('surveys', JSON.stringify(sampleSurveys));
