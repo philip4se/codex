@@ -8,7 +8,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 50%, #a6c1ee 100%);
+            background: linear-gradient(135deg, #FFE5B4 0%, #FFDAB9 25%, #FFB6C1 50%, #FFA07A 75%, #FF9A76 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -25,7 +25,7 @@
             border: 1px solid rgba(102, 126, 234, 0.08);
         }
         .logo { font-size: 24px; font-weight: bold;
-                background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
+                background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 background-clip: text; }
@@ -40,14 +40,14 @@
         }
         .nav-btn {
             padding: 8px 16px;
-            background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 14px;
         }
-        .nav-btn:hover { background: #5568d3; }
+        .nav-btn:hover { background: #E85555; }
         .btn-reset {
             background: #dc3545;
             padding: 6px 12px;
@@ -80,7 +80,7 @@
         .form-group textarea { min-height: 100px; resize: vertical; }
         .btn {
             padding: 12px 24px;
-            background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
             color: white;
             border: none;
             border-radius: 5px;
@@ -89,7 +89,7 @@
             margin-top: 10px;
             margin-right: 10px;
         }
-        .btn:hover { background: #5568d3; }
+        .btn:hover { background: #E85555; }
         .btn-secondary { background: #6c757d; }
         .btn-secondary:hover { background: #5a6268; }
         .btn-danger { background: #dc3545; }
@@ -106,10 +106,11 @@
             background: white;
             padding: 20px;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.08), 0 1px 3px rgba(0,0,0,0.04);
+            box-shadow: 0 6px 16px rgba(255, 107, 107, 0.12), 0 2px 6px rgba(0,0,0,0.06);
             cursor: pointer;
             transition: all 0.3s ease;
-            border: 1px solid rgba(102, 126, 234, 0.06);
+            border: 2px solid rgba(255, 142, 83, 0.15);
+            margin-bottom: 18px;
         }
         .survey-item:hover, .product-item:hover {
             transform: translateY(-4px);
@@ -138,7 +139,7 @@
         .product-price {
             font-size: 24px;
             font-weight: bold;
-            color: #667eea;
+            color: #FF6B6B;
             text-align: center;
             margin-bottom: 10px;
         }
@@ -176,12 +177,12 @@
             margin-bottom: 30px;
         }
         .stat-card {
-            background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
             color: white;
             padding: 24px;
             border-radius: 16px;
             text-align: center;
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.25), 0 2px 6px rgba(0,0,0,0.06);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.25), 0 2px 6px rgba(0,0,0,0.06);
             transition: all 0.3s ease;
         }
         .stat-card:hover {
@@ -233,7 +234,7 @@
         .welcome h1 {
             font-size: 48px;
             margin-bottom: 20px;
-            background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -254,12 +255,52 @@
             font-size: 12px;
             color: #666;
         }
+        .rating-badge {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #333;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            position: relative;
+            cursor: help;
+        }
+        .rating-tooltip {
+            display: none;
+            position: absolute;
+            top: 45px;
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: normal;
+            width: 280px;
+            z-index: 1000;
+            line-height: 1.6;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .rating-badge:hover .rating-tooltip {
+            display: block;
+        }
+        .rating-tooltip::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            right: 20px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 8px solid rgba(0, 0, 0, 0.9);
+        }
         .exchange-history-item {
             background: #f8f9fa;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 10px;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #FF6B6B;
         }
         .exchange-date {
             font-size: 12px;
@@ -291,7 +332,7 @@
             color: #495057;
         }
         .tab-btn.active {
-            background: #667eea;
+            background: #FF6B6B;
             color: white;
         }
     </style>
@@ -306,7 +347,7 @@
             <p>설문 의뢰자와 참여자를 연결하는 스마트 플랫폼</p>
             <p style="font-size: 16px; margin-bottom: 20px;">✨ 회원가입 시 100,000P 지급! 설문 참여로 포인트 적립!</p>
             <p style="font-size: 16px; margin-bottom: 20px;">🎁 포인트로 키프티콘, 문화상품권 교환 가능!</p>
-            <p style="font-size: 16px; margin-bottom: 20px; color: #667eea; font-weight: 600;">🎯 타겟 매칭: 나이·성별·지역별 맞춤 설문</p>
+            <p style="font-size: 16px; margin-bottom: 20px; color: #FF6B6B; font-weight: 600;">🎯 타겟 매칭: 나이·성별·지역별 맞춤 설문</p>
             <button class="btn" onclick="showLogin()">시작하기</button>
             <br><br>
             <button class="btn btn-secondary btn-reset" onclick="resetAllData()">🔄 데이터 초기화 (9개 설문 다시 로드)</button>
@@ -411,6 +452,22 @@
             <div class="logo">🎯 설문 매칭 플랫폼 v5.0</div>
             <div class="nav">
                 <div class="points-badge" id="userPoints">💰 0 P</div>
+                <div class="rating-badge" id="userRatingBadge">
+                    ⭐ 0.0
+                    <div class="rating-tooltip">
+                        <strong>📊 평점 시스템 안내</strong><br><br>
+                        <strong>평점 산정:</strong><br>
+                        • 신규 가입: 3.0점 시작<br>
+                        • 설문 완료: +0.1점<br>
+                        • 최대 평점: 5.0점<br><br>
+                        <strong>평점 혜택:</strong><br>
+                        • 3.0점 이하: 무료 설문만 참여<br>
+                        • 3.1~4.0점: 일반 설문 참여<br>
+                        • 4.1점 이상: 프리미엄 설문 참여<br><br>
+                        <strong>💡 평점 올리는 방법:</strong><br>
+                        성실하게 설문에 끝까지 참여하세요!
+                    </div>
+                </div>
                 <button class="nav-btn" onclick="showDashboard()">대시보드</button>
                 <button class="nav-btn" onclick="showMyPage()">마이페이지</button>
                 <button class="nav-btn" onclick="showMySurveys()">내 설문</button>
@@ -517,7 +574,7 @@
             <!-- Profile Edit Tab -->
             <div id="profileTab">
                 <h2>내 정보</h2>
-                <div style="background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center;">
+                <div style="background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center;">
                     <div style="font-size: 48px; font-weight: bold; margin-bottom: 10px;">⭐ <span id="myPageRating">3.0</span></div>
                     <div style="font-size: 16px; margin-bottom: 5px;">내 평점 (5.0 만점)</div>
                     <div style="font-size: 14px; opacity: 0.9;">완료한 설문: <span id="myPageCompletedCount">0</span>개 | 평점은 설문 참여 시 0.1씩 증가합니다</div>
@@ -632,6 +689,16 @@
                 <label>보상 포인트</label>
                 <input type="number" id="surveyRewardPoints" value="100" placeholder="예: 100">
                 <small style="color: #666;">참여자에게 지급할 포인트</small>
+            </div>
+            <div class="form-group">
+                <label>📅 설문 시작일</label>
+                <input type="date" id="surveyStartDate">
+                <small style="color: #666;">설정하지 않으면 즉시 노출됩니다</small>
+            </div>
+            <div class="form-group">
+                <label>📅 설문 종료일</label>
+                <input type="date" id="surveyEndDate">
+                <small style="color: #666;">설정하지 않으면 목표 응답 수 달성 시까지 노출됩니다</small>
             </div>
             <hr style="margin: 30px 0;">
             <h3>🎯 타겟팅 옵션 (선택사항)</h3>
@@ -792,6 +859,10 @@
                 const userRating = user.rating || 3.0;
                 if (userRating < survey.minRating) return false;
             }
+
+            // 평점 3점 이하는 무료 설문만 참여 가능
+            const userRating = user.rating || 3.0;
+            if (userRating <= 3.0 && survey.rewardPoints > 0) return false;
 
             return true;
         }
@@ -1290,7 +1361,7 @@
                 <div class="survey-item" onclick="viewMySurveyDetail('${survey.id}')">
                     <div class="survey-title">${survey.title}</div>
                     <div class="survey-desc">${survey.description}</div>
-                    ${survey.organizer ? `<div class="survey-info" style="color: #667eea; font-weight: 500;">🏢 ${survey.organizer}</div>` : ''}
+                    ${survey.organizer ? `<div class="survey-info" style="color: #FF6B6B; font-weight: 500;">🏢 ${survey.organizer}</div>` : ''}
                     <div class="survey-info">🎯 대상: ${formatTargetInfo(survey)}</div>
                     <div class="survey-info">목표: ${survey.targetResponses}명 | 보상: ${survey.rewardPoints}P | 참여: ${survey.participants || 0}명</div>
                     <div class="survey-info" style="font-size: 11px; color: #999;">생성일: ${new Date(survey.createdAt).toLocaleString('ko-KR')}</div>
@@ -1316,7 +1387,7 @@
                     <div class="survey-item">
                         <div class="survey-title">${survey.title} <span class="badge badge-points">+${survey.rewardPoints}P</span></div>
                         <div class="survey-desc">${survey.description}</div>
-                        ${survey.organizer ? `<div class="survey-info" style="color: #667eea; font-weight: 500;">🏢 ${survey.organizer}</div>` : ''}
+                        ${survey.organizer ? `<div class="survey-info" style="color: #FF6B6B; font-weight: 500;">🏢 ${survey.organizer}</div>` : ''}
                         <div class="survey-info" style="font-size: 11px; color: #999;">참여일: ${new Date(participation.completedAt).toLocaleString('ko-KR')}</div>
                     </div>
                 `;
@@ -1333,6 +1404,14 @@
             if (display) display.textContent = points.toLocaleString();
             const currentPointsEl = document.getElementById('currentPoints');
             if (currentPointsEl) currentPointsEl.textContent = points.toLocaleString();
+
+            // 평점 배지 업데이트
+            const rating = (currentUser.rating || 3.0).toFixed(1);
+            const ratingBadge = document.getElementById('userRatingBadge');
+            if (ratingBadge) {
+                const tooltipHTML = ratingBadge.querySelector('.rating-tooltip').outerHTML;
+                ratingBadge.innerHTML = `⭐ ${rating}${tooltipHTML}`;
+            }
         }
 
         function register() {
@@ -1468,7 +1547,7 @@
                 <div class="survey-item" onclick="viewMySurveyDetail('${survey.id}')">
                     <div class="survey-title">${survey.title}</div>
                     <div class="survey-desc">${survey.description}</div>
-                    ${survey.organizer ? `<div class="survey-info" style="color: #667eea; font-weight: 500;">🏢 ${survey.organizer}</div>` : ''}
+                    ${survey.organizer ? `<div class="survey-info" style="color: #FF6B6B; font-weight: 500;">🏢 ${survey.organizer}</div>` : ''}
                     <div class="survey-info">🎯 대상: ${formatTargetInfo(survey)}</div>
                     <div class="survey-info">목표: ${survey.targetResponses}명 | 보상: ${survey.rewardPoints}P</div>
                 </div>
@@ -1512,10 +1591,26 @@
             const surveys = JSON.parse(localStorage.getItem('surveys') || '[]');
             const participations = JSON.parse(localStorage.getItem('participations') || '[]');
             const myParticipations = participations.filter(p => p.userId === currentUser.id);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
             const available = surveys.filter(s => {
                 if (s.creatorId === currentUser.id) return false;
                 if (myParticipations.find(p => p.surveyId === s.id)) return false;
                 if (!matchesSurveyTarget(s, currentUser)) return false;
+
+                // 기간 체크
+                if (s.startDate) {
+                    const startDate = new Date(s.startDate);
+                    startDate.setHours(0, 0, 0, 0);
+                    if (today < startDate) return false;
+                }
+                if (s.endDate) {
+                    const endDate = new Date(s.endDate);
+                    endDate.setHours(23, 59, 59, 999);
+                    if (today > endDate) return false;
+                }
+
                 return true;
             });
 
@@ -1525,15 +1620,24 @@
                 return;
             }
 
-            list.innerHTML = available.map(survey => `
-                <div class="survey-item" onclick="startSurveyParticipation('${survey.id}')">
-                    <div class="survey-title">${survey.title} <span class="badge">참여 가능</span></div>
-                    <div class="survey-desc">${survey.description}</div>
-                    ${survey.organizer ? `<div class="survey-info" style="color: #667eea; font-weight: 500;">🏢 ${survey.organizer}</div>` : ''}
-                    <div class="survey-info">🎯 대상: ${formatTargetInfo(survey)}</div>
-                    <div class="survey-info">🎁 보상: ${survey.rewardPoints}P <span class="badge badge-points">+${survey.rewardPoints}P</span></div>
-                </div>
-            `).join('');
+            list.innerHTML = available.map(survey => {
+                let periodText = '';
+                if (survey.startDate || survey.endDate) {
+                    const start = survey.startDate ? new Date(survey.startDate).toLocaleDateString('ko-KR', {month: 'short', day: 'numeric'}) : '즉시';
+                    const end = survey.endDate ? new Date(survey.endDate).toLocaleDateString('ko-KR', {month: 'short', day: 'numeric'}) : '목표 달성 시';
+                    periodText = `<div class="survey-info" style="color: #FF6B6B;">📅 기간: ${start} ~ ${end}</div>`;
+                }
+                return `
+                    <div class="survey-item" onclick="startSurveyParticipation('${survey.id}')">
+                        <div class="survey-title">${survey.title} <span class="badge">참여 가능</span></div>
+                        <div class="survey-desc">${survey.description}</div>
+                        ${survey.organizer ? `<div class="survey-info" style="color: #FF6B6B; font-weight: 500;">🏢 ${survey.organizer}</div>` : ''}
+                        ${periodText}
+                        <div class="survey-info">🎯 대상: ${formatTargetInfo(survey)}</div>
+                        <div class="survey-info">🎁 보상: ${survey.rewardPoints}P <span class="badge badge-points">+${survey.rewardPoints}P</span></div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function showCreateSurvey() {
@@ -1554,6 +1658,8 @@
             document.getElementById('surveyTargetRegionDong').disabled = true;
             document.getElementById('surveyTargetJob').value = '';
             document.getElementById('surveyMinRating').value = '';
+            document.getElementById('surveyStartDate').value = '';
+            document.getElementById('surveyEndDate').value = '';
             addQuestion();
         }
 
@@ -1627,6 +1733,8 @@
             const organizer = document.getElementById('surveyOrganizer').value;
             const targetResponses = document.getElementById('surveyTarget').value;
             const rewardPoints = parseInt(document.getElementById('surveyRewardPoints').value) || 0;
+            const startDate = document.getElementById('surveyStartDate').value || null;
+            const endDate = document.getElementById('surveyEndDate').value || null;
 
             // 타겟팅 정보 수집
             const targetAgeMin = parseInt(document.getElementById('surveyTargetAgeMin').value) || null;
@@ -1686,6 +1794,7 @@
                 id: Date.now().toString(),
                 creatorId: currentUser.id,
                 title, description, organizer, targetResponses, rewardPoints,
+                startDate, endDate,
                 targetAgeMin, targetAgeMax,
                 targetGender,
                 targetRegion,
