@@ -8,7 +8,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #FFE5B4 0%, #FFDAB9 25%, #FFB6C1 50%, #FFA07A 75%, #FF9A76 100%);
+            background: linear-gradient(135deg, #E8EEF2 0%, #D5DDE5 50%, #C7D3DD 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -18,18 +18,27 @@
             padding: 20px 30px;
             border-radius: 16px;
             margin-bottom: 20px;
-            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.12), 0 2px 6px rgba(0,0,0,0.04);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 1px solid rgba(102, 126, 234, 0.08);
+            border: 1px solid #e0e0e0;
         }
-        .logo { font-size: 24px; font-weight: bold;
-                background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text; }
-        .nav { display: flex; gap: 20px; align-items: center; }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #5B7C99;
+            flex-shrink: 0;
+        }
+        .user-info-header {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+        .nav { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
         .points-badge {
             background: #ffd700;
             color: #333;
@@ -40,14 +49,15 @@
         }
         .nav-btn {
             padding: 8px 16px;
-            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+            background: #5B7C99;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
+            transition: all 0.2s ease;
         }
-        .nav-btn:hover { background: #E85555; }
+        .nav-btn:hover { background: #4A6A85; }
         .btn-reset {
             background: #dc3545;
             padding: 6px 12px;
@@ -80,16 +90,17 @@
         .form-group textarea { min-height: 100px; resize: vertical; }
         .btn {
             padding: 12px 24px;
-            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+            background: #5B7C99;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
             margin-top: 10px;
             margin-right: 10px;
+            transition: all 0.2s ease;
         }
-        .btn:hover { background: #E85555; }
+        .btn:hover { background: #4A6A85; }
         .btn-secondary { background: #6c757d; }
         .btn-secondary:hover { background: #5a6268; }
         .btn-danger { background: #dc3545; }
@@ -106,16 +117,16 @@
             background: white;
             padding: 20px;
             border-radius: 12px;
-            box-shadow: 0 6px 16px rgba(255, 107, 107, 0.12), 0 2px 6px rgba(0,0,0,0.06);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             cursor: pointer;
             transition: all 0.3s ease;
-            border: 2px solid rgba(255, 142, 83, 0.15);
+            border: 1px solid #e0e0e0;
             margin-bottom: 18px;
         }
         .survey-item:hover, .product-item:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.15), 0 4px 8px rgba(0,0,0,0.08);
-            border-color: rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            border-color: #5B7C99;
         }
         .survey-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #333; }
         .survey-desc { color: #666; font-size: 14px; margin-bottom: 10px; }
@@ -139,7 +150,7 @@
         .product-price {
             font-size: 24px;
             font-weight: bold;
-            color: #FF6B6B;
+            color: #5B7C99;
             text-align: center;
             margin-bottom: 10px;
         }
@@ -177,20 +188,22 @@
             margin-bottom: 30px;
         }
         .stat-card {
-            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
-            color: white;
+            background: white;
+            color: #333;
             padding: 24px;
-            border-radius: 16px;
+            border-radius: 12px;
             text-align: center;
-            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.25), 0 2px 6px rgba(0,0,0,0.06);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e0e0e0;
             transition: all 0.3s ease;
         }
         .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 28px rgba(102, 126, 234, 0.35), 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            border-color: #5B7C99;
         }
-        .stat-number { font-size: 36px; font-weight: bold; margin-bottom: 5px; }
-        .stat-label { font-size: 14px; opacity: 0.95; }
+        .stat-number { font-size: 36px; font-weight: bold; margin-bottom: 5px; color: #5B7C99; }
+        .stat-label { font-size: 14px; color: #666; }
         .user-info { color: #333; font-size: 14px; }
         .success-msg {
             background: #d4edda;
@@ -234,10 +247,7 @@
         .welcome h1 {
             font-size: 48px;
             margin-bottom: 20px;
-            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #5B7C99;
             font-weight: 800;
         }
         .welcome p { font-size: 20px; margin-bottom: 30px; color: #4a4a6a; }
@@ -300,7 +310,7 @@
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 10px;
-            border-left: 4px solid #FF6B6B;
+            border-left: 4px solid #5B7C99;
         }
         .exchange-date {
             font-size: 12px;
@@ -332,8 +342,46 @@
             color: #495057;
         }
         .tab-btn.active {
-            background: #FF6B6B;
+            background: #5B7C99;
             color: white;
+        }
+        .featured-banner {
+            background: linear-gradient(135deg, #7B9FB8 0%, #5B7C99 100%);
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .featured-banner:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .featured-tag {
+            display: inline-block;
+            background: #FFD700;
+            color: #333;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .featured-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 8px;
+        }
+        .featured-desc {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 8px;
+        }
+        .featured-info {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
         }
     </style>
 </head>
@@ -347,10 +395,8 @@
             <p>설문 의뢰자와 참여자를 연결하는 스마트 플랫폼</p>
             <p style="font-size: 16px; margin-bottom: 20px;">✨ 회원가입 시 100,000P 지급! 설문 참여로 포인트 적립!</p>
             <p style="font-size: 16px; margin-bottom: 20px;">🎁 포인트로 키프티콘, 문화상품권 교환 가능!</p>
-            <p style="font-size: 16px; margin-bottom: 20px; color: #FF6B6B; font-weight: 600;">🎯 타겟 매칭: 나이·성별·지역별 맞춤 설문</p>
+            <p style="font-size: 16px; margin-bottom: 20px; color: #5B7C99; font-weight: 600;">🎯 타겟 매칭: 나이·성별·지역별 맞춤 설문</p>
             <button class="btn" onclick="showLogin()">시작하기</button>
-            <br><br>
-            <button class="btn btn-secondary btn-reset" onclick="resetAllData()">🔄 데이터 초기화 (9개 설문 다시 로드)</button>
             <br><br>
             <p style="font-size: 14px; opacity: 0.8;">💡 v5.0 데모 버전 - 브라우저에 데이터 저장</p>
         </div>
@@ -450,7 +496,8 @@
     <div id="dashboardScreen" class="container hidden">
         <div class="header">
             <div class="logo">🎯 설문 매칭 플랫폼 v5.0</div>
-            <div class="nav">
+            <div class="user-info-header">
+                <span id="userNameHeader"></span>님
                 <div class="points-badge" id="userPoints">💰 0 P</div>
                 <div class="rating-badge" id="userRatingBadge">
                     ⭐ 0.0
@@ -468,30 +515,21 @@
                         성실하게 설문에 끝까지 참여하세요!
                     </div>
                 </div>
+            </div>
+            <div class="nav">
                 <button class="nav-btn" onclick="showDashboard()">대시보드</button>
                 <button class="nav-btn" onclick="showMyPage()">마이페이지</button>
                 <button class="nav-btn" onclick="showMySurveys()">내 설문</button>
                 <button class="nav-btn" onclick="showAvailableSurveys()">참여하기</button>
                 <button class="nav-btn" onclick="showGiftShop()">🎁 상품교환소</button>
-                <button class="nav-btn btn-reset" onclick="resetAllData()">🔄 초기화</button>
                 <button class="nav-btn" onclick="logout()">로그아웃</button>
             </div>
         </div>
 
-        <div class="card">
-            <h2>안녕하세요, <span id="userName"></span>님! 👋</h2>
-            <div class="user-info" id="userInfo"></div>
-        </div>
+        <!-- 홍보 공지사항 영역 -->
+        <div class="featured-banner" id="featuredBanner" style="display: none;"></div>
 
         <div class="dashboard-stats">
-            <div class="stat-card">
-                <div class="stat-number" id="userPointsDisplay">0</div>
-                <div class="stat-label">💰 보유 포인트</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="userRatingDisplay">3.0</div>
-                <div class="stat-label">⭐ 내 평점</div>
-            </div>
             <div class="stat-card">
                 <div class="stat-number" id="mySurveysCount">0</div>
                 <div class="stat-label">내가 만든 설문</div>
@@ -516,6 +554,32 @@
                 <h2>참여 가능한 설문</h2>
                 <div id="availableSurveysList"></div>
             </div>
+        </div>
+    </div>
+
+    <!-- Available Surveys Screen -->
+    <div id="availableSurveysScreen" class="container hidden">
+        <div class="header">
+            <div class="logo">📋 참여 가능한 설문</div>
+            <div class="user-info-header">
+                <span id="userNameHeader2"></span>님
+                <div class="points-badge" id="userPoints2">💰 0 P</div>
+                <div class="rating-badge" id="userRatingBadge2">⭐ 0.0</div>
+            </div>
+            <div class="nav">
+                <button class="nav-btn" onclick="showDashboard()">대시보드</button>
+                <button class="nav-btn" onclick="showMyPage()">마이페이지</button>
+                <button class="nav-btn" onclick="showMySurveys()">내 설문</button>
+                <button class="nav-btn" onclick="showAvailableSurveys()">참여하기</button>
+                <button class="nav-btn" onclick="showGiftShop()">🎁 상품교환소</button>
+                <button class="nav-btn" onclick="logout()">로그아웃</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>참여 가능한 모든 설문</h2>
+            <p style="color: #666; margin-bottom: 20px;">나의 조건에 맞는 모든 설문을 확인하고 참여하세요!</p>
+            <div id="allAvailableSurveysList" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;"></div>
         </div>
     </div>
 
@@ -574,7 +638,7 @@
             <!-- Profile Edit Tab -->
             <div id="profileTab">
                 <h2>내 정보</h2>
-                <div style="background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center;">
+                <div style="background: linear-gradient(135deg, #7B9FB8 0%, #5B7C99 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center;">
                     <div style="font-size: 48px; font-weight: bold; margin-bottom: 10px;">⭐ <span id="myPageRating">3.0</span></div>
                     <div style="font-size: 16px; margin-bottom: 5px;">내 평점 (5.0 만점)</div>
                     <div style="font-size: 14px; opacity: 0.9;">완료한 설문: <span id="myPageCompletedCount">0</span>개 | 평점은 설문 참여 시 0.1씩 증가합니다</div>
@@ -1361,7 +1425,7 @@
                 <div class="survey-item" onclick="viewMySurveyDetail('${survey.id}')">
                     <div class="survey-title">${survey.title}</div>
                     <div class="survey-desc">${survey.description}</div>
-                    ${survey.organizer ? `<div class="survey-info" style="color: #FF6B6B; font-weight: 500;">🏢 ${survey.organizer}</div>` : ''}
+                    ${survey.organizer ? `<div class="survey-info" style="color: #5B7C99; font-weight: 500;">🏢 ${survey.organizer}</div>` : ''}
                     <div class="survey-info">🎯 대상: ${formatTargetInfo(survey)}</div>
                     <div class="survey-info">목표: ${survey.targetResponses}명 | 보상: ${survey.rewardPoints}P | 참여: ${survey.participants || 0}명</div>
                     <div class="survey-info" style="font-size: 11px; color: #999;">생성일: ${new Date(survey.createdAt).toLocaleString('ko-KR')}</div>
@@ -1387,7 +1451,7 @@
                     <div class="survey-item">
                         <div class="survey-title">${survey.title} <span class="badge badge-points">+${survey.rewardPoints}P</span></div>
                         <div class="survey-desc">${survey.description}</div>
-                        ${survey.organizer ? `<div class="survey-info" style="color: #FF6B6B; font-weight: 500;">🏢 ${survey.organizer}</div>` : ''}
+                        ${survey.organizer ? `<div class="survey-info" style="color: #5B7C99; font-weight: 500;">🏢 ${survey.organizer}</div>` : ''}
                         <div class="survey-info" style="font-size: 11px; color: #999;">참여일: ${new Date(participation.completedAt).toLocaleString('ko-KR')}</div>
                     </div>
                 `;
@@ -1506,13 +1570,12 @@
 
         function showDashboard() {
             showScreen('dashboardScreen');
-            document.getElementById('userName').textContent = currentUser.name;
-            const regionText = typeof currentUser.region === 'object' ? currentUser.region.fullAddress : currentUser.region;
-            document.getElementById('userInfo').innerHTML = `📧 ${currentUser.email} | 📍 ${regionText} | 🚻 ${currentUser.gender || '미지정'} | 💼 ${currentUser.job}`;
+            document.getElementById('userNameHeader').textContent = currentUser.name;
             updatePoints();
             updateDashboardStats();
             loadMySurveys();
-            loadAvailableSurveys();
+            loadAvailableSurveys(5); // 메인 대시보드에는 5개만 표시
+            loadFeaturedBanner();
         }
 
         function updateDashboardStats() {
@@ -1530,7 +1593,6 @@
             document.getElementById('mySurveysCount').textContent = mySurveys.length;
             document.getElementById('availableSurveysCount').textContent = availableSurveys.length;
             document.getElementById('completedSurveysCount').textContent = myParticipations.length;
-            document.getElementById('userRatingDisplay').textContent = (currentUser.rating || 3.0).toFixed(1);
         }
 
         function loadMySurveys() {
@@ -1547,7 +1609,7 @@
                 <div class="survey-item" onclick="viewMySurveyDetail('${survey.id}')">
                     <div class="survey-title">${survey.title}</div>
                     <div class="survey-desc">${survey.description}</div>
-                    ${survey.organizer ? `<div class="survey-info" style="color: #FF6B6B; font-weight: 500;">🏢 ${survey.organizer}</div>` : ''}
+                    ${survey.organizer ? `<div class="survey-info" style="color: #5B7C99; font-weight: 500;">🏢 ${survey.organizer}</div>` : ''}
                     <div class="survey-info">🎯 대상: ${formatTargetInfo(survey)}</div>
                     <div class="survey-info">목표: ${survey.targetResponses}명 | 보상: ${survey.rewardPoints}P</div>
                 </div>
@@ -1587,14 +1649,14 @@
             return conditions.length > 0 ? conditions.join(' · ') : '전체 대상';
         }
 
-        function loadAvailableSurveys() {
+        function loadAvailableSurveys(limit = null) {
             const surveys = JSON.parse(localStorage.getItem('surveys') || '[]');
             const participations = JSON.parse(localStorage.getItem('participations') || '[]');
             const myParticipations = participations.filter(p => p.userId === currentUser.id);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            const available = surveys.filter(s => {
+            let available = surveys.filter(s => {
                 if (s.creatorId === currentUser.id) return false;
                 if (myParticipations.find(p => p.surveyId === s.id)) return false;
                 if (!matchesSurveyTarget(s, currentUser)) return false;
@@ -1614,6 +1676,11 @@
                 return true;
             });
 
+            // limit가 있으면 제한
+            if (limit) {
+                available = available.slice(0, limit);
+            }
+
             const list = document.getElementById('availableSurveysList');
             if (available.length === 0) {
                 list.innerHTML = '<p style="color: #999; margin-top: 15px;">현재 참여 가능한 설문이 없습니다.</p>';
@@ -1625,13 +1692,13 @@
                 if (survey.startDate || survey.endDate) {
                     const start = survey.startDate ? new Date(survey.startDate).toLocaleDateString('ko-KR', {month: 'short', day: 'numeric'}) : '즉시';
                     const end = survey.endDate ? new Date(survey.endDate).toLocaleDateString('ko-KR', {month: 'short', day: 'numeric'}) : '목표 달성 시';
-                    periodText = `<div class="survey-info" style="color: #FF6B6B;">📅 기간: ${start} ~ ${end}</div>`;
+                    periodText = `<div class="survey-info" style="color: #5B7C99;">📅 기간: ${start} ~ ${end}</div>`;
                 }
                 return `
                     <div class="survey-item" onclick="startSurveyParticipation('${survey.id}')">
                         <div class="survey-title">${survey.title} <span class="badge">참여 가능</span></div>
                         <div class="survey-desc">${survey.description}</div>
-                        ${survey.organizer ? `<div class="survey-info" style="color: #FF6B6B; font-weight: 500;">🏢 ${survey.organizer}</div>` : ''}
+                        ${survey.organizer ? `<div class="survey-info" style="color: #5B7C99; font-weight: 500;">🏢 ${survey.organizer}</div>` : ''}
                         ${periodText}
                         <div class="survey-info">🎯 대상: ${formatTargetInfo(survey)}</div>
                         <div class="survey-info">🎁 보상: ${survey.rewardPoints}P <span class="badge badge-points">+${survey.rewardPoints}P</span></div>
@@ -2017,7 +2084,90 @@
         }
 
         function showMySurveys() { showDashboard(); }
-        function showAvailableSurveys() { showDashboard(); }
+        function showAvailableSurveys() {
+            showScreen('availableSurveysScreen');
+            document.getElementById('userNameHeader2').textContent = currentUser.name;
+            document.getElementById('userPoints2').textContent = `💰 ${currentUser.points.toLocaleString()} P`;
+            document.getElementById('userRatingBadge2').textContent = `⭐ ${(currentUser.rating || 3.0).toFixed(1)}`;
+            loadAllAvailableSurveys();
+        }
+
+        function loadAllAvailableSurveys() {
+            const surveys = JSON.parse(localStorage.getItem('surveys') || '[]');
+            const participations = JSON.parse(localStorage.getItem('participations') || '[]');
+            const myParticipations = participations.filter(p => p.userId === currentUser.id);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const available = surveys.filter(s => {
+                if (s.creatorId === currentUser.id) return false;
+                if (myParticipations.find(p => p.surveyId === s.id)) return false;
+                if (!matchesSurveyTarget(s, currentUser)) return false;
+
+                // 기간 체크
+                if (s.startDate) {
+                    const startDate = new Date(s.startDate);
+                    startDate.setHours(0, 0, 0, 0);
+                    if (today < startDate) return false;
+                }
+                if (s.endDate) {
+                    const endDate = new Date(s.endDate);
+                    endDate.setHours(23, 59, 59, 999);
+                    if (today > endDate) return false;
+                }
+
+                return true;
+            });
+
+            const list = document.getElementById('allAvailableSurveysList');
+            if (available.length === 0) {
+                list.innerHTML = '<p style="color: #999; margin-top: 15px; grid-column: 1/-1;">현재 참여 가능한 설문이 없습니다.</p>';
+                return;
+            }
+
+            list.innerHTML = available.map(survey => {
+                let periodText = '';
+                if (survey.startDate || survey.endDate) {
+                    const start = survey.startDate ? new Date(survey.startDate).toLocaleDateString('ko-KR', {month: 'short', day: 'numeric'}) : '즉시';
+                    const end = survey.endDate ? new Date(survey.endDate).toLocaleDateString('ko-KR', {month: 'short', day: 'numeric'}) : '목표 달성 시';
+                    periodText = `<div class="survey-info" style="color: #5B7C99;">📅 기간: ${start} ~ ${end}</div>`;
+                }
+                return `
+                    <div class="survey-item" onclick="startSurveyParticipation('${survey.id}')">
+                        <div class="survey-title">${survey.title} <span class="badge">참여 가능</span></div>
+                        <div class="survey-desc">${survey.description}</div>
+                        ${survey.organizer ? `<div class="survey-info" style="color: #5B7C99; font-weight: 500;">🏢 ${survey.organizer}</div>` : ''}
+                        ${periodText}
+                        <div class="survey-info">🎯 대상: ${formatTargetInfo(survey)}</div>
+                        <div class="survey-info">🎁 보상: ${survey.rewardPoints}P <span class="badge badge-points">+${survey.rewardPoints}P</span></div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function loadFeaturedBanner() {
+            const surveys = JSON.parse(localStorage.getItem('surveys') || '[]');
+
+            // 홍보 설문 찾기 (featured 플래그가 있는 것 또는 보상이 가장 높은 것)
+            const featuredSurvey = surveys.find(s => s.featured) ||
+                                  surveys.filter(s => s.creatorId !== currentUser.id && s.rewardPoints > 0)
+                                         .sort((a, b) => b.rewardPoints - a.rewardPoints)[0];
+
+            const banner = document.getElementById('featuredBanner');
+            if (!featuredSurvey) {
+                banner.style.display = 'none';
+                return;
+            }
+
+            banner.style.display = 'block';
+            banner.innerHTML = `
+                <div class="featured-tag">🔥 프리미엄 설문</div>
+                <div class="featured-title">${featuredSurvey.title}</div>
+                <div class="featured-desc">${featuredSurvey.description}</div>
+                <div class="featured-info">💰 ${featuredSurvey.rewardPoints}P 보상 | 🎯 ${formatTargetInfo(featuredSurvey)}</div>
+            `;
+            banner.onclick = () => startSurveyParticipation(featuredSurvey.id);
+        }
 
         window.onload = init;
     </script>
