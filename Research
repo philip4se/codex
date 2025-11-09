@@ -432,6 +432,10 @@
                 <div class="stat-label">💰 보유 포인트</div>
             </div>
             <div class="stat-card">
+                <div class="stat-number" id="userRatingDisplay">3.0</div>
+                <div class="stat-label">⭐ 내 평점</div>
+            </div>
+            <div class="stat-card">
                 <div class="stat-number" id="mySurveysCount">0</div>
                 <div class="stat-label">내가 만든 설문</div>
             </div>
@@ -512,7 +516,13 @@
 
             <!-- Profile Edit Tab -->
             <div id="profileTab">
-                <h2>내 정보 수정</h2>
+                <h2>내 정보</h2>
+                <div style="background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center;">
+                    <div style="font-size: 48px; font-weight: bold; margin-bottom: 10px;">⭐ <span id="myPageRating">3.0</span></div>
+                    <div style="font-size: 16px; margin-bottom: 5px;">내 평점 (5.0 만점)</div>
+                    <div style="font-size: 14px; opacity: 0.9;">완료한 설문: <span id="myPageCompletedCount">0</span>개 | 평점은 설문 참여 시 0.1씩 증가합니다</div>
+                </div>
+                <h3>정보 수정</h3>
                 <div id="profileMessage"></div>
                 <div class="form-group">
                     <label>이름</label>
@@ -679,6 +689,19 @@
                 </select>
             </div>
 
+            <div class="form-group">
+                <label>최소 참여자 평점</label>
+                <select id="surveyMinRating">
+                    <option value="">제한 없음</option>
+                    <option value="3.0">⭐ 3.0 이상 (보통)</option>
+                    <option value="3.5">⭐ 3.5 이상</option>
+                    <option value="4.0">⭐ 4.0 이상 (우수)</option>
+                    <option value="4.5">⭐ 4.5 이상 (매우 우수)</option>
+                    <option value="5.0">⭐ 5.0 (최고)</option>
+                </select>
+                <small style="color: #666;">성실한 참여자만 설문에 참여할 수 있도록 평점 조건을 설정하세요</small>
+            </div>
+
             <hr style="margin: 30px 0;">
 
             <h3>설문 문항 작성</h3>
@@ -763,6 +786,12 @@
 
             // 직업 매칭
             if (survey.targetJob && survey.targetJob !== user.job) return false;
+
+            // 평점 매칭
+            if (survey.minRating) {
+                const userRating = user.rating || 3.0;
+                if (userRating < survey.minRating) return false;
+            }
 
             return true;
         }
@@ -1180,6 +1209,10 @@
         }
 
         function loadProfileData() {
+            // 평점 정보 업데이트
+            document.getElementById('myPageRating').textContent = (currentUser.rating || 3.0).toFixed(1);
+            document.getElementById('myPageCompletedCount').textContent = currentUser.completedSurveys || 0;
+
             document.getElementById('editName').value = currentUser.name;
             document.getElementById('editEmail').value = currentUser.email;
             document.getElementById('editPhone').value = currentUser.phone;
@@ -1345,6 +1378,8 @@
                 id: Date.now().toString(),
                 name, email, password, phone, birthDate, gender, region, job,
                 points: 100000,
+                rating: 3.0,
+                completedSurveys: 0,
                 createdAt: new Date().toISOString()
             });
             localStorage.setItem('users', JSON.stringify(users));
@@ -1369,7 +1404,7 @@
                     phone: '01012345678', birthDate: '1990-01-01', gender: '남성',
                     region: {sido: '서울특별시', district: '강남구', dong: '역삼동', fullAddress: '서울특별시 강남구 역삼동'},
                     job: '회사원',
-                    points: 100000, createdAt: new Date().toISOString()
+                    points: 100000, rating: 3.0, completedSurveys: 0, createdAt: new Date().toISOString()
                 });
                 localStorage.setItem('users', JSON.stringify(users));
             }
@@ -1416,6 +1451,7 @@
             document.getElementById('mySurveysCount').textContent = mySurveys.length;
             document.getElementById('availableSurveysCount').textContent = availableSurveys.length;
             document.getElementById('completedSurveysCount').textContent = myParticipations.length;
+            document.getElementById('userRatingDisplay').textContent = (currentUser.rating || 3.0).toFixed(1);
         }
 
         function loadMySurveys() {
@@ -1463,6 +1499,10 @@
 
             if (survey.targetJob) {
                 conditions.push(survey.targetJob);
+            }
+
+            if (survey.minRating) {
+                conditions.push(`⭐${survey.minRating}점 이상`);
             }
 
             return conditions.length > 0 ? conditions.join(' · ') : '전체 대상';
@@ -1513,6 +1553,7 @@
             document.getElementById('surveyTargetRegionDong').value = '';
             document.getElementById('surveyTargetRegionDong').disabled = true;
             document.getElementById('surveyTargetJob').value = '';
+            document.getElementById('surveyMinRating').value = '';
             addQuestion();
         }
 
@@ -1595,6 +1636,7 @@
             const targetRegionDistrict = document.getElementById('surveyTargetRegionDistrict').value;
             const targetRegionDong = document.getElementById('surveyTargetRegionDong').value;
             const targetJob = document.getElementById('surveyTargetJob').value;
+            const minRating = parseFloat(document.getElementById('surveyMinRating').value) || null;
 
             const targetRegion = targetRegionSido ? {
                 sido: targetRegionSido,
@@ -1648,6 +1690,7 @@
                 targetGender,
                 targetRegion,
                 targetJob,
+                minRating,
                 questions: collectedQuestions,
                 createdAt: new Date().toISOString(),
                 participants: 0
@@ -1729,13 +1772,25 @@
             const users = JSON.parse(localStorage.getItem('users') || '[]');
             const userIndex = users.findIndex(u => u.id === currentUser.id);
             if (userIndex !== -1) {
+                // 포인트 지급
                 users[userIndex].points = (users[userIndex].points || 0) + currentSurvey.rewardPoints;
+
+                // 완료 설문 수 증가
+                users[userIndex].completedSurveys = (users[userIndex].completedSurveys || 0) + 1;
+
+                // 평점 증가 (설문 완료할 때마다 +0.1, 최대 5.0)
+                const currentRating = users[userIndex].rating || 3.0;
+                users[userIndex].rating = Math.min(5.0, currentRating + 0.1);
+
                 localStorage.setItem('users', JSON.stringify(users));
                 currentUser.points = users[userIndex].points;
+                currentUser.completedSurveys = users[userIndex].completedSurveys;
+                currentUser.rating = users[userIndex].rating;
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
             }
 
-            alert(`🎉 설문 참여 완료!\n💰 ${currentSurvey.rewardPoints} 포인트 지급!`);
+            const newRating = currentUser.rating.toFixed(1);
+            alert(`🎉 설문 참여 완료!\n💰 ${currentSurvey.rewardPoints} 포인트 지급!\n⭐ 평점: ${newRating}/5.0`);
             showDashboard();
         }
 
