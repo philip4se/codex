@@ -8,7 +8,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: linear-gradient(to bottom, #f0f4ff 0%, #ffffff 100%);
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 50%, #a6c1ee 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -25,7 +25,7 @@
             border: 1px solid rgba(102, 126, 234, 0.08);
         }
         .logo { font-size: 24px; font-weight: bold;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 background-clip: text; }
@@ -40,7 +40,7 @@
         }
         .nav-btn {
             padding: 8px 16px;
-            background: #667eea;
+            background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
             color: white;
             border: none;
             border-radius: 5px;
@@ -80,7 +80,7 @@
         .form-group textarea { min-height: 100px; resize: vertical; }
         .btn {
             padding: 12px 24px;
-            background: #667eea;
+            background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
             color: white;
             border: none;
             border-radius: 5px;
@@ -176,7 +176,7 @@
             margin-bottom: 30px;
         }
         .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
             color: white;
             padding: 24px;
             border-radius: 16px;
@@ -233,7 +233,7 @@
         .welcome h1 {
             font-size: 48px;
             margin-bottom: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -304,7 +304,7 @@
         <div class="welcome">
             <h1>🎯 설문 매칭 플랫폼</h1>
             <p>설문 의뢰자와 참여자를 연결하는 스마트 플랫폼</p>
-            <p style="font-size: 16px; margin-bottom: 20px;">✨ 회원가입 시 1,000P 지급! 설문 참여로 포인트 적립!</p>
+            <p style="font-size: 16px; margin-bottom: 20px;">✨ 회원가입 시 100,000P 지급! 설문 참여로 포인트 적립!</p>
             <p style="font-size: 16px; margin-bottom: 20px;">🎁 포인트로 키프티콘, 문화상품권 교환 가능!</p>
             <p style="font-size: 16px; margin-bottom: 20px; color: #667eea; font-weight: 600;">🎯 타겟 매칭: 나이·성별·지역별 맞춤 설문</p>
             <button class="btn" onclick="showLogin()">시작하기</button>
@@ -337,7 +337,7 @@
     <!-- Register Screen -->
     <div id="registerScreen" class="container hidden">
         <div class="card" style="max-width: 500px; margin: 50px auto;">
-            <h2>회원가입 🎁 1,000P 지급!</h2>
+            <h2>회원가입 🎁 100,000P 지급!</h2>
             <div id="registerMessage"></div>
             <div class="form-group">
                 <label>이름</label>
@@ -412,6 +412,7 @@
             <div class="nav">
                 <div class="points-badge" id="userPoints">💰 0 P</div>
                 <button class="nav-btn" onclick="showDashboard()">대시보드</button>
+                <button class="nav-btn" onclick="showMyPage()">마이페이지</button>
                 <button class="nav-btn" onclick="showMySurveys()">내 설문</button>
                 <button class="nav-btn" onclick="showAvailableSurveys()">참여하기</button>
                 <button class="nav-btn" onclick="showGiftShop()">🎁 상품교환소</button>
@@ -490,6 +491,101 @@
         </div>
     </div>
 
+    <!-- My Page Screen -->
+    <div id="myPageScreen" class="container hidden">
+        <div class="header">
+            <div class="logo">👤 마이페이지</div>
+            <div class="nav">
+                <div class="points-badge" id="userPoints5">💰 0 P</div>
+                <button class="nav-btn" onclick="showDashboard()">대시보드</button>
+                <button class="nav-btn" onclick="showMyPage()">마이페이지</button>
+                <button class="nav-btn" onclick="logout()">로그아웃</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchMyPageTab('profile')">📝 내 정보</button>
+                <button class="tab-btn" onclick="switchMyPageTab('created')">📋 등록한 설문</button>
+                <button class="tab-btn" onclick="switchMyPageTab('participated')">✅ 참여한 설문</button>
+            </div>
+
+            <!-- Profile Edit Tab -->
+            <div id="profileTab">
+                <h2>내 정보 수정</h2>
+                <div id="profileMessage"></div>
+                <div class="form-group">
+                    <label>이름</label>
+                    <input type="text" id="editName">
+                </div>
+                <div class="form-group">
+                    <label>이메일 (변경 불가)</label>
+                    <input type="email" id="editEmail" disabled style="background: #f5f5f5;">
+                </div>
+                <div class="form-group">
+                    <label>전화번호</label>
+                    <input type="tel" id="editPhone" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                </div>
+                <div class="form-group">
+                    <label>생년월일</label>
+                    <input type="date" id="editBirthDate">
+                </div>
+                <div class="form-group">
+                    <label>성별</label>
+                    <select id="editGender">
+                        <option value="">선택하세요</option>
+                        <option value="남성">남성</option>
+                        <option value="여성">여성</option>
+                        <option value="기타">기타</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>지역 (광역시도)</label>
+                    <select id="editRegionSido" onchange="updateRegionDistricts('edit')">
+                        <option value="">선택하세요</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>시군구</label>
+                    <select id="editRegionDistrict" onchange="updateRegionDongs('edit')" disabled>
+                        <option value="">광역시도를 먼저 선택하세요</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>읍면동</label>
+                    <select id="editRegionDong" disabled>
+                        <option value="">시군구를 먼저 선택하세요</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>직업</label>
+                    <select id="editJob">
+                        <option value="">선택하세요</option>
+                        <option value="학생">학생</option>
+                        <option value="회사원">회사원</option>
+                        <option value="전문직">전문직</option>
+                        <option value="자영업">자영업</option>
+                        <option value="주부">주부</option>
+                        <option value="기타">기타</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="updateProfile()">정보 저장</button>
+            </div>
+
+            <!-- Created Surveys Tab -->
+            <div id="createdTab" class="hidden">
+                <h2>내가 등록한 설문</h2>
+                <div id="createdSurveysList"></div>
+            </div>
+
+            <!-- Participated Surveys Tab -->
+            <div id="participatedTab" class="hidden">
+                <h2>내가 참여한 설문</h2>
+                <div id="participatedSurveysList"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Create Survey -->
     <div id="createSurveyScreen" class="container hidden">
         <div class="header">
@@ -512,6 +608,11 @@
             <div class="form-group">
                 <label>설문 설명</label>
                 <textarea id="surveyDesc" placeholder="설문에 대한 간단한 설명을 입력하세요"></textarea>
+            </div>
+            <div class="form-group">
+                <label>주관 기관/단체명</label>
+                <input type="text" id="surveyOrganizer" placeholder="예: 서울대학교 소비자연구소, ㈜리서치컴퍼니">
+                <small style="color: #666;">설문을 주관하는 기관이나 단체명을 입력하세요</small>
             </div>
             <div class="form-group">
                 <label>목표 응답 수</label>
@@ -1024,15 +1125,15 @@
             // v5.0 설문 로드 (버전 체크로 항상 최신 유지)
             if (surveys.length === 0 || version !== '5.0') {
                 const sampleSurveys = [
-                    {id: 'sample1', creatorId: 'system', title: '📱 모바일 앱 사용성 조사', description: '일상에서 사용하는 모바일 앱에 대한 만족도를 조사합니다.', targetResponses: 200, rewardPoints: 150, targetAgeMin: null, targetAgeMax: null, targetGender: '', targetRegion: null, targetJob: '', createdAt: new Date().toISOString(), participants: 0, questions: [{id: 1, type: 'radio', question: '하루에 스마트폰을 사용하는 시간은?', required: true, options: ['1시간 미만', '1-3시간', '3-5시간', '5시간 이상']}, {id: 2, type: 'checkbox', question: '주로 사용하는 앱 유형은? (복수선택)', required: true, options: ['SNS', '쇼핑', '게임', '뉴스', '동영상']}, {id: 3, type: 'text', question: '가장 자주 사용하는 앱 이름을 알려주세요.', required: true}, {id: 4, type: 'radio', question: '전반적인 만족도는?', required: true, options: ['매우 만족', '만족', '보통', '불만족', '매우 불만족']}]},
-                    {id: 'sample2', creatorId: 'system', title: '🛒 온라인 쇼핑 경험 설문', description: '온라인 쇼핑몰 이용 경험과 개선사항을 파악하기 위한 설문입니다.', targetResponses: 150, rewardPoints: 200, targetAgeMin: 20, targetAgeMax: 40, targetGender: '', targetRegion: null, targetJob: '회사원', createdAt: new Date().toISOString(), participants: 0, questions: [{id: 1, type: 'radio', question: '한 달 평균 온라인 쇼핑 빈도는?', required: true, options: ['주 3회 이상', '주 1-2회', '월 2-3회', '월 1회 미만']}, {id: 2, type: 'checkbox', question: '주로 구매하는 상품 카테고리는? (복수선택)', required: true, options: ['의류/패션', '식품', '전자제품', '도서/문구', '생활용품']}, {id: 3, type: 'select', question: '가장 중요하게 생각하는 요소는?', required: true, options: ['가격', '배송속도', '품질', '후기', '교환/환불 정책']}, {id: 4, type: 'textarea', question: '온라인 쇼핑몰에서 개선되었으면 하는 점이 있다면?', required: false}]},
-                    {id: 'sample3', creatorId: 'system', title: '☕ 카페 이용 습관 조사', description: '카페 방문 빈도와 선호도를 알아보는 설문입니다.', targetResponses: 100, rewardPoints: 100, targetAgeMin: null, targetAgeMax: null, targetGender: '', targetRegion: {sido: '서울특별시', district: '', dong: '', fullAddress: '서울특별시'}, targetJob: '', createdAt: new Date().toISOString(), participants: 0, questions: [{id: 1, type: 'radio', question: '일주일에 카페 방문 횟수는?', required: true, options: ['거의 매일', '주 3-4회', '주 1-2회', '월 1-2회', '거의 방문 안 함']}, {id: 2, type: 'checkbox', question: '카페를 방문하는 주요 목적은? (복수선택)', required: true, options: ['커피/음료', '공부/업무', '친구 만남', '혼자만의 시간', '디저트']}, {id: 3, type: 'radio', question: '1회 방문 시 평균 지출 금액은?', required: true, options: ['5,000원 미만', '5,000-10,000원', '10,000-15,000원', '15,000원 이상']}]},
-                    {id: 'sample4', creatorId: 'system', title: '🎬 OTT 서비스 이용 실태', description: '넷플릭스, 디즈니+, 쿠팡플레이 등 OTT 서비스 이용에 대한 설문입니다.', targetResponses: 250, rewardPoints: 120, targetAgeMin: 15, targetAgeMax: 35, targetGender: '', targetRegion: null, targetJob: '', createdAt: new Date().toISOString(), participants: 0, questions: [{id: 1, type: 'checkbox', question: '현재 구독 중인 OTT 서비스는? (복수선택)', required: true, options: ['넷플릭스', '디즈니+', '쿠팡플레이', '티빙', '웨이브', '구독 안 함']}, {id: 2, type: 'radio', question: '하루 평균 OTT 시청 시간은?', required: true, options: ['1시간 미만', '1-2시간', '2-3시간', '3시간 이상']}, {id: 3, type: 'select', question: '선호하는 콘텐츠 장르는?', required: true, options: ['드라마', '영화', '예능', '다큐멘터리', '애니메이션']}, {id: 4, type: 'radio', question: '월 구독료로 적정하다고 생각하는 금액은?', required: true, options: ['5,000원 이하', '5,000-10,000원', '10,000-15,000원', '15,000원 이상']}]},
-                    {id: 'sample5', creatorId: 'system', title: '💪 운동 습관 설문', description: '운동 빈도와 선호하는 운동 유형을 알아보는 간단한 설문입니다.', targetResponses: 100, rewardPoints: 80, targetAgeMin: null, targetAgeMax: null, targetGender: '', targetRegion: null, targetJob: '', createdAt: new Date().toISOString(), participants: 0, questions: [{id: 1, type: 'radio', question: '일주일에 운동하는 횟수는?', required: true, options: ['거의 안 함', '주 1회', '주 2-3회', '주 4회 이상']}, {id: 2, type: 'checkbox', question: '선호하는 운동 종류는? (복수선택)', required: true, options: ['걷기/러닝', '헬스/웨이트', '수영', '요가/필라테스', '구기종목', '자전거']}, {id: 3, type: 'radio', question: '운동하는 주된 이유는?', required: true, options: ['건강 관리', '다이어트', '체력 증진', '스트레스 해소', '취미']}]},
-                    {id: 'sample6', creatorId: 'system', title: '🍕 음식 선호도 조사', description: '좋아하는 음식과 식사 습관에 대한 간단한 설문입니다.', targetResponses: 150, rewardPoints: 60, targetAgeMin: null, targetAgeMax: null, targetGender: '', targetRegion: null, targetJob: '학생', createdAt: new Date().toISOString(), participants: 0, questions: [{id: 1, type: 'checkbox', question: '좋아하는 음식 종류는? (복수선택)', required: true, options: ['한식', '중식', '일식', '양식', '분식', '패스트푸드']}, {id: 2, type: 'radio', question: '하루 평균 외식 횟수는?', required: true, options: ['거의 안 함', '1회', '2회', '3회 이상']}, {id: 3, type: 'select', question: '식사 메뉴 선택 시 가장 중요한 요소는?', required: true, options: ['맛', '가격', '건강', '편의성', '분위기']}]},
-                    {id: 'sample7', creatorId: 'system', title: '🚗 출퇴근/통학 수단 설문', description: '일상적인 이동 수단과 소요 시간에 대한 설문입니다.', targetResponses: 120, rewardPoints: 90, targetAgeMin: null, targetAgeMax: null, targetGender: '', targetRegion: {sido: '경기도', district: '', dong: '', fullAddress: '경기도'}, targetJob: '', createdAt: new Date().toISOString(), participants: 0, questions: [{id: 1, type: 'radio', question: '주로 사용하는 이동 수단은?', required: true, options: ['지하철', '버스', '자가용', '도보', '자전거/킥보드', '택시/카풀']}, {id: 2, type: 'radio', question: '평균 통근/통학 시간은?', required: true, options: ['30분 미만', '30분-1시간', '1-2시간', '2시간 이상']}, {id: 3, type: 'checkbox', question: '이동 중 주로 하는 활동은? (복수선택)', required: true, options: ['스마트폰 사용', '음악 듣기', '독서', '수면', '업무/공부', '아무것도 안 함']}]},
-                    {id: 'sample8', creatorId: 'system', title: '🎨 취미 생활 조사', description: '여가 시간 활용과 취미 활동에 대한 간단한 설문입니다.', targetResponses: 100, rewardPoints: 70, targetAgeMin: null, targetAgeMax: null, targetGender: '여성', targetRegion: null, targetJob: '', createdAt: new Date().toISOString(), participants: 0, questions: [{id: 1, type: 'checkbox', question: '현재 즐기는 취미는? (복수선택)', required: true, options: ['운동', '독서', '영화/드라마', '게임', '요리', '여행', '음악 감상', '사진/영상']}, {id: 2, type: 'radio', question: '주말에 취미 활동에 할애하는 시간은?', required: true, options: ['1시간 미만', '1-3시간', '3-5시간', '5시간 이상']}, {id: 3, type: 'text', question: '새롭게 시작하고 싶은 취미가 있다면?', required: false}]},
-                    {id: 'sample9', creatorId: 'system', title: '🏥 건강관리 실태 조사', description: '건강 관리와 생활 습관에 대한 설문입니다.', targetResponses: 80, rewardPoints: 110, targetAgeMin: 30, targetAgeMax: 50, targetGender: '', targetRegion: null, targetJob: '전문직', createdAt: new Date().toISOString(), participants: 0, questions: [{id: 1, type: 'radio', question: '평균 수면 시간은?', required: true, options: ['5시간 미만', '5-6시간', '7-8시간', '8시간 이상']}, {id: 2, type: 'checkbox', question: '건강을 위해 실천하는 것은? (복수선택)', required: true, options: ['규칙적인 운동', '건강식 섭취', '충분한 수면', '금연/금주', '건강검진', '특별히 없음']}, {id: 3, type: 'radio', question: '스트레스 수준은?', required: true, options: ['매우 높음', '높음', '보통', '낮음', '매우 낮음']}]}
+                    {id: 'sample1', creatorId: 'system', title: '📱 모바일 앱 사용성 조사', description: '일상에서 사용하는 모바일 앱에 대한 만족도를 조사합니다.', organizer: '디지털마케팅연구소', targetResponses: 200, rewardPoints: 150, targetAgeMin: null, targetAgeMax: null, targetGender: '', targetRegion: null, targetJob: '', createdAt: new Date().toISOString(), participants: 0, questions: [{id: 1, type: 'radio', question: '하루에 스마트폰을 사용하는 시간은?', required: true, options: ['1시간 미만', '1-3시간', '3-5시간', '5시간 이상']}, {id: 2, type: 'checkbox', question: '주로 사용하는 앱 유형은? (복수선택)', required: true, options: ['SNS', '쇼핑', '게임', '뉴스', '동영상']}, {id: 3, type: 'text', question: '가장 자주 사용하는 앱 이름을 알려주세요.', required: true}, {id: 4, type: 'radio', question: '전반적인 만족도는?', required: true, options: ['매우 만족', '만족', '보통', '불만족', '매우 불만족']}]},
+                    {id: 'sample2', creatorId: 'system', title: '🛒 온라인 쇼핑 경험 설문', description: '온라인 쇼핑몰 이용 경험과 개선사항을 파악하기 위한 설문입니다.', organizer: '한국이커머스협회', targetResponses: 150, rewardPoints: 200, targetAgeMin: 20, targetAgeMax: 40, targetGender: '', targetRegion: null, targetJob: '회사원', createdAt: new Date().toISOString(), participants: 0, questions: [{id: 1, type: 'radio', question: '한 달 평균 온라인 쇼핑 빈도는?', required: true, options: ['주 3회 이상', '주 1-2회', '월 2-3회', '월 1회 미만']}, {id: 2, type: 'checkbox', question: '주로 구매하는 상품 카테고리는? (복수선택)', required: true, options: ['의류/패션', '식품', '전자제품', '도서/문구', '생활용품']}, {id: 3, type: 'select', question: '가장 중요하게 생각하는 요소는?', required: true, options: ['가격', '배송속도', '품질', '후기', '교환/환불 정책']}, {id: 4, type: 'textarea', question: '온라인 쇼핑몰에서 개선되었으면 하는 점이 있다면?', required: false}]},
+                    {id: 'sample3', creatorId: 'system', title: '☕ 카페 이용 습관 조사', description: '카페 방문 빈도와 선호도를 알아보는 설문입니다.', organizer: '서울시립대 소비자행동연구팀', targetResponses: 100, rewardPoints: 100, targetAgeMin: null, targetAgeMax: null, targetGender: '', targetRegion: {sido: '서울특별시', district: '', dong: '', fullAddress: '서울특별시'}, targetJob: '', createdAt: new Date().toISOString(), participants: 0, questions: [{id: 1, type: 'radio', question: '일주일에 카페 방문 횟수는?', required: true, options: ['거의 매일', '주 3-4회', '주 1-2회', '월 1-2회', '거의 방문 안 함']}, {id: 2, type: 'checkbox', question: '카페를 방문하는 주요 목적은? (복수선택)', required: true, options: ['커피/음료', '공부/업무', '친구 만남', '혼자만의 시간', '디저트']}, {id: 3, type: 'radio', question: '1회 방문 시 평균 지출 금액은?', required: true, options: ['5,000원 미만', '5,000-10,000원', '10,000-15,000원', '15,000원 이상']}]},
+                    {id: 'sample4', creatorId: 'system', title: '🎬 OTT 서비스 이용 실태', description: '넷플릭스, 디즈니+, 쿠팡플레이 등 OTT 서비스 이용에 대한 설문입니다.', organizer: '미디어리서치센터', targetResponses: 250, rewardPoints: 120, targetAgeMin: 15, targetAgeMax: 35, targetGender: '', targetRegion: null, targetJob: '', createdAt: new Date().toISOString(), participants: 0, questions: [{id: 1, type: 'checkbox', question: '현재 구독 중인 OTT 서비스는? (복수선택)', required: true, options: ['넷플릭스', '디즈니+', '쿠팡플레이', '티빙', '웨이브', '구독 안 함']}, {id: 2, type: 'radio', question: '하루 평균 OTT 시청 시간은?', required: true, options: ['1시간 미만', '1-2시간', '2-3시간', '3시간 이상']}, {id: 3, type: 'select', question: '선호하는 콘텐츠 장르는?', required: true, options: ['드라마', '영화', '예능', '다큐멘터리', '애니메이션']}, {id: 4, type: 'radio', question: '월 구독료로 적정하다고 생각하는 금액은?', required: true, options: ['5,000원 이하', '5,000-10,000원', '10,000-15,000원', '15,000원 이상']}]},
+                    {id: 'sample5', creatorId: 'system', title: '💪 운동 습관 설문', description: '운동 빈도와 선호하는 운동 유형을 알아보는 간단한 설문입니다.', organizer: '스포츠과학연구원', targetResponses: 100, rewardPoints: 80, targetAgeMin: null, targetAgeMax: null, targetGender: '', targetRegion: null, targetJob: '', createdAt: new Date().toISOString(), participants: 0, questions: [{id: 1, type: 'radio', question: '일주일에 운동하는 횟수는?', required: true, options: ['거의 안 함', '주 1회', '주 2-3회', '주 4회 이상']}, {id: 2, type: 'checkbox', question: '선호하는 운동 종류는? (복수선택)', required: true, options: ['걷기/러닝', '헬스/웨이트', '수영', '요가/필라테스', '구기종목', '자전거']}, {id: 3, type: 'radio', question: '운동하는 주된 이유는?', required: true, options: ['건강 관리', '다이어트', '체력 증진', '스트레스 해소', '취미']}]},
+                    {id: 'sample6', creatorId: 'system', title: '🍕 음식 선호도 조사', description: '좋아하는 음식과 식사 습관에 대한 간단한 설문입니다.', organizer: '식품영양학과', targetResponses: 150, rewardPoints: 60, targetAgeMin: null, targetAgeMax: null, targetGender: '', targetRegion: null, targetJob: '학생', createdAt: new Date().toISOString(), participants: 0, questions: [{id: 1, type: 'checkbox', question: '좋아하는 음식 종류는? (복수선택)', required: true, options: ['한식', '중식', '일식', '양식', '분식', '패스트푸드']}, {id: 2, type: 'radio', question: '하루 평균 외식 횟수는?', required: true, options: ['거의 안 함', '1회', '2회', '3회 이상']}, {id: 3, type: 'select', question: '식사 메뉴 선택 시 가장 중요한 요소는?', required: true, options: ['맛', '가격', '건강', '편의성', '분위기']}]},
+                    {id: 'sample7', creatorId: 'system', title: '🚗 출퇴근/통학 수단 설문', description: '일상적인 이동 수단과 소요 시간에 대한 설문입니다.', organizer: '교통연구원', targetResponses: 120, rewardPoints: 90, targetAgeMin: null, targetAgeMax: null, targetGender: '', targetRegion: {sido: '경기도', district: '', dong: '', fullAddress: '경기도'}, targetJob: '', createdAt: new Date().toISOString(), participants: 0, questions: [{id: 1, type: 'radio', question: '주로 사용하는 이동 수단은?', required: true, options: ['지하철', '버스', '자가용', '도보', '자전거/킥보드', '택시/카풀']}, {id: 2, type: 'radio', question: '평균 통근/통학 시간은?', required: true, options: ['30분 미만', '30분-1시간', '1-2시간', '2시간 이상']}, {id: 3, type: 'checkbox', question: '이동 중 주로 하는 활동은? (복수선택)', required: true, options: ['스마트폰 사용', '음악 듣기', '독서', '수면', '업무/공부', '아무것도 안 함']}]},
+                    {id: 'sample8', creatorId: 'system', title: '🎨 취미 생활 조사', description: '여가 시간 활용과 취미 활동에 대한 간단한 설문입니다.', organizer: '문화여가연구소', targetResponses: 100, rewardPoints: 70, targetAgeMin: null, targetAgeMax: null, targetGender: '여성', targetRegion: null, targetJob: '', createdAt: new Date().toISOString(), participants: 0, questions: [{id: 1, type: 'checkbox', question: '현재 즐기는 취미는? (복수선택)', required: true, options: ['운동', '독서', '영화/드라마', '게임', '요리', '여행', '음악 감상', '사진/영상']}, {id: 2, type: 'radio', question: '주말에 취미 활동에 할애하는 시간은?', required: true, options: ['1시간 미만', '1-3시간', '3-5시간', '5시간 이상']}, {id: 3, type: 'text', question: '새롭게 시작하고 싶은 취미가 있다면?', required: false}]},
+                    {id: 'sample9', creatorId: 'system', title: '🏥 건강관리 실태 조사', description: '건강 관리와 생활 습관에 대한 설문입니다.', organizer: '국립보건연구원', targetResponses: 80, rewardPoints: 110, targetAgeMin: 30, targetAgeMax: 50, targetGender: '', targetRegion: null, targetJob: '전문직', createdAt: new Date().toISOString(), participants: 0, questions: [{id: 1, type: 'radio', question: '평균 수면 시간은?', required: true, options: ['5시간 미만', '5-6시간', '7-8시간', '8시간 이상']}, {id: 2, type: 'checkbox', question: '건강을 위해 실천하는 것은? (복수선택)', required: true, options: ['규칙적인 운동', '건강식 섭취', '충분한 수면', '금연/금주', '건강검진', '특별히 없음']}, {id: 3, type: 'radio', question: '스트레스 수준은?', required: true, options: ['매우 높음', '높음', '보통', '낮음', '매우 낮음']}]}
                 ];
                 localStorage.setItem('surveys', JSON.stringify(sampleSurveys));
                 localStorage.setItem('surveyVersion', '5.0');
@@ -1040,7 +1141,7 @@
         }
 
         function showScreen(screenId) {
-            const screens = ['welcomeScreen', 'loginScreen', 'registerScreen', 'dashboardScreen', 'createSurveyScreen', 'participateScreen', 'giftShopScreen'];
+            const screens = ['welcomeScreen', 'loginScreen', 'registerScreen', 'dashboardScreen', 'createSurveyScreen', 'participateScreen', 'giftShopScreen', 'myPageScreen'];
             screens.forEach(id => document.getElementById(id).classList.add('hidden'));
             document.getElementById(screenId).classList.remove('hidden');
         }
@@ -1048,9 +1149,150 @@
         function showLogin() { showScreen('loginScreen'); }
         function showRegister() { showScreen('registerScreen'); }
 
+        function showMyPage() {
+            showScreen('myPageScreen');
+            updatePoints();
+            switchMyPageTab('profile');
+            loadProfileData();
+        }
+
+        function switchMyPageTab(tab) {
+            const tabs = document.querySelectorAll('#myPageScreen .tab-btn');
+            tabs.forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById('profileTab').classList.add('hidden');
+            document.getElementById('createdTab').classList.add('hidden');
+            document.getElementById('participatedTab').classList.add('hidden');
+
+            if (tab === 'profile') {
+                tabs[0].classList.add('active');
+                document.getElementById('profileTab').classList.remove('hidden');
+                loadProfileData();
+            } else if (tab === 'created') {
+                tabs[1].classList.add('active');
+                document.getElementById('createdTab').classList.remove('hidden');
+                loadCreatedSurveys();
+            } else if (tab === 'participated') {
+                tabs[2].classList.add('active');
+                document.getElementById('participatedTab').classList.remove('hidden');
+                loadParticipatedSurveys();
+            }
+        }
+
+        function loadProfileData() {
+            document.getElementById('editName').value = currentUser.name;
+            document.getElementById('editEmail').value = currentUser.email;
+            document.getElementById('editPhone').value = currentUser.phone;
+            document.getElementById('editBirthDate').value = currentUser.birthDate;
+            document.getElementById('editGender').value = currentUser.gender;
+            document.getElementById('editJob').value = currentUser.job;
+
+            // 지역 정보 로드
+            if (typeof currentUser.region === 'object' && currentUser.region.sido) {
+                document.getElementById('editRegionSido').value = currentUser.region.sido;
+                updateRegionDistricts('edit');
+                setTimeout(() => {
+                    document.getElementById('editRegionDistrict').value = currentUser.region.district;
+                    updateRegionDongs('edit');
+                    setTimeout(() => {
+                        document.getElementById('editRegionDong').value = currentUser.region.dong;
+                    }, 50);
+                }, 50);
+            }
+        }
+
+        function updateProfile() {
+            const name = document.getElementById('editName').value;
+            const phone = document.getElementById('editPhone').value;
+            const birthDate = document.getElementById('editBirthDate').value;
+            const gender = document.getElementById('editGender').value;
+            const regionSido = document.getElementById('editRegionSido').value;
+            const regionDistrict = document.getElementById('editRegionDistrict').value;
+            const regionDong = document.getElementById('editRegionDong').value;
+            const job = document.getElementById('editJob').value;
+
+            if (!name || !phone || !birthDate || !gender || !regionSido || !regionDistrict || !job) {
+                document.getElementById('profileMessage').innerHTML = '<div class="error-msg">모든 필수 항목을 입력해주세요.</div>';
+                return;
+            }
+
+            const region = {
+                sido: regionSido,
+                district: regionDistrict,
+                dong: regionDong || '',
+                fullAddress: `${regionSido} ${regionDistrict}${regionDong ? ' ' + regionDong : ''}`
+            };
+
+            currentUser.name = name;
+            currentUser.phone = phone;
+            currentUser.birthDate = birthDate;
+            currentUser.gender = gender;
+            currentUser.region = region;
+            currentUser.job = job;
+
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const userIndex = users.findIndex(u => u.id === currentUser.id);
+            if (userIndex !== -1) {
+                users[userIndex] = currentUser;
+                localStorage.setItem('users', JSON.stringify(users));
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                document.getElementById('profileMessage').innerHTML = '<div class="success-msg">정보가 저장되었습니다!</div>';
+                setTimeout(() => {
+                    document.getElementById('profileMessage').innerHTML = '';
+                }, 3000);
+            }
+        }
+
+        function loadCreatedSurveys() {
+            const surveys = JSON.parse(localStorage.getItem('surveys') || '[]');
+            const mySurveys = surveys.filter(s => s.creatorId === currentUser.id);
+            const list = document.getElementById('createdSurveysList');
+
+            if (mySurveys.length === 0) {
+                list.innerHTML = '<p style="color: #999; margin-top: 15px;">아직 등록한 설문이 없습니다.</p>';
+                return;
+            }
+
+            list.innerHTML = mySurveys.map(survey => `
+                <div class="survey-item" onclick="viewMySurveyDetail('${survey.id}')">
+                    <div class="survey-title">${survey.title}</div>
+                    <div class="survey-desc">${survey.description}</div>
+                    ${survey.organizer ? `<div class="survey-info" style="color: #667eea; font-weight: 500;">🏢 ${survey.organizer}</div>` : ''}
+                    <div class="survey-info">🎯 대상: ${formatTargetInfo(survey)}</div>
+                    <div class="survey-info">목표: ${survey.targetResponses}명 | 보상: ${survey.rewardPoints}P | 참여: ${survey.participants || 0}명</div>
+                    <div class="survey-info" style="font-size: 11px; color: #999;">생성일: ${new Date(survey.createdAt).toLocaleString('ko-KR')}</div>
+                </div>
+            `).join('');
+        }
+
+        function loadParticipatedSurveys() {
+            const participations = JSON.parse(localStorage.getItem('participations') || '[]');
+            const surveys = JSON.parse(localStorage.getItem('surveys') || '[]');
+            const myParticipations = participations.filter(p => p.userId === currentUser.id);
+            const list = document.getElementById('participatedSurveysList');
+
+            if (myParticipations.length === 0) {
+                list.innerHTML = '<p style="color: #999; margin-top: 15px;">아직 참여한 설문이 없습니다.</p>';
+                return;
+            }
+
+            list.innerHTML = myParticipations.map(participation => {
+                const survey = surveys.find(s => s.id === participation.surveyId);
+                if (!survey) return '';
+                return `
+                    <div class="survey-item">
+                        <div class="survey-title">${survey.title} <span class="badge badge-points">+${survey.rewardPoints}P</span></div>
+                        <div class="survey-desc">${survey.description}</div>
+                        ${survey.organizer ? `<div class="survey-info" style="color: #667eea; font-weight: 500;">🏢 ${survey.organizer}</div>` : ''}
+                        <div class="survey-info" style="font-size: 11px; color: #999;">참여일: ${new Date(participation.completedAt).toLocaleString('ko-KR')}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
         function updatePoints() {
             const points = currentUser.points || 0;
-            ['userPoints', 'userPoints2', 'userPoints3', 'userPoints4'].forEach(id => {
+            ['userPoints', 'userPoints2', 'userPoints3', 'userPoints4', 'userPoints5'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.textContent = `💰 ${points.toLocaleString()} P`;
             });
@@ -1102,11 +1344,11 @@
             users.push({
                 id: Date.now().toString(),
                 name, email, password, phone, birthDate, gender, region, job,
-                points: 1000,
+                points: 100000,
                 createdAt: new Date().toISOString()
             });
             localStorage.setItem('users', JSON.stringify(users));
-            document.getElementById('registerMessage').innerHTML = '<div class="success-msg">🎉 회원가입 완료! 1,000P 지급!</div>';
+            document.getElementById('registerMessage').innerHTML = '<div class="success-msg">🎉 회원가입 완료! 100,000P 지급!</div>';
             setTimeout(() => showLogin(), 2000);
         }
 
@@ -1127,7 +1369,7 @@
                     phone: '01012345678', birthDate: '1990-01-01', gender: '남성',
                     region: {sido: '서울특별시', district: '강남구', dong: '역삼동', fullAddress: '서울특별시 강남구 역삼동'},
                     job: '회사원',
-                    points: 5000, createdAt: new Date().toISOString()
+                    points: 100000, createdAt: new Date().toISOString()
                 });
                 localStorage.setItem('users', JSON.stringify(users));
             }
@@ -1190,9 +1432,40 @@
                 <div class="survey-item" onclick="viewMySurveyDetail('${survey.id}')">
                     <div class="survey-title">${survey.title}</div>
                     <div class="survey-desc">${survey.description}</div>
+                    ${survey.organizer ? `<div class="survey-info" style="color: #667eea; font-weight: 500;">🏢 ${survey.organizer}</div>` : ''}
+                    <div class="survey-info">🎯 대상: ${formatTargetInfo(survey)}</div>
                     <div class="survey-info">목표: ${survey.targetResponses}명 | 보상: ${survey.rewardPoints}P</div>
                 </div>
             `).join('');
+        }
+
+        // 타겟 조건 표시 함수
+        function formatTargetInfo(survey) {
+            const conditions = [];
+
+            if (survey.targetAgeMin || survey.targetAgeMax) {
+                if (survey.targetAgeMin && survey.targetAgeMax) {
+                    conditions.push(`${survey.targetAgeMin}-${survey.targetAgeMax}세`);
+                } else if (survey.targetAgeMin) {
+                    conditions.push(`${survey.targetAgeMin}세 이상`);
+                } else {
+                    conditions.push(`${survey.targetAgeMax}세 이하`);
+                }
+            }
+
+            if (survey.targetGender) {
+                conditions.push(survey.targetGender);
+            }
+
+            if (survey.targetRegion && survey.targetRegion.sido) {
+                conditions.push(survey.targetRegion.fullAddress);
+            }
+
+            if (survey.targetJob) {
+                conditions.push(survey.targetJob);
+            }
+
+            return conditions.length > 0 ? conditions.join(' · ') : '전체 대상';
         }
 
         function loadAvailableSurveys() {
@@ -1216,6 +1489,8 @@
                 <div class="survey-item" onclick="startSurveyParticipation('${survey.id}')">
                     <div class="survey-title">${survey.title} <span class="badge">참여 가능</span></div>
                     <div class="survey-desc">${survey.description}</div>
+                    ${survey.organizer ? `<div class="survey-info" style="color: #667eea; font-weight: 500;">🏢 ${survey.organizer}</div>` : ''}
+                    <div class="survey-info">🎯 대상: ${formatTargetInfo(survey)}</div>
                     <div class="survey-info">🎁 보상: ${survey.rewardPoints}P <span class="badge badge-points">+${survey.rewardPoints}P</span></div>
                 </div>
             `).join('');
@@ -1308,6 +1583,7 @@
         function createSurvey() {
             const title = document.getElementById('surveyTitle').value;
             const description = document.getElementById('surveyDesc').value;
+            const organizer = document.getElementById('surveyOrganizer').value;
             const targetResponses = document.getElementById('surveyTarget').value;
             const rewardPoints = parseInt(document.getElementById('surveyRewardPoints').value) || 0;
 
@@ -1367,7 +1643,7 @@
             surveys.push({
                 id: Date.now().toString(),
                 creatorId: currentUser.id,
-                title, description, targetResponses, rewardPoints,
+                title, description, organizer, targetResponses, rewardPoints,
                 targetAgeMin, targetAgeMax,
                 targetGender,
                 targetRegion,
