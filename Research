@@ -531,6 +531,7 @@
                 <button class="nav-btn" onclick="showMyPage()">마이페이지</button>
                 <button class="nav-btn" onclick="showMySurveys()">내 설문</button>
                 <button class="nav-btn" onclick="showAvailableSurveys()">참여하기</button>
+                <button class="nav-btn" onclick="showTemplateMarket()">📝 템플릿 마켓</button>
                 <button class="nav-btn" onclick="showGiftShop()">🎁 상품교환소</button>
                 <button class="nav-btn" onclick="logout()">로그아웃</button>
             </div>
@@ -581,6 +582,7 @@
                 <button class="nav-btn" onclick="showMyPage()">마이페이지</button>
                 <button class="nav-btn" onclick="showMySurveys()">내 설문</button>
                 <button class="nav-btn" onclick="showAvailableSurveys()">참여하기</button>
+                <button class="nav-btn" onclick="showTemplateMarket()">📝 템플릿 마켓</button>
                 <button class="nav-btn" onclick="showGiftShop()">🎁 상품교환소</button>
                 <button class="nav-btn" onclick="logout()">로그아웃</button>
             </div>
@@ -623,6 +625,49 @@
                 <h2>나의 교환 내역</h2>
                 <div id="exchangeHistoryList"></div>
             </div>
+        </div>
+    </div>
+
+    <!-- Template Market Screen -->
+    <div id="templateMarketScreen" class="container hidden">
+        <div class="header">
+            <div class="logo">📝 템플릿 마켓</div>
+            <div class="nav">
+                <div class="points-badge" id="userPoints7">💰 0 P</div>
+                <button class="nav-btn" onclick="showDashboard()">대시보드</button>
+                <button class="nav-btn" onclick="showTemplateMarket()">📝 템플릿 마켓</button>
+                <button class="nav-btn" onclick="logout()">로그아웃</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div style="margin-bottom: 20px;">
+                <h2 style="margin-bottom: 10px;">📋 프리미엄 설문 템플릿</h2>
+                <p style="color: #666; font-size: 14px;">전문가가 만든 검증된 템플릿으로 빠르게 설문을 시작하세요</p>
+            </div>
+
+            <!-- Category Filter -->
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">📂 카테고리:</label>
+                <select id="templateCategory" onchange="filterTemplates()" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; width: 250px;">
+                    <option value="all">전체 보기</option>
+                    <option value="business">비즈니스</option>
+                    <option value="academic">학술/연구</option>
+                    <option value="marketing">마케팅</option>
+                    <option value="hr">인사/채용</option>
+                    <option value="feedback">피드백</option>
+                    <option value="event">이벤트</option>
+                </select>
+            </div>
+
+            <!-- Templates Grid -->
+            <div id="templatesGrid" class="grid"></div>
+        </div>
+
+        <!-- Purchase History -->
+        <div class="card">
+            <h2>🛍️ 구매한 템플릿</h2>
+            <div id="purchasedTemplates"></div>
         </div>
     </div>
 
@@ -1429,7 +1474,7 @@
         }
 
         function showScreen(screenId) {
-            const screens = ['welcomeScreen', 'loginScreen', 'registerScreen', 'dashboardScreen', 'createSurveyScreen', 'participateScreen', 'giftShopScreen', 'myPageScreen', 'analyticsScreen', 'availableSurveysScreen'];
+            const screens = ['welcomeScreen', 'loginScreen', 'registerScreen', 'dashboardScreen', 'createSurveyScreen', 'participateScreen', 'giftShopScreen', 'myPageScreen', 'analyticsScreen', 'availableSurveysScreen', 'templateMarketScreen'];
             screens.forEach(id => document.getElementById(id).classList.add('hidden'));
             document.getElementById(screenId).classList.remove('hidden');
         }
@@ -1696,7 +1741,7 @@
 
         function updatePoints() {
             const points = currentUser.points || 0;
-            ['userPoints', 'userPoints2', 'userPoints3', 'userPoints4', 'userPoints5', 'userPoints6'].forEach(id => {
+            ['userPoints', 'userPoints2', 'userPoints3', 'userPoints4', 'userPoints5', 'userPoints6', 'userPoints7'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.textContent = `💰 ${points.toLocaleString()} P`;
             });
@@ -3062,6 +3107,419 @@
                 <div class="featured-info">💰 ${featuredSurvey.rewardPoints}P 보상 | 🎯 ${formatTargetInfo(featuredSurvey)}</div>
             `;
             banner.onclick = () => startSurveyParticipation(featuredSurvey.id);
+        }
+
+        // ==================== 템플릿 마켓플레이스 ====================
+
+        // 템플릿 데이터
+        const surveyTemplates = [
+            {
+                id: 'T001',
+                title: '고객 만족도 조사',
+                category: 'business',
+                description: '제품/서비스에 대한 고객 만족도를 체계적으로 측정하는 표준 템플릿',
+                price: 5000,
+                seller: '설문연구소',
+                sales: 127,
+                rating: 4.8,
+                questions: [
+                    { id: 1, type: 'radio', question: '전반적인 만족도를 평가해주세요', options: ['매우 불만족', '불만족', '보통', '만족', '매우 만족'] },
+                    { id: 2, type: 'radio', question: '제품/서비스 품질은 어떠셨나요?', options: ['매우 나쁨', '나쁨', '보통', '좋음', '매우 좋음'] },
+                    { id: 3, type: 'radio', question: '가격 대비 만족도는?', options: ['매우 불만족', '불만족', '보통', '만족', '매우 만족'] },
+                    { id: 4, type: 'checkbox', question: '개선이 필요한 부분을 선택해주세요', options: ['가격', '품질', '고객서비스', '배송', '기타'] },
+                    { id: 5, type: 'textarea', question: '추가로 개선했으면 하는 점이 있나요?' }
+                ]
+            },
+            {
+                id: 'T002',
+                title: '직원 만족도 설문',
+                category: 'hr',
+                description: '조직 내 직원 만족도와 근무환경을 평가하는 HR 전문 템플릿',
+                price: 8000,
+                seller: 'HR솔루션',
+                sales: 89,
+                rating: 4.9,
+                questions: [
+                    { id: 1, type: 'radio', question: '현재 근무환경에 대한 만족도는?', options: ['매우 불만족', '불만족', '보통', '만족', '매우 만족'] },
+                    { id: 2, type: 'radio', question: '업무량은 적절한가요?', options: ['너무 많음', '약간 많음', '적절함', '약간 적음', '너무 적음'] },
+                    { id: 3, type: 'radio', question: '급여 및 복지에 만족하시나요?', options: ['매우 불만족', '불만족', '보통', '만족', '매우 만족'] },
+                    { id: 4, type: 'checkbox', question: '개선이 필요한 복지제도는?', options: ['건강보험', '휴가제도', '교육지원', '식사제공', '재택근무', '기타'] },
+                    { id: 5, type: 'textarea', question: '회사에 바라는 점이 있다면?' }
+                ]
+            },
+            {
+                id: 'T003',
+                title: '학술 연구 설문',
+                category: 'academic',
+                description: '학위논문 및 학술연구를 위한 표준화된 연구 설문 템플릿',
+                price: 7000,
+                seller: '대학연구소',
+                sales: 156,
+                rating: 4.7,
+                questions: [
+                    { id: 1, type: 'radio', question: '귀하의 연령대는?', options: ['20대 미만', '20대', '30대', '40대', '50대', '60대 이상'] },
+                    { id: 2, type: 'radio', question: '최종 학력은?', options: ['고졸 이하', '대학 재학', '대졸', '석사', '박사'] },
+                    { id: 3, type: 'checkbox', question: '주로 사용하는 매체는? (복수선택)', options: ['TV', '라디오', '신문', '인터넷', 'SNS', '유튜브'] },
+                    { id: 4, type: 'radio', question: '하루 평균 미디어 이용 시간은?', options: ['1시간 미만', '1-2시간', '2-4시간', '4-6시간', '6시간 이상'] },
+                    { id: 5, type: 'textarea', question: '연구 주제에 대한 의견을 자유롭게 작성해주세요' }
+                ]
+            },
+            {
+                id: 'T004',
+                title: '제품 출시 전 시장조사',
+                category: 'marketing',
+                description: '신제품 출시 전 시장 반응과 수요를 파악하는 마케팅 템플릿',
+                price: 9000,
+                seller: '마케팅프로',
+                sales: 94,
+                rating: 4.6,
+                questions: [
+                    { id: 1, type: 'radio', question: '이 제품에 대한 관심도는?', options: ['전혀 관심없음', '관심없음', '보통', '관심있음', '매우 관심있음'] },
+                    { id: 2, type: 'radio', question: '구매 의향이 있으신가요?', options: ['절대 구매안함', '구매안함', '고려중', '구매할 것임', '꼭 구매할 것임'] },
+                    { id: 3, type: 'text', question: '적정 가격은 얼마라고 생각하시나요? (원 단위)' },
+                    { id: 4, type: 'checkbox', question: '어떤 채널에서 구매하시겠습니까?', options: ['온라인쇼핑몰', '오프라인 매장', '백화점', '홈쇼핑', '소셜커머스'] },
+                    { id: 5, type: 'textarea', question: '제품에 대한 개선 제안사항이 있으신가요?' }
+                ]
+            },
+            {
+                id: 'T005',
+                title: '이벤트 참가자 피드백',
+                category: 'event',
+                description: '행사/이벤트 후 참가자 피드백 수집을 위한 템플릿',
+                price: 4000,
+                seller: '이벤트플래너',
+                sales: 203,
+                rating: 4.5,
+                questions: [
+                    { id: 1, type: 'radio', question: '이벤트 전반에 대한 만족도는?', options: ['매우 불만족', '불만족', '보통', '만족', '매우 만족'] },
+                    { id: 2, type: 'radio', question: '행사 진행은 원활했나요?', options: ['매우 나쁨', '나쁨', '보통', '좋음', '매우 좋음'] },
+                    { id: 3, type: 'checkbox', question: '가장 좋았던 부분은?', options: ['프로그램 구성', '진행 방식', '장소', '음식', '네트워킹', '기타'] },
+                    { id: 4, type: 'radio', question: '다음 행사에도 참여하시겠습니까?', options: ['절대 안함', '안함', '고려중', '참여할 것', '꼭 참여할 것'] },
+                    { id: 5, type: 'textarea', question: '개선사항이나 건의사항이 있다면?' }
+                ]
+            },
+            {
+                id: 'T006',
+                title: '서비스 피드백 수집',
+                category: 'feedback',
+                description: '일반적인 서비스 피드백을 체계적으로 수집하는 범용 템플릿',
+                price: 3000,
+                seller: 'CX컨설팅',
+                sales: 312,
+                rating: 4.4,
+                questions: [
+                    { id: 1, type: 'radio', question: '서비스 이용은 편리하셨나요?', options: ['매우 불편', '불편', '보통', '편리', '매우 편리'] },
+                    { id: 2, type: 'radio', question: '직원 응대는 만족스러우셨나요?', options: ['매우 불만족', '불만족', '보통', '만족', '매우 만족'] },
+                    { id: 3, type: 'checkbox', question: '추가로 원하는 서비스는?', options: ['배송 서비스', '설치 서비스', 'A/S', '맞춤 상담', '온라인 지원'] },
+                    { id: 4, type: 'radio', question: '재방문/재이용 의사가 있으신가요?', options: ['전혀 없음', '없음', '보통', '있음', '매우 높음'] },
+                    { id: 5, type: 'textarea', question: '하고 싶으신 말씀을 자유롭게 작성해주세요' }
+                ]
+            },
+            {
+                id: 'T007',
+                title: '채용 후보자 평가',
+                category: 'hr',
+                description: '면접 후 후보자를 체계적으로 평가하는 채용 전문 템플릿',
+                price: 6000,
+                seller: '채용코치',
+                sales: 76,
+                rating: 4.7,
+                questions: [
+                    { id: 1, type: 'radio', question: '지원자의 전문성은?', options: ['매우 부족', '부족', '보통', '우수', '매우 우수'] },
+                    { id: 2, type: 'radio', question: '의사소통 능력은?', options: ['매우 부족', '부족', '보통', '우수', '매우 우수'] },
+                    { id: 3, type: 'radio', question: '조직 적합도는?', options: ['매우 낮음', '낮음', '보통', '높음', '매우 높음'] },
+                    { id: 4, type: 'checkbox', question: '강점으로 보이는 부분은?', options: ['전문지식', '경험', '태도', '의사소통', '문제해결력', '리더십'] },
+                    { id: 5, type: 'textarea', question: '종합 평가 및 채용 의견' }
+                ]
+            },
+            {
+                id: 'T008',
+                title: '브랜드 인지도 조사',
+                category: 'marketing',
+                description: '브랜드 인지도와 이미지를 측정하는 마케팅 리서치 템플릿',
+                price: 7500,
+                seller: '브랜딩랩',
+                sales: 118,
+                rating: 4.8,
+                questions: [
+                    { id: 1, type: 'radio', question: '우리 브랜드를 알고 계셨나요?', options: ['전혀 모름', '들어본 적 있음', '알고 있음', '잘 알고 있음', '매우 잘 알고 있음'] },
+                    { id: 2, type: 'checkbox', question: '브랜드 이미지는? (복수선택)', options: ['혁신적', '신뢰할 수 있는', '트렌디한', '합리적', '고급스러운', '친근한'] },
+                    { id: 3, type: 'radio', question: '경쟁사 대비 선호도는?', options: ['매우 낮음', '낮음', '비슷함', '높음', '매우 높음'] },
+                    { id: 4, type: 'checkbox', question: '주로 접한 채널은?', options: ['TV 광고', '온라인 광고', 'SNS', '지인 추천', '매장', '기타'] },
+                    { id: 5, type: 'textarea', question: '브랜드에 대한 전반적인 인상을 자유롭게 작성해주세요' }
+                ]
+            }
+        ];
+
+        function showTemplateMarket() {
+            showScreen('templateMarketScreen');
+            updatePoints();
+            loadTemplates();
+            loadPurchasedTemplates();
+        }
+
+        function loadTemplates() {
+            const category = document.getElementById('templateCategory').value;
+            const grid = document.getElementById('templatesGrid');
+
+            const filteredTemplates = category === 'all'
+                ? surveyTemplates
+                : surveyTemplates.filter(t => t.category === category);
+
+            if (filteredTemplates.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">해당 카테고리의 템플릿이 없습니다.</p>';
+                return;
+            }
+
+            grid.innerHTML = filteredTemplates.map(template => `
+                <div class="card" style="cursor: pointer;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                        <h3 style="margin: 0; color: #1a1a2e; font-size: 18px;">${template.title}</h3>
+                        <span style="background: #5B7C99; color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold;">
+                            ${getCategoryName(template.category)}
+                        </span>
+                    </div>
+                    <p style="color: #666; font-size: 14px; margin-bottom: 15px; line-height: 1.5;">${template.description}</p>
+
+                    <div style="display: flex; gap: 15px; margin-bottom: 15px; font-size: 13px; color: #666;">
+                        <span>⭐ ${template.rating}</span>
+                        <span>📦 ${template.sales}개 판매</span>
+                        <span>👤 ${template.seller}</span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 20px; font-weight: bold; color: #5B7C99;">💰 ${template.price.toLocaleString()} P</span>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn" style="padding: 8px 16px; font-size: 14px; background: #7B9FB8;"
+                                    onclick="previewTemplate('${template.id}')">
+                                미리보기
+                            </button>
+                            <button class="btn" style="padding: 8px 16px; font-size: 14px;"
+                                    onclick="purchaseTemplate('${template.id}')">
+                                구매하기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getCategoryName(category) {
+            const names = {
+                'business': '비즈니스',
+                'academic': '학술/연구',
+                'marketing': '마케팅',
+                'hr': '인사/채용',
+                'feedback': '피드백',
+                'event': '이벤트'
+            };
+            return names[category] || category;
+        }
+
+        function filterTemplates() {
+            loadTemplates();
+        }
+
+        function previewTemplate(templateId) {
+            const template = surveyTemplates.find(t => t.id === templateId);
+            if (!template) return;
+
+            const questionsHTML = template.questions.map((q, idx) => {
+                let optionsHTML = '';
+                if (q.options) {
+                    if (q.type === 'radio' || q.type === 'select') {
+                        optionsHTML = q.options.map(opt =>
+                            `<div style="padding: 8px; background: #f5f5f5; border-radius: 4px; margin: 4px 0;">• ${opt}</div>`
+                        ).join('');
+                    } else if (q.type === 'checkbox') {
+                        optionsHTML = q.options.map(opt =>
+                            `<div style="padding: 8px; background: #f5f5f5; border-radius: 4px; margin: 4px 0;">☐ ${opt}</div>`
+                        ).join('');
+                    }
+                }
+
+                return `
+                    <div style="padding: 15px; background: #fafafa; border-radius: 8px; margin-bottom: 12px;">
+                        <div style="font-weight: 600; color: #333; margin-bottom: 8px;">
+                            ${idx + 1}. ${q.question}
+                            <span style="color: #999; font-size: 12px; font-weight: normal;">[${getQuestionTypeName(q.type)}]</span>
+                        </div>
+                        ${optionsHTML}
+                        ${q.type === 'text' || q.type === 'textarea' ? '<div style="padding: 8px; background: #f5f5f5; border-radius: 4px; color: #999;">텍스트 입력</div>' : ''}
+                    </div>
+                `;
+            }).join('');
+
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px;';
+            modal.innerHTML = `
+                <div style="background: white; border-radius: 16px; padding: 30px; max-width: 700px; max-height: 90vh; overflow-y: auto; width: 100%;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
+                        <div>
+                            <h2 style="margin: 0 0 8px 0; color: #1a1a2e;">${template.title}</h2>
+                            <p style="color: #666; font-size: 14px; margin: 0;">${template.description}</p>
+                        </div>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()"
+                                style="background: #ddd; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 18px;">×</button>
+                    </div>
+
+                    <div style="background: #f0f4f8; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <div style="display: flex; gap: 20px; font-size: 14px;">
+                            <span>⭐ 평점: ${template.rating}/5.0</span>
+                            <span>📦 판매: ${template.sales}개</span>
+                            <span>👤 판매자: ${template.seller}</span>
+                        </div>
+                    </div>
+
+                    <h3 style="margin: 20px 0 15px 0; color: #333;">📋 질문 목록 (${template.questions.length}개)</h3>
+                    ${questionsHTML}
+
+                    <div style="display: flex; gap: 10px; margin-top: 25px; justify-content: flex-end;">
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()"
+                                class="btn" style="background: #ddd; color: #333;">닫기</button>
+                        <button onclick="purchaseTemplate('${template.id}'); this.parentElement.parentElement.parentElement.remove();"
+                                class="btn">💰 ${template.price.toLocaleString()} P로 구매하기</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function getQuestionTypeName(type) {
+            const names = {
+                'text': '단답형',
+                'textarea': '장문형',
+                'radio': '객관식(단일선택)',
+                'checkbox': '객관식(복수선택)',
+                'select': '드롭다운'
+            };
+            return names[type] || type;
+        }
+
+        function purchaseTemplate(templateId) {
+            const template = surveyTemplates.find(t => t.id === templateId);
+            if (!template) {
+                alert('템플릿을 찾을 수 없습니다.');
+                return;
+            }
+
+            // 이미 구매했는지 확인
+            const purchases = JSON.parse(localStorage.getItem('templatePurchases') || '[]');
+            if (purchases.some(p => p.templateId === templateId && p.userId === currentUser.id)) {
+                alert('이미 구매한 템플릿입니다.');
+                return;
+            }
+
+            // 포인트 확인
+            if (currentUser.points < template.price) {
+                alert(`포인트가 부족합니다.\n필요: ${template.price.toLocaleString()} P\n보유: ${currentUser.points.toLocaleString()} P`);
+                return;
+            }
+
+            if (!confirm(`"${template.title}" 템플릿을\n${template.price.toLocaleString()} P에 구매하시겠습니까?`)) {
+                return;
+            }
+
+            // 포인트 차감
+            currentUser.points -= template.price;
+            updateUser(currentUser);
+
+            // 판매자에게 수수료 지급 (70% - 실제로는 판매자 계정에 지급해야 하지만 데모이므로 기록만)
+            const sellerRevenue = Math.floor(template.price * 0.7);
+
+            // 구매 기록 저장
+            purchases.push({
+                id: Date.now(),
+                userId: currentUser.id,
+                templateId: template.id,
+                price: template.price,
+                sellerRevenue: sellerRevenue,
+                purchasedAt: new Date().toISOString()
+            });
+            localStorage.setItem('templatePurchases', JSON.stringify(purchases));
+
+            alert(`✅ 구매 완료!\n\n"${template.title}" 템플릿을 구매했습니다.\n구매한 템플릿은 하단에서 확인하고 바로 사용할 수 있습니다.`);
+
+            updatePoints();
+            loadPurchasedTemplates();
+        }
+
+        function loadPurchasedTemplates() {
+            const purchases = JSON.parse(localStorage.getItem('templatePurchases') || '[]');
+            const myPurchases = purchases.filter(p => p.userId === currentUser.id);
+
+            const container = document.getElementById('purchasedTemplates');
+
+            if (myPurchases.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">구매한 템플릿이 없습니다.</p>';
+                return;
+            }
+
+            container.innerHTML = myPurchases.map(purchase => {
+                const template = surveyTemplates.find(t => t.id === purchase.templateId);
+                if (!template) return '';
+
+                return `
+                    <div class="card" style="margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3 style="margin: 0 0 8px 0; color: #1a1a2e;">${template.title}</h3>
+                                <p style="color: #666; font-size: 14px; margin: 0 0 8px 0;">${template.description}</p>
+                                <div style="font-size: 13px; color: #999;">
+                                    구매일: ${new Date(purchase.purchasedAt).toLocaleString('ko-KR')} |
+                                    결제금액: ${purchase.price.toLocaleString()} P
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn" style="padding: 8px 16px; font-size: 14px; background: #7B9FB8;"
+                                        onclick="previewTemplate('${template.id}')">
+                                    미리보기
+                                </button>
+                                <button class="btn btn-success" style="padding: 8px 16px; font-size: 14px;"
+                                        onclick="applyTemplate('${template.id}')">
+                                    템플릿 사용하기
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function applyTemplate(templateId) {
+            const template = surveyTemplates.find(t => t.id === templateId);
+            if (!template) {
+                alert('템플릿을 찾을 수 없습니다.');
+                return;
+            }
+
+            // 구매 확인
+            const purchases = JSON.parse(localStorage.getItem('templatePurchases') || '[]');
+            if (!purchases.some(p => p.templateId === templateId && p.userId === currentUser.id)) {
+                alert('먼저 템플릿을 구매해주세요.');
+                return;
+            }
+
+            if (!confirm(`"${template.title}" 템플릿을 사용하여\n새 설문을 만드시겠습니까?\n\n템플릿의 질문들이 자동으로 복사됩니다.`)) {
+                return;
+            }
+
+            // 설문 작성 화면으로 이동하고 템플릿 데이터 적용
+            showCreateSurvey();
+
+            // 기본 정보 채우기
+            document.getElementById('surveyTitle').value = template.title + ' (템플릿)';
+            document.getElementById('surveyDescription').value = template.description;
+
+            // 질문 복사
+            surveyQuestions = template.questions.map((q, idx) => ({
+                id: Date.now() + idx,
+                ...q
+            }));
+
+            renderQuestions();
+
+            alert('✅ 템플릿이 적용되었습니다!\n\n질문들이 자동으로 복사되었습니다.\n필요에 따라 수정하고 설문을 등록해주세요.');
         }
 
         window.onload = init;
