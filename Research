@@ -49,14 +49,17 @@
             font-size: 14px;
         }
         .nav-btn {
-            padding: 8px 16px;
+            padding: 10px 20px;
             background: #5B7C99;
             color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: 500;
             transition: all 0.2s ease;
+            white-space: nowrap;
+            min-width: 100px;
         }
         .nav-btn:hover { background: #4A6A85; }
         .btn-reset {
@@ -538,34 +541,13 @@
     <div id="dashboardScreen" class="container hidden">
         <div class="header">
             <div class="logo">🎯 설문 매칭 플랫폼 v5.0</div>
-            <div class="user-info-header">
-                <span id="userNameHeader"></span>님
-                <div class="points-badge" id="userPoints">💰 0 P</div>
-                <div class="rating-badge" id="userRatingBadge">
-                    ⭐ 0.0
-                    <div class="rating-tooltip">
-                        <strong>📊 평점 시스템 안내</strong><br><br>
-                        <strong>평점 산정:</strong><br>
-                        • 신규 가입: 3.0점 시작<br>
-                        • 설문 완료: +0.1점<br>
-                        • 최대 평점: 5.0점<br><br>
-                        <strong>평점 혜택:</strong><br>
-                        • 3.0점 이하: 무료 설문만 참여<br>
-                        • 3.1~4.0점: 일반 설문 참여<br>
-                        • 4.1점 이상: 프리미엄 설문 참여<br><br>
-                        <strong>💡 평점 올리는 방법:</strong><br>
-                        성실하게 설문에 끝까지 참여하세요!
-                    </div>
-                </div>
-            </div>
             <div class="nav">
                 <button class="nav-btn" onclick="showDashboard()">대시보드</button>
-                <button class="nav-btn" onclick="showMyPage()">마이페이지</button>
                 <button class="nav-btn" onclick="showMySurveys()">내 설문</button>
                 <button class="nav-btn" onclick="showAvailableSurveys()">참여하기</button>
-                <button class="nav-btn" onclick="showTemplateMarket()">📝 템플릿 마켓</button>
-                <button class="nav-btn" onclick="showGiftShop()">🎁 상품교환소</button>
-                <button class="nav-btn" id="adminModeBtn" onclick="showAdminSettings()" style="background: #ff6b6b; display: none;">⚙️ 관리자</button>
+                <button class="nav-btn" onclick="showTemplateMarket()">템플릿 마켓</button>
+                <button class="nav-btn" onclick="showGiftShop()">상품교환소</button>
+                <button class="nav-btn" id="adminModeBtn" onclick="showAdminSettings()" style="background: #ff6b6b; display: none;">관리자</button>
                 <button class="nav-btn" onclick="logout()">로그아웃</button>
             </div>
         </div>
@@ -1683,6 +1665,7 @@
         }
 
         function init() {
+            initAdminAccount(); // 관리자 계정 초기화
             initSampleSurveys();
             initRegionSelects();
             const user = localStorage.getItem('currentUser');
@@ -1691,6 +1674,42 @@
                 showDashboard();
             } else {
                 showScreen('welcomeScreen');
+            }
+        }
+
+        // 관리자 계정 초기화
+        function initAdminAccount() {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+
+            // 관리자 계정이 이미 있는지 확인
+            const adminExists = users.find(u => u.email === 'admin@survey.com');
+
+            if (!adminExists) {
+                const adminUser = {
+                    id: 1,
+                    name: '관리자',
+                    email: 'admin@survey.com',
+                    password: 'admin1234',
+                    phone: '010-0000-0000',
+                    age: 30,
+                    gender: '남성',
+                    regionSido: '서울특별시',
+                    regionDistrict: '강남구',
+                    regionDong: '역삼동',
+                    job: '관리자',
+                    points: 100000,
+                    rating: 5.0,
+                    isAdmin: true,
+                    referralCode: 'ADMIN0',
+                    referredBy: null
+                };
+
+                users.push(adminUser);
+                localStorage.setItem('users', JSON.stringify(users));
+
+                console.log('✅ 관리자 계정이 생성되었습니다.');
+                console.log('📧 이메일: admin@survey.com');
+                console.log('🔑 비밀번호: admin1234');
             }
         }
 
@@ -2227,7 +2246,6 @@
 
         function showDashboard() {
             showScreen('dashboardScreen');
-            document.getElementById('userNameHeader').textContent = currentUser.name;
 
             // 대시보드 내 정보 영역 업데이트
             document.getElementById('dashboardUserName').textContent = currentUser.name;
