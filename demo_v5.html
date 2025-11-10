@@ -662,7 +662,8 @@
         </div>
 
         <!-- 내 정보 영역 -->
-        <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 20px;">
+        <div class="card editable-area" data-edit-type="userInfoCard" data-edit-id="userInfo" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 20px;">
+            <span class="editable-label">사용자 정보 카드</span>
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div style="display: flex; gap: 30px; align-items: center; flex: 1;">
                     <div>
@@ -685,7 +686,9 @@
         </div>
 
         <!-- 홍보 공지사항 영역 -->
-        <div class="featured-banner" id="featuredBanner" style="display: none;"></div>
+        <div class="featured-banner editable-area" data-edit-type="banner" data-edit-id="featuredBanner" id="featuredBanner" style="display: none;">
+            <span class="editable-label">프리미엄 설문 배너</span>
+        </div>
 
         <div class="dashboard-stats">
             <div class="stat-card editable-area" data-card-index="0" data-edit-type="card" data-edit-id="0">
@@ -706,12 +709,14 @@
         </div>
 
         <div class="grid">
-            <div class="card">
+            <div class="card editable-area" data-edit-type="section" data-edit-id="mySurveysSection">
+                <span class="editable-label">내가 만든 설문 섹션</span>
                 <h2>내가 만든 설문</h2>
                 <button class="btn" onclick="showCreateSurvey()">+ 새 설문 만들기</button>
                 <div id="mySurveysList" style="margin-top: 20px;"></div>
             </div>
-            <div class="card">
+            <div class="card editable-area" data-edit-type="section" data-edit-id="availableSurveysSection">
+                <span class="editable-label">참여 가능한 설문 섹션</span>
                 <h2>참여 가능한 설문</h2>
                 <div id="availableSurveysList"></div>
             </div>
@@ -3847,6 +3852,87 @@
 
             // 카드 배경 적용
             applyCardBackgrounds(settings);
+
+            // 사용자 정보 카드 배경 적용
+            const userInfoCard = document.querySelector('[data-edit-id="userInfo"]');
+            if (userInfoCard) {
+                if (settings.userInfoBackgroundImage) {
+                    userInfoCard.style.backgroundImage = `url(${settings.userInfoBackgroundImage})`;
+                    userInfoCard.style.backgroundSize = 'cover';
+                    userInfoCard.style.backgroundPosition = 'center';
+                } else {
+                    const gradientStart = settings.userInfoGradientStart || '#667eea';
+                    const gradientEnd = settings.userInfoGradientEnd || '#764ba2';
+                    userInfoCard.style.backgroundImage = '';
+                    userInfoCard.style.background = `linear-gradient(135deg, ${gradientStart} 0%, ${gradientEnd} 100%)`;
+                }
+                if (settings.userInfoTextColor) {
+                    userInfoCard.style.color = settings.userInfoTextColor;
+                }
+            }
+
+            // 배너 배경 적용
+            const banner = document.getElementById('featuredBanner');
+            if (banner) {
+                if (settings.bannerBackgroundImage) {
+                    banner.style.backgroundImage = `url(${settings.bannerBackgroundImage})`;
+                    banner.style.backgroundSize = 'cover';
+                    banner.style.backgroundPosition = 'center';
+                } else {
+                    banner.style.backgroundImage = '';
+                }
+                if (settings.bannerBackgroundColor) {
+                    banner.style.backgroundColor = settings.bannerBackgroundColor;
+                }
+                if (settings.bannerTextColor) {
+                    banner.style.color = settings.bannerTextColor;
+                }
+            }
+
+            // 섹션 배경 적용
+            ['mySurveysSection', 'availableSurveysSection'].forEach(sectionId => {
+                const section = document.querySelector(`[data-edit-id="${sectionId}"]`);
+                if (section) {
+                    const bgImage = settings[`${sectionId}BackgroundImage`];
+                    const bgColor = settings[`${sectionId}BackgroundColor`];
+                    const textColor = settings[`${sectionId}TextColor`];
+                    const opacity = settings[`${sectionId}Opacity`] || 100;
+
+                    // 기존 wrapper 제거
+                    const existingWrapper = section.querySelector('.card-bg-wrapper');
+                    if (existingWrapper) existingWrapper.remove();
+
+                    if (bgImage) {
+                        section.style.position = 'relative';
+                        section.style.overflow = 'hidden';
+
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'card-bg-wrapper';
+                        wrapper.style.cssText = 'position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 0;';
+                        wrapper.style.backgroundImage = `url(${bgImage})`;
+                        wrapper.style.backgroundColor = bgColor || '#ffffff';
+                        wrapper.style.opacity = opacity / 100;
+
+                        section.insertBefore(wrapper, section.firstChild);
+
+                        // 자식들 위로 올리기
+                        Array.from(section.children).forEach((child, idx) => {
+                            if (idx > 0) {
+                                child.style.position = 'relative';
+                                child.style.zIndex = '1';
+                            }
+                        });
+                    } else if (bgColor) {
+                        section.style.backgroundColor = bgColor;
+                    }
+
+                    // 제목 색상 변경
+                    if (textColor) {
+                        const title = section.querySelector('h2');
+                        if (title) title.style.color = textColor;
+                    }
+                }
+            });
         }
 
         function applyCardBackgrounds(settings) {
@@ -4143,18 +4229,24 @@
 
             if (editType === 'card') {
                 panel.innerHTML = createCardEditPanelHTML(editId);
+            } else if (editType === 'userInfoCard') {
+                panel.innerHTML = createUserInfoCardEditPanelHTML(editId);
+            } else if (editType === 'banner') {
+                panel.innerHTML = createBannerEditPanelHTML(editId);
+            } else if (editType === 'section') {
+                panel.innerHTML = createSectionEditPanelHTML(editId);
             }
 
             document.body.appendChild(panel);
 
             // 입력 필드에 현재 값 채우기
-            populateEditPanel(editId);
+            populateEditPanel(editId, editType);
 
             // 실시간 미리보기 이벤트 연결
             const inputs = panel.querySelectorAll('input, select');
             inputs.forEach(input => {
-                input.addEventListener('input', () => updateVisualPreview(editId));
-                input.addEventListener('change', () => updateVisualPreview(editId));
+                input.addEventListener('input', () => updateVisualPreview(editId, editType));
+                input.addEventListener('change', () => updateVisualPreview(editId, editType));
             });
         }
 
@@ -4214,62 +4306,340 @@
             `;
         }
 
+        // 사용자 정보 카드 편집 패널 HTML 생성
+        function createUserInfoCardEditPanelHTML(editId) {
+            return `
+                <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #e0e0e0;">
+                    <h3 style="margin: 0; color: #667eea; font-size: 18px;">👤 사용자 정보 카드 편집</h3>
+                    <p style="margin: 5px 0 0 0; font-size: 13px; color: #666;">환영 메시지 카드의 스타일을 설정합니다</p>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">
+                        🖼️ 배경 이미지 URL
+                    </label>
+                    <input type="text" id="ve_userInfoBackgroundImage"
+                           placeholder="https://example.com/image.jpg"
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                    <small style="color: #999; font-size: 12px;">비워두면 그라디언트 배경만 적용됩니다</small>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">
+                        🎨 그라디언트 시작 색상
+                    </label>
+                    <input type="color" id="ve_userInfoGradientStart"
+                           style="width: 100%; height: 50px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">
+                        🎨 그라디언트 끝 색상
+                    </label>
+                    <input type="color" id="ve_userInfoGradientEnd"
+                           style="width: 100%; height: 50px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">
+                        ✏️ 텍스트 색상
+                    </label>
+                    <input type="color" id="ve_userInfoTextColor"
+                           style="width: 100%; height: 50px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">
+                </div>
+
+                <div style="margin-top: 25px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
+                    <button class="btn" style="width: 100%; background: #667eea; color: white; font-weight: bold; padding: 12px;"
+                            onclick="closeEditPanel()">
+                        ✅ 완료
+                    </button>
+                </div>
+            `;
+        }
+
+        // 배너 편집 패널 HTML 생성
+        function createBannerEditPanelHTML(editId) {
+            return `
+                <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #e0e0e0;">
+                    <h3 style="margin: 0; color: #667eea; font-size: 18px;">🎯 프리미엄 설문 배너 편집</h3>
+                    <p style="margin: 5px 0 0 0; font-size: 13px; color: #666;">프리미엄 설문 배너의 스타일을 설정합니다</p>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">
+                        🖼️ 배경 이미지 URL
+                    </label>
+                    <input type="text" id="ve_bannerBackgroundImage"
+                           placeholder="https://example.com/image.jpg"
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">
+                        🎨 배경 색상
+                    </label>
+                    <input type="color" id="ve_bannerBackgroundColor"
+                           style="width: 100%; height: 50px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">
+                        ✏️ 텍스트 색상
+                    </label>
+                    <input type="color" id="ve_bannerTextColor"
+                           style="width: 100%; height: 50px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">
+                </div>
+
+                <div style="margin-top: 25px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
+                    <button class="btn" style="width: 100%; background: #667eea; color: white; font-weight: bold; padding: 12px;"
+                            onclick="closeEditPanel()">
+                        ✅ 완료
+                    </button>
+                </div>
+            `;
+        }
+
+        // 섹션 편집 패널 HTML 생성
+        function createSectionEditPanelHTML(editId) {
+            const sectionNames = {
+                'mySurveysSection': '내가 만든 설문',
+                'availableSurveysSection': '참여 가능한 설문'
+            };
+
+            return `
+                <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #e0e0e0;">
+                    <h3 style="margin: 0; color: #667eea; font-size: 18px;">📋 ${sectionNames[editId]} 섹션 편집</h3>
+                    <p style="margin: 5px 0 0 0; font-size: 13px; color: #666;">이 섹션의 배경과 텍스트를 설정합니다</p>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">
+                        🖼️ 배경 이미지 URL
+                    </label>
+                    <input type="text" id="ve_${editId}BackgroundImage"
+                           placeholder="https://example.com/image.jpg"
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">
+                        🎨 배경 색상
+                    </label>
+                    <input type="color" id="ve_${editId}BackgroundColor"
+                           style="width: 100%; height: 50px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">
+                        ✏️ 텍스트 색상 (제목)
+                    </label>
+                    <input type="color" id="ve_${editId}TextColor"
+                           style="width: 100%; height: 50px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">
+                        💫 투명도: <span id="ve_${editId}OpacityValue">100</span>%
+                    </label>
+                    <input type="range" id="ve_${editId}Opacity" min="0" max="100" value="100"
+                           style="width: 100%;"
+                           oninput="document.getElementById('ve_${editId}OpacityValue').textContent = this.value">
+                </div>
+
+                <div style="margin-top: 25px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
+                    <button class="btn" style="width: 100%; background: #667eea; color: white; font-weight: bold; padding: 12px;"
+                            onclick="closeEditPanel()">
+                        ✅ 완료
+                    </button>
+                </div>
+            `;
+        }
+
         // 편집 패널에 현재 값 채우기
-        function populateEditPanel(cardId) {
-            const prefixes = ['stats', 'created', 'available'];
-            const prefix = prefixes[cardId];
+        function populateEditPanel(editId, editType) {
+            if (editType === 'card') {
+                const prefixes = ['stats', 'created', 'available'];
+                const prefix = prefixes[editId];
 
-            const bgImageInput = document.getElementById(`ve_${prefix}BackgroundImage`);
-            const bgColorInput = document.getElementById(`ve_${prefix}BackgroundColor`);
-            const textColorInput = document.getElementById(`ve_${prefix}TextColor`);
-            const opacityInput = document.getElementById(`ve_${prefix}Opacity`);
-            const opacityValue = document.getElementById(`ve_${prefix}OpacityValue`);
+                const bgImageInput = document.getElementById(`ve_${prefix}BackgroundImage`);
+                const bgColorInput = document.getElementById(`ve_${prefix}BackgroundColor`);
+                const textColorInput = document.getElementById(`ve_${prefix}TextColor`);
+                const opacityInput = document.getElementById(`ve_${prefix}Opacity`);
+                const opacityValue = document.getElementById(`ve_${prefix}OpacityValue`);
 
-            if (bgImageInput) {
-                bgImageInput.value = tempSettings[`${prefix}BackgroundImage`] || '';
-            }
-            if (bgColorInput) {
-                bgColorInput.value = tempSettings[`${prefix}BackgroundColor`] || '#ffffff';
-            }
-            if (textColorInput) {
-                textColorInput.value = tempSettings[`${prefix}TextColor`] || '#333333';
-            }
-            if (opacityInput && opacityValue) {
-                const opacity = tempSettings[`${prefix}Opacity`] || 100;
-                opacityInput.value = opacity;
-                opacityValue.textContent = opacity;
+                if (bgImageInput) bgImageInput.value = tempSettings[`${prefix}BackgroundImage`] || '';
+                if (bgColorInput) bgColorInput.value = tempSettings[`${prefix}BackgroundColor`] || '#ffffff';
+                if (textColorInput) textColorInput.value = tempSettings[`${prefix}TextColor`] || '#333333';
+                if (opacityInput && opacityValue) {
+                    const opacity = tempSettings[`${prefix}Opacity`] || 100;
+                    opacityInput.value = opacity;
+                    opacityValue.textContent = opacity;
+                }
+            } else if (editType === 'userInfoCard') {
+                const bgImageInput = document.getElementById('ve_userInfoBackgroundImage');
+                const gradientStartInput = document.getElementById('ve_userInfoGradientStart');
+                const gradientEndInput = document.getElementById('ve_userInfoGradientEnd');
+                const textColorInput = document.getElementById('ve_userInfoTextColor');
+
+                if (bgImageInput) bgImageInput.value = tempSettings['userInfoBackgroundImage'] || '';
+                if (gradientStartInput) gradientStartInput.value = tempSettings['userInfoGradientStart'] || '#667eea';
+                if (gradientEndInput) gradientEndInput.value = tempSettings['userInfoGradientEnd'] || '#764ba2';
+                if (textColorInput) textColorInput.value = tempSettings['userInfoTextColor'] || '#ffffff';
+            } else if (editType === 'banner') {
+                const bgImageInput = document.getElementById('ve_bannerBackgroundImage');
+                const bgColorInput = document.getElementById('ve_bannerBackgroundColor');
+                const textColorInput = document.getElementById('ve_bannerTextColor');
+
+                if (bgImageInput) bgImageInput.value = tempSettings['bannerBackgroundImage'] || '';
+                if (bgColorInput) bgColorInput.value = tempSettings['bannerBackgroundColor'] || '#fff3cd';
+                if (textColorInput) textColorInput.value = tempSettings['bannerTextColor'] || '#333333';
+            } else if (editType === 'section') {
+                const bgImageInput = document.getElementById(`ve_${editId}BackgroundImage`);
+                const bgColorInput = document.getElementById(`ve_${editId}BackgroundColor`);
+                const textColorInput = document.getElementById(`ve_${editId}TextColor`);
+                const opacityInput = document.getElementById(`ve_${editId}Opacity`);
+                const opacityValue = document.getElementById(`ve_${editId}OpacityValue`);
+
+                if (bgImageInput) bgImageInput.value = tempSettings[`${editId}BackgroundImage`] || '';
+                if (bgColorInput) bgColorInput.value = tempSettings[`${editId}BackgroundColor`] || '#ffffff';
+                if (textColorInput) textColorInput.value = tempSettings[`${editId}TextColor`] || '#333333';
+                if (opacityInput && opacityValue) {
+                    const opacity = tempSettings[`${editId}Opacity`] || 100;
+                    opacityInput.value = opacity;
+                    opacityValue.textContent = opacity;
+                }
             }
         }
 
         // 실시간 미리보기 업데이트
-        function updateVisualPreview(cardId) {
-            const prefixes = ['stats', 'created', 'available'];
-            const prefix = prefixes[cardId];
+        function updateVisualPreview(editId, editType) {
+            if (editType === 'card') {
+                const prefixes = ['stats', 'created', 'available'];
+                const prefix = prefixes[editId];
 
-            // 입력값 읽기
-            const bgImage = document.getElementById(`ve_${prefix}BackgroundImage`)?.value || '';
-            const bgColor = document.getElementById(`ve_${prefix}BackgroundColor`)?.value || '#ffffff';
-            const textColor = document.getElementById(`ve_${prefix}TextColor`)?.value || '#333333';
-            const opacity = document.getElementById(`ve_${prefix}Opacity`)?.value || 100;
+                // 입력값 읽기
+                const bgImage = document.getElementById(`ve_${prefix}BackgroundImage`)?.value || '';
+                const bgColor = document.getElementById(`ve_${prefix}BackgroundColor`)?.value || '#ffffff';
+                const textColor = document.getElementById(`ve_${prefix}TextColor`)?.value || '#333333';
+                const opacity = document.getElementById(`ve_${prefix}Opacity`)?.value || 100;
 
-            // 임시 설정에 저장
-            tempSettings[`${prefix}BackgroundImage`] = bgImage;
-            tempSettings[`${prefix}BackgroundColor`] = bgColor;
-            tempSettings[`${prefix}TextColor`] = textColor;
-            tempSettings[`${prefix}Opacity`] = opacity;
+                // 임시 설정에 저장
+                tempSettings[`${prefix}BackgroundImage`] = bgImage;
+                tempSettings[`${prefix}BackgroundColor`] = bgColor;
+                tempSettings[`${prefix}TextColor`] = textColor;
+                tempSettings[`${prefix}Opacity`] = opacity;
 
-            // 실시간 적용
-            const dashboardStats = document.querySelector('#dashboardScreen .dashboard-stats');
-            if (!dashboardStats) return;
+                // 실시간 적용
+                const dashboardStats = document.querySelector('#dashboardScreen .dashboard-stats');
+                if (!dashboardStats) return;
 
-            const card = dashboardStats.querySelector(`[data-card-index="${cardId}"]`);
-            if (card) {
-                applyCardStyle(card, {
-                    bgImage: bgImage,
-                    bgColor: bgColor,
-                    textColor: textColor,
-                    opacity: opacity
-                });
+                const card = dashboardStats.querySelector(`[data-card-index="${editId}"]`);
+                if (card) {
+                    applyCardStyle(card, {
+                        bgImage: bgImage,
+                        bgColor: bgColor,
+                        textColor: textColor,
+                        opacity: opacity
+                    });
+                }
+            } else if (editType === 'userInfoCard') {
+                // 입력값 읽기
+                const bgImage = document.getElementById('ve_userInfoBackgroundImage')?.value || '';
+                const gradientStart = document.getElementById('ve_userInfoGradientStart')?.value || '#667eea';
+                const gradientEnd = document.getElementById('ve_userInfoGradientEnd')?.value || '#764ba2';
+                const textColor = document.getElementById('ve_userInfoTextColor')?.value || '#ffffff';
+
+                // 임시 설정에 저장
+                tempSettings['userInfoBackgroundImage'] = bgImage;
+                tempSettings['userInfoGradientStart'] = gradientStart;
+                tempSettings['userInfoGradientEnd'] = gradientEnd;
+                tempSettings['userInfoTextColor'] = textColor;
+
+                // 실시간 적용
+                const userInfoCard = document.querySelector('[data-edit-id="userInfo"]');
+                if (userInfoCard) {
+                    if (bgImage) {
+                        userInfoCard.style.backgroundImage = `url(${bgImage})`;
+                        userInfoCard.style.backgroundSize = 'cover';
+                        userInfoCard.style.backgroundPosition = 'center';
+                    } else {
+                        userInfoCard.style.backgroundImage = '';
+                        userInfoCard.style.background = `linear-gradient(135deg, ${gradientStart} 0%, ${gradientEnd} 100%)`;
+                    }
+                    userInfoCard.style.color = textColor;
+                }
+            } else if (editType === 'banner') {
+                // 입력값 읽기
+                const bgImage = document.getElementById('ve_bannerBackgroundImage')?.value || '';
+                const bgColor = document.getElementById('ve_bannerBackgroundColor')?.value || '#fff3cd';
+                const textColor = document.getElementById('ve_bannerTextColor')?.value || '#333333';
+
+                // 임시 설정에 저장
+                tempSettings['bannerBackgroundImage'] = bgImage;
+                tempSettings['bannerBackgroundColor'] = bgColor;
+                tempSettings['bannerTextColor'] = textColor;
+
+                // 실시간 적용
+                const banner = document.getElementById('featuredBanner');
+                if (banner) {
+                    if (bgImage) {
+                        banner.style.backgroundImage = `url(${bgImage})`;
+                        banner.style.backgroundSize = 'cover';
+                        banner.style.backgroundPosition = 'center';
+                    } else {
+                        banner.style.backgroundImage = '';
+                    }
+                    banner.style.backgroundColor = bgColor;
+                    banner.style.color = textColor;
+                }
+            } else if (editType === 'section') {
+                // 입력값 읽기
+                const bgImage = document.getElementById(`ve_${editId}BackgroundImage`)?.value || '';
+                const bgColor = document.getElementById(`ve_${editId}BackgroundColor`)?.value || '#ffffff';
+                const textColor = document.getElementById(`ve_${editId}TextColor`)?.value || '#333333';
+                const opacity = document.getElementById(`ve_${editId}Opacity`)?.value || 100;
+
+                // 임시 설정에 저장
+                tempSettings[`${editId}BackgroundImage`] = bgImage;
+                tempSettings[`${editId}BackgroundColor`] = bgColor;
+                tempSettings[`${editId}TextColor`] = textColor;
+                tempSettings[`${editId}Opacity`] = opacity;
+
+                // 실시간 적용
+                const section = document.querySelector(`[data-edit-id="${editId}"]`);
+                if (section) {
+                    // 기존 wrapper 제거
+                    const existingWrapper = section.querySelector('.card-bg-wrapper');
+                    if (existingWrapper) existingWrapper.remove();
+
+                    if (bgImage) {
+                        section.style.position = 'relative';
+                        section.style.overflow = 'hidden';
+
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'card-bg-wrapper';
+                        wrapper.style.cssText = 'position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 0;';
+                        wrapper.style.backgroundImage = `url(${bgImage})`;
+                        wrapper.style.backgroundColor = bgColor;
+                        wrapper.style.opacity = opacity / 100;
+
+                        section.insertBefore(wrapper, section.firstChild);
+
+                        // 자식들 위로 올리기
+                        Array.from(section.children).forEach((child, idx) => {
+                            if (idx > 0) {
+                                child.style.position = 'relative';
+                                child.style.zIndex = '1';
+                            }
+                        });
+                    } else {
+                        section.style.backgroundColor = bgColor;
+                    }
+
+                    // 제목 색상 변경
+                    const title = section.querySelector('h2');
+                    if (title) title.style.color = textColor;
+                }
             }
         }
 
