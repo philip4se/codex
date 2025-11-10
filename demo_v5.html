@@ -381,6 +381,115 @@
         .drag-handle:active {
             cursor: grabbing;
         }
+        /* 비주얼 편집 모드 스타일 */
+        .visual-edit-mode .editable-area {
+            position: relative;
+            outline: 2px dashed #667eea;
+            outline-offset: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .visual-edit-mode .editable-area:hover {
+            outline-color: #5B7C99;
+            outline-width: 3px;
+            background: rgba(102, 126, 234, 0.05);
+        }
+        .visual-edit-mode .editable-area.selected {
+            outline-color: #ff6b6b;
+            outline-width: 3px;
+            background: rgba(255, 107, 107, 0.05);
+        }
+        .editable-label {
+            position: absolute;
+            top: -12px;
+            left: 10px;
+            background: #667eea;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            z-index: 100;
+            pointer-events: none;
+            display: none;
+        }
+        .visual-edit-mode .editable-label {
+            display: block;
+        }
+        .visual-edit-panel {
+            position: fixed;
+            right: 20px;
+            top: 100px;
+            width: 350px;
+            max-height: 80vh;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            overflow-y: auto;
+            z-index: 10000;
+            display: none;
+        }
+        .visual-edit-panel.active {
+            display: block;
+        }
+        .visual-edit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+        .visual-edit-close {
+            background: #ddd;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+        }
+        .visual-edit-close:hover {
+            background: #ccc;
+        }
+        .visual-edit-toolbar {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #667eea;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
+            z-index: 10000;
+            display: none;
+            gap: 15px;
+            align-items: center;
+        }
+        .visual-edit-toolbar.active {
+            display: flex;
+        }
+        .visual-edit-toolbar button {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .visual-edit-toolbar button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .visual-edit-toolbar button.cancel {
+            background: #ff6b6b;
+            color: white;
+        }
         .featured-banner {
             background: linear-gradient(135deg, #7B9FB8 0%, #5B7C99 100%);
             padding: 20px 30px;
@@ -579,15 +688,18 @@
         <div class="featured-banner" id="featuredBanner" style="display: none;"></div>
 
         <div class="dashboard-stats">
-            <div class="stat-card">
+            <div class="stat-card editable-area" data-card-index="0" data-edit-type="card" data-edit-id="0">
+                <span class="editable-label">카드 #1: 내가 만든 설문</span>
                 <div class="stat-number" id="mySurveysCount">0</div>
                 <div class="stat-label">내가 만든 설문</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card editable-area" data-card-index="1" data-edit-type="card" data-edit-id="1">
+                <span class="editable-label">카드 #2: 참여 가능 설문</span>
                 <div class="stat-number" id="availableSurveysCount">0</div>
                 <div class="stat-label">참여 가능 설문</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card editable-area" data-card-index="2" data-edit-type="card" data-edit-id="2">
+                <span class="editable-label">카드 #3: 참여 완료 설문</span>
                 <div class="stat-number" id="completedSurveysCount">0</div>
                 <div class="stat-label">참여 완료 설문</div>
             </div>
@@ -720,8 +832,16 @@
         </div>
 
         <div class="card">
-            <h2>🎨 테마 및 레이아웃 설정</h2>
-            <p style="color: #666; margin-bottom: 20px;">대시보드의 각 탭 배경과 색상을 커스터마이징할 수 있습니다.</p>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div>
+                    <h2 style="margin: 0;">🎨 테마 및 레이아웃 설정</h2>
+                    <p style="color: #666; margin: 5px 0 0 0;">대시보드의 각 탭 배경과 색상을 커스터마이징할 수 있습니다.</p>
+                </div>
+                <button class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: bold; padding: 15px 25px; font-size: 16px; white-space: nowrap;"
+                        onclick="showDashboard(); setTimeout(enterVisualEditMode, 100);">
+                    ✨ 비주얼 편집 모드
+                </button>
+            </div>
 
             <div class="tab-buttons">
                 <button class="tab-btn active" onclick="switchAdminTab('stats')">📊 카드 배경</button>
@@ -3668,8 +3788,8 @@
 
             // 페이지 배경 적용
             if (settings.pageBackgroundImage || settings.pageBackgroundColor) {
-                document.body.style.backgroundImage = settings.pageBackgroundImage ? `url(${settings.pageBackgroundImage})` : 'none';
-                document.body.style.backgroundColor = settings.pageBackgroundColor || '#E8EEF2';
+                document.body.style.backgroundImage = settings.pageBackgroundImage ? `url(${settings.pageBackgroundImage})` : '';
+                document.body.style.backgroundColor = settings.pageBackgroundColor || '';
                 document.body.style.backgroundRepeat = settings.pageBackgroundRepeat || 'no-repeat';
                 document.body.style.backgroundSize = settings.pageBackgroundSize || 'cover';
                 document.body.style.backgroundAttachment = settings.pageBackgroundAttachment || 'scroll';
@@ -3698,95 +3818,115 @@
 
             // 레이아웃 설정 적용
             const dashboardStats = document.querySelector('#dashboardScreen .dashboard-stats');
-            if (dashboardStats && settings.cardLayoutColumns) {
-                dashboardStats.style.gridTemplateColumns = `repeat(${settings.cardLayoutColumns}, 1fr)`;
+            if (dashboardStats) {
+                if (settings.cardLayoutColumns) {
+                    dashboardStats.style.gridTemplateColumns = `repeat(${settings.cardLayoutColumns}, 1fr)`;
+                }
                 if (settings.cardGap) {
                     dashboardStats.style.gap = settings.cardGap + 'px';
                 }
                 if (settings.cardLayoutColumns === '1' && settings.cardMaxWidth) {
                     dashboardStats.style.maxWidth = settings.cardMaxWidth + 'px';
                     dashboardStats.style.margin = '0 auto';
+                } else {
+                    dashboardStats.style.maxWidth = '';
+                    dashboardStats.style.margin = '';
                 }
             }
 
-            // 카드 순서 적용
+            // 카드 순서 적용 (data-card-index로 식별)
             if (settings.cardOrder && dashboardStats) {
-                const statCards = Array.from(dashboardStats.children);
-                const orderedCards = settings.cardOrder.map(index => statCards[index]).filter(c => c);
+                const allCards = Array.from(dashboardStats.querySelectorAll('.stat-card'));
+                const orderedCards = settings.cardOrder.map(index =>
+                    allCards.find(card => card.dataset.cardIndex == index)
+                ).filter(c => c);
+
                 dashboardStats.innerHTML = '';
                 orderedCards.forEach(card => dashboardStats.appendChild(card));
             }
 
-            const statCards = document.querySelectorAll('#dashboardScreen .dashboard-stats .stat-card');
-            if (!statCards.length) return;
+            // 카드 배경 적용
+            applyCardBackgrounds(settings);
+        }
 
-            // 첫 번째 카드 (내가 만든 설문)
-            if (statCards[0] && settings.statsBackgroundImage) {
-                const wrapper = document.createElement('div');
-                wrapper.style.cssText = 'position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 0;';
-                wrapper.style.backgroundImage = `url(${settings.statsBackgroundImage})`;
-                wrapper.style.backgroundColor = settings.statsBackgroundColor || '#ffffff';
-                wrapper.style.opacity = (settings.statsOpacity || 100) / 100;
-                statCards[0].style.position = 'relative';
-                statCards[0].insertBefore(wrapper, statCards[0].firstChild);
-                Array.from(statCards[0].children).forEach((child, idx) => {
-                    if (idx > 0) child.style.position = 'relative';
-                    child.style.zIndex = '1';
+        function applyCardBackgrounds(settings) {
+            const dashboardStats = document.querySelector('#dashboardScreen .dashboard-stats');
+            if (!dashboardStats) return;
+
+            // data-card-index로 카드 찾기
+            const card0 = dashboardStats.querySelector('[data-card-index="0"]');
+            const card1 = dashboardStats.querySelector('[data-card-index="1"]');
+            const card2 = dashboardStats.querySelector('[data-card-index="2"]');
+
+            // 카드 0 (내가 만든 설문) 배경 적용
+            if (card0) {
+                applyCardStyle(card0, {
+                    bgImage: settings.statsBackgroundImage,
+                    bgColor: settings.statsBackgroundColor,
+                    textColor: settings.statsTextColor,
+                    opacity: settings.statsOpacity
                 });
-                if (settings.statsTextColor) {
-                    statCards[0].querySelectorAll('.stat-number, .stat-label').forEach(el => el.style.color = settings.statsTextColor);
-                }
-            } else if (statCards[0] && settings.statsBackgroundColor) {
-                statCards[0].style.backgroundColor = settings.statsBackgroundColor;
-                if (settings.statsTextColor) {
-                    statCards[0].querySelectorAll('.stat-number, .stat-label').forEach(el => el.style.color = settings.statsTextColor);
-                }
             }
 
-            // 두 번째 카드 (참여 가능 설문)
-            if (statCards[1] && settings.createdBackgroundImage) {
-                const wrapper = document.createElement('div');
-                wrapper.style.cssText = 'position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 0;';
-                wrapper.style.backgroundImage = `url(${settings.createdBackgroundImage})`;
-                wrapper.style.backgroundColor = settings.createdBackgroundColor || '#ffffff';
-                wrapper.style.opacity = (settings.createdOpacity || 100) / 100;
-                statCards[1].style.position = 'relative';
-                statCards[1].insertBefore(wrapper, statCards[1].firstChild);
-                Array.from(statCards[1].children).forEach((child, idx) => {
-                    if (idx > 0) child.style.position = 'relative';
-                    child.style.zIndex = '1';
+            // 카드 1 (참여 가능 설문) 배경 적용
+            if (card1) {
+                applyCardStyle(card1, {
+                    bgImage: settings.createdBackgroundImage,
+                    bgColor: settings.createdBackgroundColor,
+                    textColor: settings.createdTextColor,
+                    opacity: settings.createdOpacity
                 });
-                if (settings.createdTextColor) {
-                    statCards[1].querySelectorAll('.stat-number, .stat-label').forEach(el => el.style.color = settings.createdTextColor);
-                }
-            } else if (statCards[1] && settings.createdBackgroundColor) {
-                statCards[1].style.backgroundColor = settings.createdBackgroundColor;
-                if (settings.createdTextColor) {
-                    statCards[1].querySelectorAll('.stat-number, .stat-label').forEach(el => el.style.color = settings.createdTextColor);
-                }
             }
 
-            // 세 번째 카드 (완료 설문)
-            if (statCards[2] && settings.availableBackgroundImage) {
-                const wrapper = document.createElement('div');
-                wrapper.style.cssText = 'position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 0;';
-                wrapper.style.backgroundImage = `url(${settings.availableBackgroundImage})`;
-                wrapper.style.backgroundColor = settings.availableBackgroundColor || '#ffffff';
-                wrapper.style.opacity = (settings.availableOpacity || 100) / 100;
-                statCards[2].style.position = 'relative';
-                statCards[2].insertBefore(wrapper, statCards[2].firstChild);
-                Array.from(statCards[2].children).forEach((child, idx) => {
-                    if (idx > 0) child.style.position = 'relative';
-                    child.style.zIndex = '1';
+            // 카드 2 (참여 완료 설문) 배경 적용
+            if (card2) {
+                applyCardStyle(card2, {
+                    bgImage: settings.availableBackgroundImage,
+                    bgColor: settings.availableBackgroundColor,
+                    textColor: settings.availableTextColor,
+                    opacity: settings.availableOpacity
                 });
-                if (settings.availableTextColor) {
-                    statCards[2].querySelectorAll('.stat-number, .stat-label').forEach(el => el.style.color = settings.availableTextColor);
-                }
-            } else if (statCards[2] && settings.availableBackgroundColor) {
-                statCards[2].style.backgroundColor = settings.availableBackgroundColor;
-                if (settings.availableTextColor) {
-                    statCards[2].querySelectorAll('.stat-number, .stat-label').forEach(el => el.style.color = settings.availableTextColor);
-                }
+            }
+        }
+
+        function applyCardStyle(card, style) {
+            // 기존 배경 wrapper 제거
+            const existingWrapper = card.querySelector('.card-bg-wrapper');
+            if (existingWrapper) {
+                existingWrapper.remove();
+            }
+
+            // 배경 이미지가 있으면 wrapper 생성
+            if (style.bgImage) {
+                card.style.position = 'relative';
+                card.style.overflow = 'hidden';
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'card-bg-wrapper';
+                wrapper.style.cssText = 'position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 0;';
+                wrapper.style.backgroundImage = `url(${style.bgImage})`;
+                wrapper.style.backgroundColor = style.bgColor || '#ffffff';
+                wrapper.style.opacity = (style.opacity || 100) / 100;
+
+                card.insertBefore(wrapper, card.firstChild);
+
+                // 기존 자식들 위로 올리기
+                Array.from(card.children).forEach((child, idx) => {
+                    if (idx > 0) {
+                        child.style.position = 'relative';
+                        child.style.zIndex = '1';
+                    }
+                });
+            } else if (style.bgColor) {
+                // 배경색만 있으면 직접 적용
+                card.style.backgroundColor = style.bgColor;
+            }
+
+            // 글자색 적용
+            if (style.textColor) {
+                card.querySelectorAll('.stat-number, .stat-label').forEach(el => {
+                    el.style.color = style.textColor;
+                });
             }
         }
 
@@ -3881,6 +4021,267 @@
                     return closest;
                 }
             }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        // ==================== 비주얼 편집 모드 ====================
+
+        let visualEditMode = false;
+        let selectedElement = null;
+        let tempSettings = {};
+
+        // 비주얼 편집 모드 진입
+        function enterVisualEditMode() {
+            visualEditMode = true;
+            document.body.classList.add('visual-edit-mode');
+
+            // 툴바 생성 및 표시
+            createVisualEditToolbar();
+
+            // 편집 가능 영역에 클릭 이벤트 추가
+            const editableAreas = document.querySelectorAll('.editable-area');
+            editableAreas.forEach(area => {
+                area.addEventListener('click', handleEditAreaClick);
+            });
+
+            // 현재 설정을 임시 저장소에 복사
+            const currentSettings = JSON.parse(localStorage.getItem('adminThemeSettings') || '{}');
+            tempSettings = JSON.parse(JSON.stringify(currentSettings));
+
+            alert('✨ 비주얼 편집 모드가 활성화되었습니다!\n\n편집하려는 카드를 클릭하세요.');
+        }
+
+        // 비주얼 편집 모드 종료
+        function exitVisualEditMode(save = false) {
+            if (save) {
+                // 임시 설정을 실제 설정에 저장
+                localStorage.setItem('adminThemeSettings', JSON.stringify(tempSettings));
+                applyThemeSettings();
+                alert('✅ 변경사항이 저장되었습니다!');
+            } else {
+                // 원래 설정으로 복원
+                applyThemeSettings();
+            }
+
+            visualEditMode = false;
+            document.body.classList.remove('visual-edit-mode');
+
+            // 선택 해제
+            if (selectedElement) {
+                selectedElement.classList.remove('selected');
+                selectedElement = null;
+            }
+
+            // 편집 패널 제거
+            const panel = document.getElementById('visualEditPanel');
+            if (panel) panel.remove();
+
+            // 툴바 제거
+            const toolbar = document.getElementById('visualEditToolbar');
+            if (toolbar) toolbar.remove();
+
+            // 이벤트 리스너 제거
+            const editableAreas = document.querySelectorAll('.editable-area');
+            editableAreas.forEach(area => {
+                area.removeEventListener('click', handleEditAreaClick);
+            });
+        }
+
+        // 툴바 생성
+        function createVisualEditToolbar() {
+            const existing = document.getElementById('visualEditToolbar');
+            if (existing) existing.remove();
+
+            const toolbar = document.createElement('div');
+            toolbar.id = 'visualEditToolbar';
+            toolbar.className = 'visual-edit-toolbar';
+            toolbar.style.display = 'flex';
+            toolbar.innerHTML = `
+                <span style="font-weight: bold; font-size: 16px;">🎨 비주얼 편집 모드</span>
+                <button class="btn" style="background: white; color: #667eea; font-weight: bold;" onclick="exitVisualEditMode(true)">
+                    💾 변경사항 저장
+                </button>
+                <button class="btn" style="background: rgba(255,255,255,0.3); color: white; border: 1px solid white;" onclick="exitVisualEditMode(false)">
+                    ❌ 취소
+                </button>
+            `;
+            document.body.appendChild(toolbar);
+        }
+
+        // 편집 영역 클릭 핸들러
+        function handleEditAreaClick(e) {
+            if (!visualEditMode) return;
+
+            e.stopPropagation();
+
+            // 이전 선택 해제
+            if (selectedElement) {
+                selectedElement.classList.remove('selected');
+            }
+
+            // 새로운 영역 선택
+            selectedElement = e.currentTarget;
+            selectedElement.classList.add('selected');
+
+            // 편집 패널 표시
+            showEditPanel(selectedElement);
+        }
+
+        // 편집 패널 표시
+        function showEditPanel(element) {
+            const editType = element.dataset.editType;
+            const editId = element.dataset.editId;
+
+            // 기존 패널 제거
+            const existingPanel = document.getElementById('visualEditPanel');
+            if (existingPanel) existingPanel.remove();
+
+            // 패널 생성
+            const panel = document.createElement('div');
+            panel.id = 'visualEditPanel';
+            panel.className = 'visual-edit-panel';
+            panel.style.display = 'block';
+
+            if (editType === 'card') {
+                panel.innerHTML = createCardEditPanelHTML(editId);
+            }
+
+            document.body.appendChild(panel);
+
+            // 입력 필드에 현재 값 채우기
+            populateEditPanel(editId);
+
+            // 실시간 미리보기 이벤트 연결
+            const inputs = panel.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                input.addEventListener('input', () => updateVisualPreview(editId));
+                input.addEventListener('change', () => updateVisualPreview(editId));
+            });
+        }
+
+        // 카드 편집 패널 HTML 생성
+        function createCardEditPanelHTML(cardId) {
+            const cardNames = ['내가 만든 설문', '참여 가능 설문', '참여 완료 설문'];
+            const prefixes = ['stats', 'created', 'available'];
+            const prefix = prefixes[cardId];
+
+            return `
+                <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #e0e0e0;">
+                    <h3 style="margin: 0; color: #667eea; font-size: 18px;">📝 ${cardNames[cardId]} 카드 편집</h3>
+                    <p style="margin: 5px 0 0 0; font-size: 13px; color: #666;">이 카드의 배경과 텍스트를 설정합니다</p>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">
+                        🖼️ 배경 이미지 URL
+                    </label>
+                    <input type="text" id="ve_${prefix}BackgroundImage"
+                           placeholder="https://example.com/image.jpg"
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                    <small style="color: #999; font-size: 12px;">비워두면 배경색만 적용됩니다</small>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">
+                        🎨 배경 색상
+                    </label>
+                    <input type="color" id="ve_${prefix}BackgroundColor"
+                           style="width: 100%; height: 50px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">
+                        ✏️ 텍스트 색상
+                    </label>
+                    <input type="color" id="ve_${prefix}TextColor"
+                           style="width: 100%; height: 50px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">
+                        💫 투명도: <span id="ve_${prefix}OpacityValue">100</span>%
+                    </label>
+                    <input type="range" id="ve_${prefix}Opacity" min="0" max="100" value="100"
+                           style="width: 100%;"
+                           oninput="document.getElementById('ve_${prefix}OpacityValue').textContent = this.value">
+                </div>
+
+                <div style="margin-top: 25px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
+                    <button class="btn" style="width: 100%; background: #667eea; color: white; font-weight: bold; padding: 12px;"
+                            onclick="closeEditPanel()">
+                        ✅ 완료
+                    </button>
+                </div>
+            `;
+        }
+
+        // 편집 패널에 현재 값 채우기
+        function populateEditPanel(cardId) {
+            const prefixes = ['stats', 'created', 'available'];
+            const prefix = prefixes[cardId];
+
+            const bgImageInput = document.getElementById(`ve_${prefix}BackgroundImage`);
+            const bgColorInput = document.getElementById(`ve_${prefix}BackgroundColor`);
+            const textColorInput = document.getElementById(`ve_${prefix}TextColor`);
+            const opacityInput = document.getElementById(`ve_${prefix}Opacity`);
+            const opacityValue = document.getElementById(`ve_${prefix}OpacityValue`);
+
+            if (bgImageInput) {
+                bgImageInput.value = tempSettings[`${prefix}BackgroundImage`] || '';
+            }
+            if (bgColorInput) {
+                bgColorInput.value = tempSettings[`${prefix}BackgroundColor`] || '#ffffff';
+            }
+            if (textColorInput) {
+                textColorInput.value = tempSettings[`${prefix}TextColor`] || '#333333';
+            }
+            if (opacityInput && opacityValue) {
+                const opacity = tempSettings[`${prefix}Opacity`] || 100;
+                opacityInput.value = opacity;
+                opacityValue.textContent = opacity;
+            }
+        }
+
+        // 실시간 미리보기 업데이트
+        function updateVisualPreview(cardId) {
+            const prefixes = ['stats', 'created', 'available'];
+            const prefix = prefixes[cardId];
+
+            // 입력값 읽기
+            const bgImage = document.getElementById(`ve_${prefix}BackgroundImage`)?.value || '';
+            const bgColor = document.getElementById(`ve_${prefix}BackgroundColor`)?.value || '#ffffff';
+            const textColor = document.getElementById(`ve_${prefix}TextColor`)?.value || '#333333';
+            const opacity = document.getElementById(`ve_${prefix}Opacity`)?.value || 100;
+
+            // 임시 설정에 저장
+            tempSettings[`${prefix}BackgroundImage`] = bgImage;
+            tempSettings[`${prefix}BackgroundColor`] = bgColor;
+            tempSettings[`${prefix}TextColor`] = textColor;
+            tempSettings[`${prefix}Opacity`] = opacity;
+
+            // 실시간 적용
+            const dashboardStats = document.querySelector('#dashboardScreen .dashboard-stats');
+            if (!dashboardStats) return;
+
+            const card = dashboardStats.querySelector(`[data-card-index="${cardId}"]`);
+            if (card) {
+                applyCardStyle(card, {
+                    bgImage: bgImage,
+                    bgColor: bgColor,
+                    textColor: textColor,
+                    opacity: opacity
+                });
+            }
+        }
+
+        // 편집 패널 닫기
+        function closeEditPanel() {
+            const panel = document.getElementById('visualEditPanel');
+            if (panel) panel.remove();
+
+            if (selectedElement) {
+                selectedElement.classList.remove('selected');
+                selectedElement = null;
+            }
         }
 
         // ==================== 템플릿 마켓플레이스 ====================
