@@ -754,6 +754,23 @@
                 <input type="number" id="surveyRewardPoints" value="100" placeholder="예: 100">
                 <small style="color: #666;">참여자에게 지급할 포인트</small>
             </div>
+
+            <div class="form-group">
+                <label>💰 설문 등록 요금제</label>
+                <select id="surveyPricingPlan" onchange="updatePricingInfo()">
+                    <option value="basic">기본 (50명 이하) - 3,000 P</option>
+                    <option value="standard" selected>표준 (100명 이하) - 7,000 P</option>
+                    <option value="premium">프리미엄 (200명 이하) - 15,000 P</option>
+                    <option value="enterprise">엔터프라이즈 (무제한) - 30,000 P</option>
+                </select>
+                <div id="pricingInfo" style="margin-top: 10px; padding: 12px; background: #fff3cd; border-radius: 5px; border-left: 4px solid #ffc107;">
+                    <strong>💡 표준 요금제</strong><br>
+                    • 비용: 7,000 P<br>
+                    • 최대 응답 수: 100명<br>
+                    • 설문 등록 시 포인트가 차감됩니다
+                </div>
+            </div>
+
             <div class="form-group">
                 <label>📅 설문 시작일</label>
                 <input type="date" id="surveyStartDate">
@@ -1727,7 +1744,46 @@
             document.getElementById('surveyMinRating').value = '';
             document.getElementById('surveyStartDate').value = '';
             document.getElementById('surveyEndDate').value = '';
+            updatePricingInfo(); // 요금제 정보 초기화
             addQuestion();
+        }
+
+        // 요금제 정보 업데이트
+        function updatePricingInfo() {
+            const plan = document.getElementById('surveyPricingPlan').value;
+            const pricingPlans = {
+                basic: { name: '기본', price: 3000, maxResponses: 50 },
+                standard: { name: '표준', price: 7000, maxResponses: 100 },
+                premium: { name: '프리미엄', price: 15000, maxResponses: 200 },
+                enterprise: { name: '엔터프라이즈', price: 30000, maxResponses: '무제한' }
+            };
+
+            const selectedPlan = pricingPlans[plan];
+            const infoDiv = document.getElementById('pricingInfo');
+
+            infoDiv.innerHTML = `
+                <strong>💡 ${selectedPlan.name} 요금제</strong><br>
+                • 비용: ${selectedPlan.price.toLocaleString()} P<br>
+                • 최대 응답 수: ${selectedPlan.maxResponses}명<br>
+                • 설문 등록 시 포인트가 차감됩니다<br>
+                • 현재 보유 포인트: ${currentUser.points.toLocaleString()} P
+            `;
+
+            // 포인트 부족 시 경고 표시
+            if (currentUser.points < selectedPlan.price) {
+                infoDiv.style.background = '#f8d7da';
+                infoDiv.style.borderColor = '#dc3545';
+                infoDiv.innerHTML += `<br><strong style="color: #dc3545;">⚠️ 포인트가 부족합니다! (부족: ${(selectedPlan.price - currentUser.points).toLocaleString()} P)</strong>`;
+            } else {
+                infoDiv.style.background = '#fff3cd';
+                infoDiv.style.borderColor = '#ffc107';
+            }
+
+            // 목표 응답 수 자동 조정
+            const targetInput = document.getElementById('surveyTarget');
+            if (plan !== 'enterprise' && parseInt(targetInput.value) > selectedPlan.maxResponses) {
+                targetInput.value = selectedPlan.maxResponses;
+            }
         }
 
         function addQuestion() {
@@ -1856,6 +1912,57 @@
                 return;
             }
 
+            // 요금제 확인 및 포인트 차감
+            const selectedPlan = document.getElementById('surveyPricingPlan').value;
+            const pricingPlans = {
+                basic: { name: '기본', price: 3000, maxResponses: 50 },
+                standard: { name: '표준', price: 7000, maxResponses: 100 },
+                premium: { name: '프리미엄', price: 15000, maxResponses: 200 },
+                enterprise: { name: '엔터프라이즈', price: 30000, maxResponses: 999999 }
+            };
+
+            const plan = pricingPlans[selectedPlan];
+
+            // 목표 응답 수 검증
+            if (parseInt(targetResponses) > plan.maxResponses) {
+                document.getElementById('createMessage').innerHTML = `<div class="error-msg">❌ ${plan.name} 요금제는 최대 ${plan.maxResponses}명까지만 가능합니다.<br>더 높은 요금제를 선택하세요.</div>`;
+                return;
+            }
+
+            // 포인트 부족 확인
+            if (currentUser.points < plan.price) {
+                document.getElementById('createMessage').innerHTML = `<div class="error-msg">❌ 포인트가 부족합니다!<br><br>필요 포인트: ${plan.price.toLocaleString()} P<br>보유 포인트: ${currentUser.points.toLocaleString()} P<br>부족 포인트: ${(plan.price - currentUser.points).toLocaleString()} P</div>`;
+                return;
+            }
+
+            // 최종 확인
+            if (!confirm(`💰 설문 등록 수수료 안내\n\n요금제: ${plan.name}\n비용: ${plan.price.toLocaleString()} P\n\n설문을 등록하시겠습니까?\n\n※ 등록 후 남은 포인트: ${(currentUser.points - plan.price).toLocaleString()} P`)) {
+                return;
+            }
+
+            // 포인트 차감
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const userIndex = users.findIndex(u => u.id === currentUser.id);
+            if (userIndex !== -1) {
+                users[userIndex].points = currentUser.points - plan.price;
+                localStorage.setItem('users', JSON.stringify(users));
+                currentUser.points = users[userIndex].points;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            }
+
+            // 수수료 결제 내역 저장
+            const feePayments = JSON.parse(localStorage.getItem('feePayments') || '[]');
+            feePayments.push({
+                id: Date.now().toString(),
+                userId: currentUser.id,
+                plan: selectedPlan,
+                planName: plan.name,
+                amount: plan.price,
+                surveyTitle: title,
+                paidAt: new Date().toISOString()
+            });
+            localStorage.setItem('feePayments', JSON.stringify(feePayments));
+
             const surveys = JSON.parse(localStorage.getItem('surveys') || '[]');
             surveys.push({
                 id: Date.now().toString(),
@@ -1869,12 +1976,15 @@
                 minRating,
                 questions: collectedQuestions,
                 createdAt: new Date().toISOString(),
-                participants: 0
+                participants: 0,
+                pricingPlan: selectedPlan, // 요금제 정보 저장
+                registrationFee: plan.price // 등록 수수료 저장
             });
 
             localStorage.setItem('surveys', JSON.stringify(surveys));
-            document.getElementById('createMessage').innerHTML = '<div class="success-msg">설문이 생성되었습니다!</div>';
-            setTimeout(() => showDashboard(), 1500);
+            document.getElementById('createMessage').innerHTML = `<div class="success-msg">✅ 설문이 생성되었습니다!<br>💰 ${plan.price.toLocaleString()} P가 차감되었습니다.<br>남은 포인트: ${currentUser.points.toLocaleString()} P</div>`;
+            updatePoints(); // 포인트 UI 업데이트
+            setTimeout(() => showDashboard(), 2000);
         }
 
         function startSurveyParticipation(surveyId) {
