@@ -346,6 +346,38 @@
             background: #5B7C99;
             color: white;
         }
+        .draggable-card {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: move;
+            transition: all 0.2s ease;
+        }
+        .draggable-card:hover {
+            border-color: #5B7C99;
+            box-shadow: 0 4px 12px rgba(91, 124, 153, 0.2);
+        }
+        .draggable-card.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+        .draggable-card.drag-over {
+            border-color: #5B7C99;
+            border-style: dashed;
+            background: #f0f4f8;
+        }
+        .drag-handle {
+            font-size: 20px;
+            color: #999;
+            cursor: grab;
+        }
+        .drag-handle:active {
+            cursor: grabbing;
+        }
         .featured-banner {
             background: linear-gradient(135deg, #7B9FB8 0%, #5B7C99 100%);
             padding: 20px 30px;
@@ -710,9 +742,11 @@
             <p style="color: #666; margin-bottom: 20px;">대시보드의 각 탭 배경과 색상을 커스터마이징할 수 있습니다.</p>
 
             <div class="tab-buttons">
-                <button class="tab-btn active" onclick="switchAdminTab('stats')">📊 통계 카드</button>
-                <button class="tab-btn" onclick="switchAdminTab('created')">📝 내가 만든 설문</button>
-                <button class="tab-btn" onclick="switchAdminTab('available')">📋 참여 가능 설문</button>
+                <button class="tab-btn active" onclick="switchAdminTab('stats')">📊 카드 배경</button>
+                <button class="tab-btn" onclick="switchAdminTab('layout')">📐 레이아웃</button>
+                <button class="tab-btn" onclick="switchAdminTab('pageBackground')">🎨 페이지 배경</button>
+                <button class="tab-btn" onclick="switchAdminTab('font')">🔤 폰트</button>
+                <button class="tab-btn" onclick="switchAdminTab('cardOrder')">🔀 카드 순서</button>
             </div>
 
             <!-- 통계 카드 설정 -->
@@ -780,6 +814,130 @@
                     <input type="range" id="availableOpacity" min="0" max="100" value="100" oninput="this.nextElementSibling.textContent = this.value + '%'">
                     <span>100%</span>
                 </div>
+            </div>
+
+            <!-- 레이아웃 설정 -->
+            <div id="layoutSettingsTab" class="hidden">
+                <h3 style="margin-top: 25px; margin-bottom: 15px;">📐 레이아웃 설정</h3>
+                <div class="form-group">
+                    <label>통계 카드 레이아웃</label>
+                    <select id="cardLayoutColumns" onchange="updateLayoutPreview()">
+                        <option value="1">1열 (세로 배치)</option>
+                        <option value="2">2열 (2x1 그리드)</option>
+                        <option value="3" selected>3열 (가로 배치)</option>
+                    </select>
+                    <small style="color: #666;">통계 카드를 몇 개의 열로 배치할지 선택하세요</small>
+                </div>
+                <div class="form-group">
+                    <label>카드 간격 (px)</label>
+                    <input type="range" id="cardGap" min="0" max="50" value="20" oninput="this.nextElementSibling.textContent = this.value + 'px'; updateLayoutPreview()">
+                    <span>20px</span>
+                </div>
+                <div class="form-group">
+                    <label>카드 최대 너비 (px)</label>
+                    <input type="number" id="cardMaxWidth" min="200" max="800" value="400" oninput="updateLayoutPreview()">
+                    <small style="color: #666;">1열 레이아웃일 때 카드의 최대 너비</small>
+                </div>
+            </div>
+
+            <!-- 페이지 배경 설정 -->
+            <div id="pageBackgroundTab" class="hidden">
+                <h3 style="margin-top: 25px; margin-bottom: 15px;">🎨 전체 페이지 배경 설정</h3>
+                <div class="form-group">
+                    <label>배경 이미지 URL</label>
+                    <input type="text" id="pageBackgroundImage" placeholder="https://example.com/background.jpg" style="width: 100%;">
+                    <small style="color: #666;">전체 페이지의 배경 이미지</small>
+                </div>
+                <div class="form-group">
+                    <label>배경색</label>
+                    <input type="color" id="pageBackgroundColor" value="#E8EEF2">
+                </div>
+                <div class="form-group">
+                    <label>배경 이미지 반복</label>
+                    <select id="pageBackgroundRepeat">
+                        <option value="no-repeat">반복 안함</option>
+                        <option value="repeat">반복</option>
+                        <option value="repeat-x">가로로만 반복</option>
+                        <option value="repeat-y">세로로만 반복</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>배경 이미지 크기</label>
+                    <select id="pageBackgroundSize">
+                        <option value="auto">원본 크기</option>
+                        <option value="cover">화면 채우기</option>
+                        <option value="contain">화면에 맞추기</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>배경 고정</label>
+                    <select id="pageBackgroundAttachment">
+                        <option value="scroll">스크롤</option>
+                        <option value="fixed">고정</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 폰트 설정 -->
+            <div id="fontSettingsTab" class="hidden">
+                <h3 style="margin-top: 25px; margin-bottom: 15px;">🔤 폰트 설정</h3>
+                <div class="form-group">
+                    <label>기본 폰트 패밀리</label>
+                    <select id="fontFamily">
+                        <option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif">시스템 기본</option>
+                        <option value="'Noto Sans KR', sans-serif">Noto Sans KR</option>
+                        <option value="'Malgun Gothic', sans-serif">맑은 고딕</option>
+                        <option value="'Nanum Gothic', sans-serif">나눔고딕</option>
+                        <option value="'Spoqa Han Sans Neo', sans-serif">Spoqa Han Sans</option>
+                        <option value="Georgia, serif">Georgia (세리프)</option>
+                        <option value="'Courier New', monospace">Courier New (모노스페이스)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>기본 폰트 크기 (px)</label>
+                    <input type="range" id="fontSize" min="12" max="20" value="16" oninput="this.nextElementSibling.textContent = this.value + 'px'; updateFontPreview()">
+                    <span>16px</span>
+                </div>
+                <div class="form-group">
+                    <label>제목 폰트 크기 (h2) (px)</label>
+                    <input type="range" id="h2FontSize" min="18" max="32" value="24" oninput="this.nextElementSibling.textContent = this.value + 'px'; updateFontPreview()">
+                    <span>24px</span>
+                </div>
+                <div class="form-group">
+                    <label>통계 숫자 폰트 크기 (px)</label>
+                    <input type="range" id="statNumberSize" min="24" max="48" value="36" oninput="this.nextElementSibling.textContent = this.value + 'px'; updateFontPreview()">
+                    <span>36px</span>
+                </div>
+                <div class="form-group">
+                    <label>폰트 굵기</label>
+                    <select id="fontWeight">
+                        <option value="300">Light (300)</option>
+                        <option value="400" selected>Regular (400)</option>
+                        <option value="500">Medium (500)</option>
+                        <option value="600">Semi-Bold (600)</option>
+                        <option value="700">Bold (700)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 카드 순서 변경 -->
+            <div id="cardOrderTab" class="hidden">
+                <h3 style="margin-top: 25px; margin-bottom: 15px;">🔀 통계 카드 순서 변경</h3>
+                <p style="color: #666; margin-bottom: 20px;">카드를 드래그하여 순서를 변경하세요</p>
+                <div id="draggableCards" style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="draggable-card" draggable="true" data-index="0" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" ondragend="handleDragEnd(event)">
+                        <span class="drag-handle">⋮⋮</span>
+                        <span>📊 내가 만든 설문</span>
+                    </div>
+                    <div class="draggable-card" draggable="true" data-index="1" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" ondragend="handleDragEnd(event)">
+                        <span class="drag-handle">⋮⋮</span>
+                        <span>📋 참여 가능 설문</span>
+                    </div>
+                    <div class="draggable-card" draggable="true" data-index="2" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" ondragend="handleDragEnd(event)">
+                        <span class="drag-handle">✅ 참여 완료 설문</span>
+                    </div>
+                </div>
+                <p style="color: #999; font-size: 14px; margin-top: 15px;">💡 변경한 순서는 "변경사항 적용" 버튼을 눌러야 저장됩니다.</p>
             </div>
 
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; display: flex; gap: 10px;">
@@ -3296,6 +3454,10 @@
             document.getElementById('statsSettingsTab').classList.add('hidden');
             document.getElementById('createdSettingsTab').classList.add('hidden');
             document.getElementById('availableSettingsTab').classList.add('hidden');
+            document.getElementById('layoutSettingsTab').classList.add('hidden');
+            document.getElementById('pageBackgroundTab').classList.add('hidden');
+            document.getElementById('fontSettingsTab').classList.add('hidden');
+            document.getElementById('cardOrderTab').classList.add('hidden');
 
             if (tab === 'stats') {
                 document.getElementById('statsSettingsTab').classList.remove('hidden');
@@ -3303,6 +3465,16 @@
                 document.getElementById('createdSettingsTab').classList.remove('hidden');
             } else if (tab === 'available') {
                 document.getElementById('availableSettingsTab').classList.remove('hidden');
+            } else if (tab === 'layout') {
+                document.getElementById('layoutSettingsTab').classList.remove('hidden');
+                updateLayoutPreview();
+            } else if (tab === 'pageBackground') {
+                document.getElementById('pageBackgroundTab').classList.remove('hidden');
+            } else if (tab === 'font') {
+                document.getElementById('fontSettingsTab').classList.remove('hidden');
+                updateFontPreview();
+            } else if (tab === 'cardOrder') {
+                document.getElementById('cardOrderTab').classList.remove('hidden');
             }
         }
 
@@ -3326,6 +3498,34 @@
             document.getElementById('availableBackgroundColor').value = settings.availableBackgroundColor || '#ffffff';
             document.getElementById('availableTextColor').value = settings.availableTextColor || '#333333';
             document.getElementById('availableOpacity').value = settings.availableOpacity || 100;
+
+            // 레이아웃 설정 로드
+            document.getElementById('cardLayoutColumns').value = settings.cardLayoutColumns || '3';
+            document.getElementById('cardGap').value = settings.cardGap || 20;
+            document.getElementById('cardMaxWidth').value = settings.cardMaxWidth || 400;
+
+            // 페이지 배경 설정 로드
+            document.getElementById('pageBackgroundImage').value = settings.pageBackgroundImage || '';
+            document.getElementById('pageBackgroundColor').value = settings.pageBackgroundColor || '#E8EEF2';
+            document.getElementById('pageBackgroundRepeat').value = settings.pageBackgroundRepeat || 'no-repeat';
+            document.getElementById('pageBackgroundSize').value = settings.pageBackgroundSize || 'cover';
+            document.getElementById('pageBackgroundAttachment').value = settings.pageBackgroundAttachment || 'scroll';
+
+            // 폰트 설정 로드
+            document.getElementById('fontFamily').value = settings.fontFamily || '-apple-system, BlinkMacSystemFont, \'Segoe UI\', \'Roboto\', sans-serif';
+            document.getElementById('fontSize').value = settings.fontSize || 16;
+            document.getElementById('h2FontSize').value = settings.h2FontSize || 24;
+            document.getElementById('statNumberSize').value = settings.statNumberSize || 36;
+            document.getElementById('fontWeight').value = settings.fontWeight || '400';
+
+            // 카드 순서 로드
+            if (settings.cardOrder) {
+                const container = document.getElementById('draggableCards');
+                const cards = Array.from(container.children);
+                const orderedCards = settings.cardOrder.map(index => cards[index]).filter(c => c);
+                container.innerHTML = '';
+                orderedCards.forEach(card => container.appendChild(card));
+            }
 
             // 미리보기 업데이트
             updateAdminPreview();
@@ -3388,6 +3588,10 @@
         }
 
         function applyAdminSettings() {
+            // 카드 순서 가져오기
+            const cardOrder = Array.from(document.getElementById('draggableCards').children)
+                .map(card => parseInt(card.dataset.index));
+
             const settings = {
                 statsBackgroundImage: document.getElementById('statsBackgroundImage').value,
                 statsBackgroundColor: document.getElementById('statsBackgroundColor').value,
@@ -3402,7 +3606,29 @@
                 availableBackgroundImage: document.getElementById('availableBackgroundImage').value,
                 availableBackgroundColor: document.getElementById('availableBackgroundColor').value,
                 availableTextColor: document.getElementById('availableTextColor').value,
-                availableOpacity: document.getElementById('availableOpacity').value
+                availableOpacity: document.getElementById('availableOpacity').value,
+
+                // 레이아웃 설정
+                cardLayoutColumns: document.getElementById('cardLayoutColumns').value,
+                cardGap: document.getElementById('cardGap').value,
+                cardMaxWidth: document.getElementById('cardMaxWidth').value,
+
+                // 페이지 배경 설정
+                pageBackgroundImage: document.getElementById('pageBackgroundImage').value,
+                pageBackgroundColor: document.getElementById('pageBackgroundColor').value,
+                pageBackgroundRepeat: document.getElementById('pageBackgroundRepeat').value,
+                pageBackgroundSize: document.getElementById('pageBackgroundSize').value,
+                pageBackgroundAttachment: document.getElementById('pageBackgroundAttachment').value,
+
+                // 폰트 설정
+                fontFamily: document.getElementById('fontFamily').value,
+                fontSize: document.getElementById('fontSize').value,
+                h2FontSize: document.getElementById('h2FontSize').value,
+                statNumberSize: document.getElementById('statNumberSize').value,
+                fontWeight: document.getElementById('fontWeight').value,
+
+                // 카드 순서
+                cardOrder: cardOrder
             };
 
             localStorage.setItem('adminThemeSettings', JSON.stringify(settings));
@@ -3421,8 +3647,59 @@
 
         function applyThemeSettings() {
             const settings = JSON.parse(localStorage.getItem('adminThemeSettings') || '{}');
-            const statCards = document.querySelectorAll('#dashboardScreen .dashboard-stats .stat-card');
 
+            // 페이지 배경 적용
+            if (settings.pageBackgroundImage || settings.pageBackgroundColor) {
+                document.body.style.backgroundImage = settings.pageBackgroundImage ? `url(${settings.pageBackgroundImage})` : 'none';
+                document.body.style.backgroundColor = settings.pageBackgroundColor || '#E8EEF2';
+                document.body.style.backgroundRepeat = settings.pageBackgroundRepeat || 'no-repeat';
+                document.body.style.backgroundSize = settings.pageBackgroundSize || 'cover';
+                document.body.style.backgroundAttachment = settings.pageBackgroundAttachment || 'scroll';
+            }
+
+            // 폰트 설정 적용
+            if (settings.fontFamily) {
+                document.body.style.fontFamily = settings.fontFamily;
+            }
+            if (settings.fontSize) {
+                document.body.style.fontSize = settings.fontSize + 'px';
+            }
+            if (settings.fontWeight) {
+                document.body.style.fontWeight = settings.fontWeight;
+            }
+            if (settings.h2FontSize) {
+                document.querySelectorAll('h2').forEach(h2 => {
+                    h2.style.fontSize = settings.h2FontSize + 'px';
+                });
+            }
+            if (settings.statNumberSize) {
+                document.querySelectorAll('.stat-number').forEach(num => {
+                    num.style.fontSize = settings.statNumberSize + 'px';
+                });
+            }
+
+            // 레이아웃 설정 적용
+            const dashboardStats = document.querySelector('#dashboardScreen .dashboard-stats');
+            if (dashboardStats && settings.cardLayoutColumns) {
+                dashboardStats.style.gridTemplateColumns = `repeat(${settings.cardLayoutColumns}, 1fr)`;
+                if (settings.cardGap) {
+                    dashboardStats.style.gap = settings.cardGap + 'px';
+                }
+                if (settings.cardLayoutColumns === '1' && settings.cardMaxWidth) {
+                    dashboardStats.style.maxWidth = settings.cardMaxWidth + 'px';
+                    dashboardStats.style.margin = '0 auto';
+                }
+            }
+
+            // 카드 순서 적용
+            if (settings.cardOrder && dashboardStats) {
+                const statCards = Array.from(dashboardStats.children);
+                const orderedCards = settings.cardOrder.map(index => statCards[index]).filter(c => c);
+                dashboardStats.innerHTML = '';
+                orderedCards.forEach(card => dashboardStats.appendChild(card));
+            }
+
+            const statCards = document.querySelectorAll('#dashboardScreen .dashboard-stats .stat-card');
             if (!statCards.length) return;
 
             // 첫 번째 카드 (내가 만든 설문)
@@ -3511,6 +3788,82 @@
                 }
             });
         });
+
+        // 레이아웃 미리보기
+        function updateLayoutPreview() {
+            const columns = document.getElementById('cardLayoutColumns').value;
+            const gap = document.getElementById('cardGap').value;
+            const previewStats = document.getElementById('previewStats');
+
+            if (previewStats) {
+                previewStats.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+                previewStats.style.gap = gap + 'px';
+            }
+        }
+
+        // 폰트 미리보기
+        function updateFontPreview() {
+            const fontFamily = document.getElementById('fontFamily').value;
+            const fontSize = document.getElementById('fontSize').value;
+            const statNumberSize = document.getElementById('statNumberSize').value;
+
+            // 미리보기는 간단히 표시만
+            console.log('Font preview updated:', fontFamily, fontSize, statNumberSize);
+        }
+
+        // 드래그 앤 드롭 변수
+        let draggedElement = null;
+
+        function handleDragStart(e) {
+            draggedElement = e.target;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+
+            const afterElement = getDragAfterElement(e.currentTarget.parentElement, e.clientY);
+            const draggable = draggedElement;
+
+            if (afterElement == null) {
+                e.currentTarget.parentElement.appendChild(draggable);
+            } else {
+                e.currentTarget.parentElement.insertBefore(draggable, afterElement);
+            }
+
+            return false;
+        }
+
+        function handleDrop(e) {
+            e.stopPropagation();
+            return false;
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+
+            // 모든 drag-over 클래스 제거
+            document.querySelectorAll('.draggable-card').forEach(card => {
+                card.classList.remove('drag-over');
+            });
+        }
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.draggable-card:not(.dragging)')];
+
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
 
         // ==================== 템플릿 마켓플레이스 ====================
 
