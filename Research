@@ -533,7 +533,31 @@
                 <button class="nav-btn" onclick="showAvailableSurveys()">참여하기</button>
                 <button class="nav-btn" onclick="showTemplateMarket()">📝 템플릿 마켓</button>
                 <button class="nav-btn" onclick="showGiftShop()">🎁 상품교환소</button>
+                <button class="nav-btn" id="adminModeBtn" onclick="showAdminSettings()" style="background: #ff6b6b; display: none;">⚙️ 관리자</button>
                 <button class="nav-btn" onclick="logout()">로그아웃</button>
+            </div>
+        </div>
+
+        <!-- 내 정보 영역 -->
+        <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; gap: 30px; align-items: center; flex: 1;">
+                    <div>
+                        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 5px;">환영합니다!</div>
+                        <div style="font-size: 24px; font-weight: bold;"><span id="dashboardUserName"></span>님</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.2); padding: 15px 25px; border-radius: 12px;">
+                        <div style="font-size: 13px; opacity: 0.9; margin-bottom: 5px;">보유 포인트</div>
+                        <div style="font-size: 28px; font-weight: bold;">💰 <span id="dashboardPoints">0</span> P</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.2); padding: 15px 25px; border-radius: 12px;">
+                        <div style="font-size: 13px; opacity: 0.9; margin-bottom: 5px;">내 평점</div>
+                        <div style="font-size: 28px; font-weight: bold;">⭐ <span id="dashboardRating">0.0</span></div>
+                    </div>
+                </div>
+                <button class="btn" style="background: white; color: #667eea; font-weight: bold; padding: 12px 30px; font-size: 16px;" onclick="showMyPage()">
+                    👤 마이페이지
+                </button>
             </div>
         </div>
 
@@ -668,6 +692,131 @@
         <div class="card">
             <h2>🛍️ 구매한 템플릿</h2>
             <div id="purchasedTemplates"></div>
+        </div>
+    </div>
+
+    <!-- Admin Settings Screen -->
+    <div id="adminSettingsScreen" class="container hidden">
+        <div class="header">
+            <div class="logo">⚙️ 관리자 모드</div>
+            <div class="nav">
+                <button class="nav-btn" onclick="showDashboard()">대시보드</button>
+                <button class="nav-btn" onclick="logout()">로그아웃</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🎨 테마 및 레이아웃 설정</h2>
+            <p style="color: #666; margin-bottom: 20px;">대시보드의 각 탭 배경과 색상을 커스터마이징할 수 있습니다.</p>
+
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchAdminTab('stats')">📊 통계 카드</button>
+                <button class="tab-btn" onclick="switchAdminTab('created')">📝 내가 만든 설문</button>
+                <button class="tab-btn" onclick="switchAdminTab('available')">📋 참여 가능 설문</button>
+            </div>
+
+            <!-- 통계 카드 설정 -->
+            <div id="statsSettingsTab">
+                <h3 style="margin-top: 25px; margin-bottom: 15px;">📊 통계 카드 설정</h3>
+                <div class="form-group">
+                    <label>배경 이미지 URL</label>
+                    <input type="text" id="statsBackgroundImage" placeholder="https://example.com/image.jpg" style="width: 100%;">
+                    <small style="color: #666;">빈칸으로 두면 이미지가 표시되지 않습니다</small>
+                </div>
+                <div class="form-group">
+                    <label>배경색</label>
+                    <input type="color" id="statsBackgroundColor" value="#ffffff">
+                </div>
+                <div class="form-group">
+                    <label>글자색</label>
+                    <input type="color" id="statsTextColor" value="#333333">
+                </div>
+                <div class="form-group">
+                    <label>카드 투명도 (0-100%)</label>
+                    <input type="range" id="statsOpacity" min="0" max="100" value="100" oninput="this.nextElementSibling.textContent = this.value + '%'">
+                    <span>100%</span>
+                </div>
+            </div>
+
+            <!-- 내가 만든 설문 설정 -->
+            <div id="createdSettingsTab" class="hidden">
+                <h3 style="margin-top: 25px; margin-bottom: 15px;">📝 내가 만든 설문 카드 설정</h3>
+                <div class="form-group">
+                    <label>배경 이미지 URL</label>
+                    <input type="text" id="createdBackgroundImage" placeholder="https://example.com/image.jpg" style="width: 100%;">
+                </div>
+                <div class="form-group">
+                    <label>배경색</label>
+                    <input type="color" id="createdBackgroundColor" value="#ffffff">
+                </div>
+                <div class="form-group">
+                    <label>글자색</label>
+                    <input type="color" id="createdTextColor" value="#333333">
+                </div>
+                <div class="form-group">
+                    <label>카드 투명도 (0-100%)</label>
+                    <input type="range" id="createdOpacity" min="0" max="100" value="100" oninput="this.nextElementSibling.textContent = this.value + '%'">
+                    <span>100%</span>
+                </div>
+            </div>
+
+            <!-- 참여 가능 설문 설정 -->
+            <div id="availableSettingsTab" class="hidden">
+                <h3 style="margin-top: 25px; margin-bottom: 15px;">📋 참여 가능 설문 카드 설정</h3>
+                <div class="form-group">
+                    <label>배경 이미지 URL</label>
+                    <input type="text" id="availableBackgroundImage" placeholder="https://example.com/image.jpg" style="width: 100%;">
+                </div>
+                <div class="form-group">
+                    <label>배경색</label>
+                    <input type="color" id="availableBackgroundColor" value="#ffffff">
+                </div>
+                <div class="form-group">
+                    <label>글자색</label>
+                    <input type="color" id="availableTextColor" value="#333333">
+                </div>
+                <div class="form-group">
+                    <label>카드 투명도 (0-100%)</label>
+                    <input type="range" id="availableOpacity" min="0" max="100" value="100" oninput="this.nextElementSibling.textContent = this.value + '%'">
+                    <span>100%</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; display: flex; gap: 10px;">
+                <button class="btn btn-success" onclick="applyAdminSettings()">✅ 변경사항 적용</button>
+                <button class="btn" style="background: #6c757d;" onclick="resetAdminSettings()">🔄 초기화</button>
+                <button class="btn btn-secondary" onclick="showDashboard()">돌아가기</button>
+            </div>
+        </div>
+
+        <!-- 미리보기 -->
+        <div class="card">
+            <h2>👁️ 미리보기</h2>
+            <div id="adminPreview" style="padding: 20px; border: 2px dashed #ddd; border-radius: 8px; min-height: 200px;">
+                <div class="dashboard-stats" id="previewStats">
+                    <div class="stat-card" style="position: relative; overflow: hidden;">
+                        <div style="position: absolute; inset: 0; background-size: cover; background-position: center;" id="previewStatsBackground"></div>
+                        <div style="position: relative; z-index: 1;">
+                            <div class="stat-number" style="color: inherit;">42</div>
+                            <div class="stat-label" style="color: inherit;">내가 만든 설문</div>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="position: relative; overflow: hidden;">
+                        <div style="position: absolute; inset: 0; background-size: cover; background-position: center;" id="previewCreatedBackground"></div>
+                        <div style="position: relative; z-index: 1;">
+                            <div class="stat-number" style="color: inherit;">18</div>
+                            <div class="stat-label" style="color: inherit;">참여 가능 설문</div>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="position: relative; overflow: hidden;">
+                        <div style="position: absolute; inset: 0; background-size: cover; background-position: center;" id="previewAvailableBackground"></div>
+                        <div style="position: relative; z-index: 1;">
+                            <div class="stat-number" style="color: inherit;">25</div>
+                            <div class="stat-label" style="color: inherit;">참여 완료 설문</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -865,7 +1014,7 @@
         <div class="header">
             <div class="logo">🎯 설문 매칭 플랫폼</div>
             <div class="nav">
-                <div class="points-badge" id="userPoints2">💰 0 P</div>
+                <div class="points-badge" id="userPoints3">💰 0 P</div>
                 <button class="nav-btn" onclick="showDashboard()">대시보드</button>
                 <button class="nav-btn" onclick="logout()">로그아웃</button>
             </div>
@@ -873,6 +1022,9 @@
 
         <div class="card">
             <h2>새 설문 만들기 (구글 폼 스타일)</h2>
+            <p style="background: #e7f3ff; padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #2196F3;">
+                💰 <strong>현재 보유 포인트: <span id="createSurveyPoints" style="color: #2196F3; font-size: 18px;">0</span> P</strong>
+            </p>
             <div id="createMessage"></div>
 
             <div class="form-group">
@@ -1386,7 +1538,7 @@
 
         // 지역 선택 초기화
         function initRegionSelects() {
-            const sidoSelects = ['regRegionSido', 'surveyTargetRegionSido'];
+            const sidoSelects = ['regRegionSido', 'editRegionSido', 'surveyTargetRegionSido'];
             sidoSelects.forEach(selectId => {
                 const sidoSelect = document.getElementById(selectId);
                 if (sidoSelect) {
@@ -1474,7 +1626,7 @@
         }
 
         function showScreen(screenId) {
-            const screens = ['welcomeScreen', 'loginScreen', 'registerScreen', 'dashboardScreen', 'createSurveyScreen', 'participateScreen', 'giftShopScreen', 'myPageScreen', 'analyticsScreen', 'availableSurveysScreen', 'templateMarketScreen'];
+            const screens = ['welcomeScreen', 'loginScreen', 'registerScreen', 'dashboardScreen', 'createSurveyScreen', 'participateScreen', 'giftShopScreen', 'myPageScreen', 'analyticsScreen', 'availableSurveysScreen', 'templateMarketScreen', 'adminSettingsScreen'];
             screens.forEach(id => document.getElementById(id).classList.add('hidden'));
             document.getElementById(screenId).classList.remove('hidden');
         }
@@ -1918,11 +2070,26 @@
         function showDashboard() {
             showScreen('dashboardScreen');
             document.getElementById('userNameHeader').textContent = currentUser.name;
+
+            // 대시보드 내 정보 영역 업데이트
+            document.getElementById('dashboardUserName').textContent = currentUser.name;
+            document.getElementById('dashboardPoints').textContent = (currentUser.points || 0).toLocaleString();
+            document.getElementById('dashboardRating').textContent = (currentUser.rating || 3.0).toFixed(1);
+
+            // 관리자 버튼 표시 여부 (관리자 계정만 표시)
+            const adminBtn = document.getElementById('adminModeBtn');
+            if (currentUser.id === 1 || currentUser.isAdmin) {
+                adminBtn.style.display = 'inline-block';
+            } else {
+                adminBtn.style.display = 'none';
+            }
+
             updatePoints();
             updateDashboardStats();
             loadMySurveys();
             loadAvailableSurveys(5); // 메인 대시보드에는 5개만 표시
             loadFeaturedBanner();
+            applyThemeSettings(); // 저장된 테마 설정 적용
         }
 
         function updateDashboardStats() {
@@ -2057,6 +2224,8 @@
         function showCreateSurvey() {
             showScreen('createSurveyScreen');
             updatePoints();
+            // 포인트 명시적 업데이트
+            document.getElementById('createSurveyPoints').textContent = (currentUser.points || 0).toLocaleString();
             initRegionSelects();
             questions = [];
             questionCounter = 0;
@@ -3108,6 +3277,240 @@
             `;
             banner.onclick = () => startSurveyParticipation(featuredSurvey.id);
         }
+
+        // ==================== 관리자 모드 ====================
+
+        function showAdminSettings() {
+            showScreen('adminSettingsScreen');
+            loadAdminSettings();
+        }
+
+        function switchAdminTab(tab) {
+            // 탭 버튼 활성화
+            document.querySelectorAll('#adminSettingsScreen .tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // 탭 컨텐츠 전환
+            document.getElementById('statsSettingsTab').classList.add('hidden');
+            document.getElementById('createdSettingsTab').classList.add('hidden');
+            document.getElementById('availableSettingsTab').classList.add('hidden');
+
+            if (tab === 'stats') {
+                document.getElementById('statsSettingsTab').classList.remove('hidden');
+            } else if (tab === 'created') {
+                document.getElementById('createdSettingsTab').classList.remove('hidden');
+            } else if (tab === 'available') {
+                document.getElementById('availableSettingsTab').classList.remove('hidden');
+            }
+        }
+
+        function loadAdminSettings() {
+            const settings = JSON.parse(localStorage.getItem('adminThemeSettings') || '{}');
+
+            // 통계 카드 설정 로드
+            document.getElementById('statsBackgroundImage').value = settings.statsBackgroundImage || '';
+            document.getElementById('statsBackgroundColor').value = settings.statsBackgroundColor || '#ffffff';
+            document.getElementById('statsTextColor').value = settings.statsTextColor || '#333333';
+            document.getElementById('statsOpacity').value = settings.statsOpacity || 100;
+
+            // 내가 만든 설문 설정 로드
+            document.getElementById('createdBackgroundImage').value = settings.createdBackgroundImage || '';
+            document.getElementById('createdBackgroundColor').value = settings.createdBackgroundColor || '#ffffff';
+            document.getElementById('createdTextColor').value = settings.createdTextColor || '#333333';
+            document.getElementById('createdOpacity').value = settings.createdOpacity || 100;
+
+            // 참여 가능 설문 설정 로드
+            document.getElementById('availableBackgroundImage').value = settings.availableBackgroundImage || '';
+            document.getElementById('availableBackgroundColor').value = settings.availableBackgroundColor || '#ffffff';
+            document.getElementById('availableTextColor').value = settings.availableTextColor || '#333333';
+            document.getElementById('availableOpacity').value = settings.availableOpacity || 100;
+
+            // 미리보기 업데이트
+            updateAdminPreview();
+        }
+
+        function updateAdminPreview() {
+            const statsImg = document.getElementById('statsBackgroundImage').value;
+            const statsBg = document.getElementById('statsBackgroundColor').value;
+            const statsText = document.getElementById('statsTextColor').value;
+            const statsOpacity = document.getElementById('statsOpacity').value / 100;
+
+            const createdImg = document.getElementById('createdBackgroundImage').value;
+            const createdBg = document.getElementById('createdBackgroundColor').value;
+            const createdText = document.getElementById('createdTextColor').value;
+            const createdOpacity = document.getElementById('createdOpacity').value / 100;
+
+            const availableImg = document.getElementById('availableBackgroundImage').value;
+            const availableBg = document.getElementById('availableBackgroundColor').value;
+            const availableText = document.getElementById('availableTextColor').value;
+            const availableOpacity = document.getElementById('availableOpacity').value / 100;
+
+            // 미리보기 적용
+            const statCards = document.querySelectorAll('#previewStats .stat-card');
+
+            if (statCards[0]) {
+                const bg0 = statCards[0].querySelector('div');
+                if (statsImg) {
+                    bg0.style.backgroundImage = `url(${statsImg})`;
+                    bg0.style.opacity = statsOpacity;
+                } else {
+                    bg0.style.backgroundImage = 'none';
+                }
+                bg0.style.backgroundColor = statsBg;
+                statCards[0].querySelectorAll('.stat-number, .stat-label').forEach(el => el.style.color = statsText);
+            }
+
+            if (statCards[1]) {
+                const bg1 = statCards[1].querySelector('div');
+                if (createdImg) {
+                    bg1.style.backgroundImage = `url(${createdImg})`;
+                    bg1.style.opacity = createdOpacity;
+                } else {
+                    bg1.style.backgroundImage = 'none';
+                }
+                bg1.style.backgroundColor = createdBg;
+                statCards[1].querySelectorAll('.stat-number, .stat-label').forEach(el => el.style.color = createdText);
+            }
+
+            if (statCards[2]) {
+                const bg2 = statCards[2].querySelector('div');
+                if (availableImg) {
+                    bg2.style.backgroundImage = `url(${availableImg})`;
+                    bg2.style.opacity = availableOpacity;
+                } else {
+                    bg2.style.backgroundImage = 'none';
+                }
+                bg2.style.backgroundColor = availableBg;
+                statCards[2].querySelectorAll('.stat-number, .stat-label').forEach(el => el.style.color = availableText);
+            }
+        }
+
+        function applyAdminSettings() {
+            const settings = {
+                statsBackgroundImage: document.getElementById('statsBackgroundImage').value,
+                statsBackgroundColor: document.getElementById('statsBackgroundColor').value,
+                statsTextColor: document.getElementById('statsTextColor').value,
+                statsOpacity: document.getElementById('statsOpacity').value,
+
+                createdBackgroundImage: document.getElementById('createdBackgroundImage').value,
+                createdBackgroundColor: document.getElementById('createdBackgroundColor').value,
+                createdTextColor: document.getElementById('createdTextColor').value,
+                createdOpacity: document.getElementById('createdOpacity').value,
+
+                availableBackgroundImage: document.getElementById('availableBackgroundImage').value,
+                availableBackgroundColor: document.getElementById('availableBackgroundColor').value,
+                availableTextColor: document.getElementById('availableTextColor').value,
+                availableOpacity: document.getElementById('availableOpacity').value
+            };
+
+            localStorage.setItem('adminThemeSettings', JSON.stringify(settings));
+            alert('✅ 테마 설정이 저장되었습니다!\n대시보드로 돌아가서 확인해보세요.');
+            showDashboard();
+        }
+
+        function resetAdminSettings() {
+            if (confirm('모든 테마 설정을 초기화하시겠습니까?')) {
+                localStorage.removeItem('adminThemeSettings');
+                loadAdminSettings();
+                alert('✅ 테마 설정이 초기화되었습니다.');
+                showDashboard();
+            }
+        }
+
+        function applyThemeSettings() {
+            const settings = JSON.parse(localStorage.getItem('adminThemeSettings') || '{}');
+            const statCards = document.querySelectorAll('#dashboardScreen .dashboard-stats .stat-card');
+
+            if (!statCards.length) return;
+
+            // 첫 번째 카드 (내가 만든 설문)
+            if (statCards[0] && settings.statsBackgroundImage) {
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = 'position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 0;';
+                wrapper.style.backgroundImage = `url(${settings.statsBackgroundImage})`;
+                wrapper.style.backgroundColor = settings.statsBackgroundColor || '#ffffff';
+                wrapper.style.opacity = (settings.statsOpacity || 100) / 100;
+                statCards[0].style.position = 'relative';
+                statCards[0].insertBefore(wrapper, statCards[0].firstChild);
+                Array.from(statCards[0].children).forEach((child, idx) => {
+                    if (idx > 0) child.style.position = 'relative';
+                    child.style.zIndex = '1';
+                });
+                if (settings.statsTextColor) {
+                    statCards[0].querySelectorAll('.stat-number, .stat-label').forEach(el => el.style.color = settings.statsTextColor);
+                }
+            } else if (statCards[0] && settings.statsBackgroundColor) {
+                statCards[0].style.backgroundColor = settings.statsBackgroundColor;
+                if (settings.statsTextColor) {
+                    statCards[0].querySelectorAll('.stat-number, .stat-label').forEach(el => el.style.color = settings.statsTextColor);
+                }
+            }
+
+            // 두 번째 카드 (참여 가능 설문)
+            if (statCards[1] && settings.createdBackgroundImage) {
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = 'position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 0;';
+                wrapper.style.backgroundImage = `url(${settings.createdBackgroundImage})`;
+                wrapper.style.backgroundColor = settings.createdBackgroundColor || '#ffffff';
+                wrapper.style.opacity = (settings.createdOpacity || 100) / 100;
+                statCards[1].style.position = 'relative';
+                statCards[1].insertBefore(wrapper, statCards[1].firstChild);
+                Array.from(statCards[1].children).forEach((child, idx) => {
+                    if (idx > 0) child.style.position = 'relative';
+                    child.style.zIndex = '1';
+                });
+                if (settings.createdTextColor) {
+                    statCards[1].querySelectorAll('.stat-number, .stat-label').forEach(el => el.style.color = settings.createdTextColor);
+                }
+            } else if (statCards[1] && settings.createdBackgroundColor) {
+                statCards[1].style.backgroundColor = settings.createdBackgroundColor;
+                if (settings.createdTextColor) {
+                    statCards[1].querySelectorAll('.stat-number, .stat-label').forEach(el => el.style.color = settings.createdTextColor);
+                }
+            }
+
+            // 세 번째 카드 (완료 설문)
+            if (statCards[2] && settings.availableBackgroundImage) {
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = 'position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 0;';
+                wrapper.style.backgroundImage = `url(${settings.availableBackgroundImage})`;
+                wrapper.style.backgroundColor = settings.availableBackgroundColor || '#ffffff';
+                wrapper.style.opacity = (settings.availableOpacity || 100) / 100;
+                statCards[2].style.position = 'relative';
+                statCards[2].insertBefore(wrapper, statCards[2].firstChild);
+                Array.from(statCards[2].children).forEach((child, idx) => {
+                    if (idx > 0) child.style.position = 'relative';
+                    child.style.zIndex = '1';
+                });
+                if (settings.availableTextColor) {
+                    statCards[2].querySelectorAll('.stat-number, .stat-label').forEach(el => el.style.color = settings.availableTextColor);
+                }
+            } else if (statCards[2] && settings.availableBackgroundColor) {
+                statCards[2].style.backgroundColor = settings.availableBackgroundColor;
+                if (settings.availableTextColor) {
+                    statCards[2].querySelectorAll('.stat-number, .stat-label').forEach(el => el.style.color = settings.availableTextColor);
+                }
+            }
+        }
+
+        // 관리자 설정 입력 필드에 실시간 미리보기 연동
+        document.addEventListener('DOMContentLoaded', function() {
+            const adminInputs = [
+                'statsBackgroundImage', 'statsBackgroundColor', 'statsTextColor', 'statsOpacity',
+                'createdBackgroundImage', 'createdBackgroundColor', 'createdTextColor', 'createdOpacity',
+                'availableBackgroundImage', 'availableBackgroundColor', 'availableTextColor', 'availableOpacity'
+            ];
+
+            adminInputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', updateAdminPreview);
+                    el.addEventListener('change', updateAdminPreview);
+                }
+            });
+        });
 
         // ==================== 템플릿 마켓플레이스 ====================
 
