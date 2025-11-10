@@ -487,6 +487,15 @@
                     <option value="기타">기타</option>
                 </select>
             </div>
+
+            <div class="form-group">
+                <label>👥 추천인 코드 (선택)</label>
+                <input type="text" id="regReferralCode" placeholder="추천인 코드 6자리" maxlength="6"
+                       style="text-transform: uppercase;"
+                       oninput="this.value = this.value.toUpperCase()">
+                <small style="color: #666;">친구 추천 코드가 있다면 입력하세요. 설문 3개 완료 시 양측 모두 보상 지급!</small>
+            </div>
+
             <button class="btn" onclick="register()">가입하기</button>
             <button class="btn btn-secondary" onclick="showLogin()">로그인으로</button>
         </div>
@@ -633,6 +642,7 @@
                 <button class="tab-btn active" onclick="switchMyPageTab('profile')">📝 내 정보</button>
                 <button class="tab-btn" onclick="switchMyPageTab('created')">📋 등록한 설문</button>
                 <button class="tab-btn" onclick="switchMyPageTab('participated')">✅ 참여한 설문</button>
+                <button class="tab-btn" onclick="switchMyPageTab('referral')">👥 친구 추천</button>
             </div>
 
             <!-- Profile Edit Tab -->
@@ -713,6 +723,43 @@
             <div id="participatedTab" class="hidden">
                 <h2>내가 참여한 설문</h2>
                 <div id="participatedSurveysList"></div>
+            </div>
+
+            <!-- Referral Tab -->
+            <div id="referralTab" class="hidden">
+                <h2>👥 친구 추천하고 포인트 받기</h2>
+
+                <div style="background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); color: #333; padding: 25px; border-radius: 12px; margin-bottom: 25px; text-align: center; box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);">
+                    <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">🎁 내 추천 코드</div>
+                    <div style="font-size: 48px; font-weight: bold; letter-spacing: 8px; margin-bottom: 15px; font-family: monospace;" id="myReferralCode">------</div>
+                    <button class="btn" onclick="copyReferralCode()" style="background: #333; margin-right: 10px;">📋 코드 복사</button>
+                    <button class="btn" onclick="shareReferralLink()" style="background: #28a745;">🔗 링크 공유</button>
+                    <div style="margin-top: 15px; font-size: 14px; opacity: 0.9;">
+                        친구가 이 코드로 가입하고 설문 3개를 완료하면<br>
+                        <strong>친구는 3,000P, 나는 5,000P</strong>를 받아요!
+                    </div>
+                </div>
+
+                <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #e0e0e0; margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 15px;">📊 추천 통계</h3>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; text-align: center;">
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                            <div style="font-size: 32px; font-weight: bold; color: #5B7C99;" id="totalReferrals">0</div>
+                            <div style="font-size: 13px; color: #666; margin-top: 5px;">총 추천 수</div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                            <div style="font-size: 32px; font-weight: bold; color: #28a745;" id="completedReferrals">0</div>
+                            <div style="font-size: 13px; color: #666; margin-top: 5px;">보상 완료</div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                            <div style="font-size: 32px; font-weight: bold; color: #FFD700;" id="totalReferralEarnings">0</div>
+                            <div style="font-size: 13px; color: #666; margin-top: 5px;">누적 수익 (P)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>💚 추천한 친구 목록</h3>
+                <div id="referralList"></div>
             </div>
         </div>
     </div>
@@ -1344,6 +1391,7 @@
             document.getElementById('profileTab').classList.add('hidden');
             document.getElementById('createdTab').classList.add('hidden');
             document.getElementById('participatedTab').classList.add('hidden');
+            document.getElementById('referralTab').classList.add('hidden');
 
             if (tab === 'profile') {
                 tabs[0].classList.add('active');
@@ -1357,7 +1405,118 @@
                 tabs[2].classList.add('active');
                 document.getElementById('participatedTab').classList.remove('hidden');
                 loadParticipatedSurveys();
+            } else if (tab === 'referral') {
+                tabs[3].classList.add('active');
+                document.getElementById('referralTab').classList.remove('hidden');
+                loadReferralData();
             }
+        }
+
+        // 추천 관련 함수들
+        function loadReferralData() {
+            // 내 추천 코드 표시
+            document.getElementById('myReferralCode').textContent = currentUser.referralCode || '------';
+
+            // 추천 통계 계산
+            const referrals = JSON.parse(localStorage.getItem('referrals') || '[]');
+            const myReferrals = referrals.filter(r => r.referrerId === currentUser.id);
+            const completedReferrals = myReferrals.filter(r => r.referrerRewardGiven);
+            const totalEarnings = completedReferrals.length * 5000;
+
+            document.getElementById('totalReferrals').textContent = myReferrals.length;
+            document.getElementById('completedReferrals').textContent = completedReferrals.length;
+            document.getElementById('totalReferralEarnings').textContent = totalEarnings.toLocaleString();
+
+            // 추천한 친구 목록
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const referralList = document.getElementById('referralList');
+
+            if (myReferrals.length === 0) {
+                referralList.innerHTML = '<p style="color: #999; margin-top: 15px; text-align: center;">아직 추천한 친구가 없습니다.<br>친구에게 코드를 공유하고 함께 포인트를 받아보세요!</p>';
+                return;
+            }
+
+            referralList.innerHTML = myReferrals.map(referral => {
+                const referee = users.find(u => u.id === referral.refereeId);
+                if (!referee) return '';
+
+                const completedSurveys = referee.completedSurveys || 0;
+                const status = referral.referrerRewardGiven
+                    ? `<span style="color: #28a745; font-weight: bold;">✅ 보상 완료 (5,000P 지급됨)</span>`
+                    : `<span style="color: #666;">⏳ 진행중 (${completedSurveys}/3개 완료)</span>`;
+
+                return `
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid ${referral.referrerRewardGiven ? '#28a745' : '#5B7C99'};">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 16px; font-weight: bold; margin-bottom: 5px;">👤 ${referee.name}</div>
+                                <div style="font-size: 13px; color: #666;">가입일: ${new Date(referral.createdAt).toLocaleDateString('ko-KR')}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                ${status}
+                                ${!referral.referrerRewardGiven && completedSurveys < 3 ? `<div style="font-size: 12px; color: #999; margin-top: 5px;">설문 ${3 - completedSurveys}개 더 필요</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).filter(html => html).join('');
+        }
+
+        function copyReferralCode() {
+            const code = currentUser.referralCode;
+            if (!code) {
+                alert('추천 코드가 없습니다.');
+                return;
+            }
+
+            // 클립보드에 복사
+            navigator.clipboard.writeText(code).then(() => {
+                alert(`✅ 추천 코드가 복사되었습니다!\n\n코드: ${code}\n\n친구에게 공유하세요!`);
+            }).catch(() => {
+                // 구버전 브라우저 대응
+                const textarea = document.createElement('textarea');
+                textarea.value = code;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert(`✅ 추천 코드가 복사되었습니다!\n\n코드: ${code}\n\n친구에게 공유하세요!`);
+            });
+        }
+
+        function shareReferralLink() {
+            const code = currentUser.referralCode;
+            if (!code) {
+                alert('추천 코드가 없습니다.');
+                return;
+            }
+
+            const message = `🎁 설문 매칭 플랫폼 초대장\n\n회원가입 시 100,000P 지급!\n내 추천 코드: ${code}\n\n회원가입 후 설문 3개만 완료하면\n추가로 3,000P를 드립니다! 🎉\n\n※ 나도 5,000P를 받아요!`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: '설문 매칭 플랫폼 초대',
+                    text: message
+                }).catch(() => {
+                    copyTextToShare(message);
+                });
+            } else {
+                copyTextToShare(message);
+            }
+        }
+
+        function copyTextToShare(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ 초대 메시지가 복사되었습니다!\n친구에게 공유하세요!');
+            }).catch(() => {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('✅ 초대 메시지가 복사되었습니다!\n친구에게 공유하세요!');
+            });
         }
 
         function loadProfileData() {
@@ -1495,6 +1654,16 @@
             }
         }
 
+        // 추천 코드 생성 함수 (6자리 랜덤)
+        function generateReferralCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 6; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+
         function register() {
             const name = document.getElementById('regName').value;
             const email = document.getElementById('regEmail').value;
@@ -1506,6 +1675,7 @@
             const regionDistrict = document.getElementById('regRegionDistrict').value;
             const regionDong = document.getElementById('regRegionDong').value;
             const job = document.getElementById('regJob').value;
+            const referralCode = document.getElementById('regReferralCode').value.trim().toUpperCase();
 
             if (!name || !email || !password || !phone || !birthDate || !gender || !regionSido || !regionDistrict || !job) {
                 document.getElementById('registerMessage').innerHTML = '<div class="error-msg">모든 필수 항목을 입력해주세요.</div>';
@@ -1521,9 +1691,28 @@
             }
 
             const users = JSON.parse(localStorage.getItem('users') || '[]');
+
+            // 이메일 중복 확인
             if (users.find(u => u.email === email)) {
                 document.getElementById('registerMessage').innerHTML = '<div class="error-msg">이미 등록된 이메일입니다.</div>';
                 return;
+            }
+
+            // 전화번호 중복 확인 (어뷰징 방지)
+            if (users.find(u => u.phone === phone)) {
+                document.getElementById('registerMessage').innerHTML = '<div class="error-msg">⚠️ 이미 등록된 전화번호입니다. (1인 1계정만 가능)</div>';
+                return;
+            }
+
+            // 추천 코드 검증
+            let referrerId = null;
+            if (referralCode) {
+                const referrer = users.find(u => u.referralCode === referralCode);
+                if (!referrer) {
+                    document.getElementById('registerMessage').innerHTML = '<div class="error-msg">❌ 유효하지 않은 추천인 코드입니다.</div>';
+                    return;
+                }
+                referrerId = referrer.id;
             }
 
             // 지역 정보 조합
@@ -1534,17 +1723,49 @@
                 fullAddress: `${regionSido} ${regionDistrict}${regionDong ? ' ' + regionDong : ''}`
             };
 
+            // 고유한 추천 코드 생성
+            let myReferralCode;
+            do {
+                myReferralCode = generateReferralCode();
+            } while (users.find(u => u.referralCode === myReferralCode));
+
+            const newUserId = Date.now().toString();
+
             users.push({
-                id: Date.now().toString(),
+                id: newUserId,
                 name, email, password, phone, birthDate, gender, region, job,
                 points: 100000,
                 rating: 3.0,
                 completedSurveys: 0,
+                referralCode: myReferralCode,
+                referredBy: referrerId,
+                referralRewardReceived: false, // 추천 보상을 받았는지 여부
                 createdAt: new Date().toISOString()
             });
+
+            // 추천 관계 저장
+            if (referrerId) {
+                const referrals = JSON.parse(localStorage.getItem('referrals') || '[]');
+                referrals.push({
+                    id: Date.now().toString(),
+                    referrerId: referrerId,
+                    refereeId: newUserId,
+                    referrerRewardGiven: false,
+                    refereeRewardGiven: false,
+                    createdAt: new Date().toISOString()
+                });
+                localStorage.setItem('referrals', JSON.stringify(referrals));
+            }
+
             localStorage.setItem('users', JSON.stringify(users));
-            document.getElementById('registerMessage').innerHTML = '<div class="success-msg">🎉 회원가입 완료! 100,000P 지급!</div>';
-            setTimeout(() => showLogin(), 2000);
+
+            let message = `🎉 회원가입 완료! 100,000P 지급!<br>🎫 내 추천 코드: <strong>${myReferralCode}</strong>`;
+            if (referrerId) {
+                message += '<br>👥 추천인 등록 완료! 설문 3개 완료 시 보상이 지급됩니다.';
+            }
+
+            document.getElementById('registerMessage').innerHTML = `<div class="success-msg">${message}</div>`;
+            setTimeout(() => showLogin(), 3000);
         }
 
         function login() {
@@ -1564,7 +1785,11 @@
                     phone: '01012345678', birthDate: '1990-01-01', gender: '남성',
                     region: {sido: '서울특별시', district: '강남구', dong: '역삼동', fullAddress: '서울특별시 강남구 역삼동'},
                     job: '회사원',
-                    points: 100000, rating: 3.0, completedSurveys: 0, createdAt: new Date().toISOString()
+                    points: 100000, rating: 3.0, completedSurveys: 0,
+                    referralCode: 'TEST01',
+                    referredBy: null,
+                    referralRewardReceived: false,
+                    createdAt: new Date().toISOString()
                 });
                 localStorage.setItem('users', JSON.stringify(users));
             }
@@ -2057,6 +2282,8 @@
 
             const users = JSON.parse(localStorage.getItem('users') || '[]');
             const userIndex = users.findIndex(u => u.id === currentUser.id);
+            let referralBonus = '';
+
             if (userIndex !== -1) {
                 // 포인트 지급
                 users[userIndex].points = (users[userIndex].points || 0) + currentSurvey.rewardPoints;
@@ -2068,15 +2295,44 @@
                 const currentRating = users[userIndex].rating || 3.0;
                 users[userIndex].rating = Math.min(5.0, currentRating + 0.1);
 
+                // 추천 보상 처리 (설문 3개 완료 시)
+                if (users[userIndex].completedSurveys === 3 && users[userIndex].referredBy && !users[userIndex].referralRewardReceived) {
+                    const referralReward = 3000; // 피추천인 보상
+                    const referrerReward = 5000; // 추천인 보상
+
+                    // 피추천인 보상
+                    users[userIndex].points += referralReward;
+                    users[userIndex].referralRewardReceived = true;
+
+                    // 추천인 찾기 및 보상
+                    const referrerIndex = users.findIndex(u => u.id === users[userIndex].referredBy);
+                    if (referrerIndex !== -1) {
+                        users[referrerIndex].points = (users[referrerIndex].points || 0) + referrerReward;
+                    }
+
+                    // 추천 관계 업데이트
+                    const referrals = JSON.parse(localStorage.getItem('referrals') || '[]');
+                    const referralIndex = referrals.findIndex(r => r.refereeId === currentUser.id);
+                    if (referralIndex !== -1) {
+                        referrals[referralIndex].refereeRewardGiven = true;
+                        referrals[referralIndex].referrerRewardGiven = true;
+                        referrals[referralIndex].completedAt = new Date().toISOString();
+                    }
+                    localStorage.setItem('referrals', JSON.stringify(referrals));
+
+                    referralBonus = `\n\n🎁 추천 보상 지급!\n💰 나: +${referralReward.toLocaleString()} P\n💰 추천인: +${referrerReward.toLocaleString()} P`;
+                }
+
                 localStorage.setItem('users', JSON.stringify(users));
                 currentUser.points = users[userIndex].points;
                 currentUser.completedSurveys = users[userIndex].completedSurveys;
                 currentUser.rating = users[userIndex].rating;
+                currentUser.referralRewardReceived = users[userIndex].referralRewardReceived;
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
             }
 
             const newRating = currentUser.rating.toFixed(1);
-            alert(`🎉 설문 참여 완료!\n💰 ${currentSurvey.rewardPoints} 포인트 지급!\n⭐ 평점: ${newRating}/5.0`);
+            alert(`🎉 설문 참여 완료!\n💰 ${currentSurvey.rewardPoints} 포인트 지급!\n⭐ 평점: ${newRating}/5.0${referralBonus}`);
             showDashboard();
         }
 
