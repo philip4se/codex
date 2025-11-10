@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>설문 매칭 플랫폼 - 데모 v5.0</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -764,6 +765,56 @@
         </div>
     </div>
 
+    <!-- Survey Analytics Screen -->
+    <div id="analyticsScreen" class="container hidden">
+        <div class="header">
+            <div class="logo">📊 설문 결과 분석</div>
+            <div class="nav">
+                <div class="points-badge" id="userPoints6">💰 0 P</div>
+                <button class="nav-btn" onclick="showMyPage()">마이페이지</button>
+                <button class="nav-btn" onclick="showDashboard()">대시보드</button>
+                <button class="nav-btn" onclick="logout()">로그아웃</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div>
+                    <h2 id="analyticsTitle" style="margin-bottom: 5px;">설문 제목</h2>
+                    <p id="analyticsDesc" style="color: #666; font-size: 14px;"></p>
+                </div>
+                <button class="btn btn-success" onclick="downloadResults()">📥 결과 다운로드 (CSV)</button>
+            </div>
+
+            <!-- 통계 요약 -->
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px;">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalResponses">0</div>
+                    <div class="stat-label">총 응답 수</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="targetResponses">0</div>
+                    <div class="stat-label">목표 응답 수</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="completionRate">0%</div>
+                    <div class="stat-label">달성률</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="qualityScoreDisplay">-</div>
+                    <div class="stat-label">품질 점수</div>
+                </div>
+            </div>
+
+            <!-- 질문별 결과 -->
+            <div id="analyticsCharts"></div>
+
+            <div style="margin-top: 30px; text-align: center;">
+                <button class="btn btn-secondary" onclick="showMyPage()">돌아가기</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Create Survey -->
     <div id="createSurveyScreen" class="container hidden">
         <div class="header">
@@ -1378,7 +1429,7 @@
         }
 
         function showScreen(screenId) {
-            const screens = ['welcomeScreen', 'loginScreen', 'registerScreen', 'dashboardScreen', 'createSurveyScreen', 'participateScreen', 'giftShopScreen', 'myPageScreen'];
+            const screens = ['welcomeScreen', 'loginScreen', 'registerScreen', 'dashboardScreen', 'createSurveyScreen', 'participateScreen', 'giftShopScreen', 'myPageScreen', 'analyticsScreen', 'availableSurveysScreen'];
             screens.forEach(id => document.getElementById(id).classList.add('hidden'));
             document.getElementById(screenId).classList.remove('hidden');
         }
@@ -1645,7 +1696,7 @@
 
         function updatePoints() {
             const points = currentUser.points || 0;
-            ['userPoints', 'userPoints2', 'userPoints3', 'userPoints4', 'userPoints5'].forEach(id => {
+            ['userPoints', 'userPoints2', 'userPoints3', 'userPoints4', 'userPoints5', 'userPoints6'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.textContent = `💰 ${points.toLocaleString()} P`;
             });
@@ -2573,11 +2624,253 @@
         }
 
         function viewMySurveyDetail(surveyId) {
+            showSurveyAnalytics(surveyId);
+        }
+
+        // 설문 결과 분석 화면 표시
+        let currentAnalyticsSurvey = null;
+        let currentCharts = [];
+
+        function showSurveyAnalytics(surveyId) {
             const surveys = JSON.parse(localStorage.getItem('surveys') || '[]');
             const survey = surveys.find(s => s.id === surveyId);
+            if (!survey) {
+                alert('설문을 찾을 수 없습니다.');
+                return;
+            }
+
             const participations = JSON.parse(localStorage.getItem('participations') || '[]');
             const surveyParticipations = participations.filter(p => p.surveyId === surveyId);
-            alert(`설문 상세\n\n제목: ${survey.title}\n참여자: ${surveyParticipations.length}명\n목표: ${survey.targetResponses}명\n보상: ${survey.rewardPoints}P`);
+
+            currentAnalyticsSurvey = survey;
+
+            // 화면 전환
+            showScreen('analyticsScreen');
+            updatePoints();
+
+            // 기본 정보 표시
+            document.getElementById('analyticsTitle').textContent = survey.title;
+            document.getElementById('analyticsDesc').textContent = survey.description + (survey.organizer ? ` (주관: ${survey.organizer})` : '');
+            document.getElementById('totalResponses').textContent = surveyParticipations.length;
+            document.getElementById('targetResponses').textContent = survey.targetResponses || 100;
+
+            const completionRate = survey.targetResponses > 0
+                ? Math.round((surveyParticipations.length / survey.targetResponses) * 100)
+                : 0;
+            document.getElementById('completionRate').textContent = `${completionRate}%`;
+            document.getElementById('qualityScoreDisplay').textContent = survey.qualityScore ? `${survey.qualityScore}점` : '-';
+
+            // 응답이 없으면 안내 메시지
+            if (surveyParticipations.length === 0) {
+                document.getElementById('analyticsCharts').innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">아직 응답이 없습니다.</p>';
+                return;
+            }
+
+            // 기존 차트 파괴
+            currentCharts.forEach(chart => chart.destroy());
+            currentCharts = [];
+
+            // 응답 데이터 집계 및 차트 렌더링
+            const aggregatedData = aggregateResponses(survey, surveyParticipations);
+            renderCharts(survey, aggregatedData);
+        }
+
+        // 응답 데이터 집계
+        function aggregateResponses(survey, participations) {
+            const aggregated = {};
+
+            survey.questions.forEach(question => {
+                aggregated[question.id] = {
+                    question: question.question,
+                    type: question.type,
+                    responses: []
+                };
+
+                participations.forEach(participation => {
+                    const answer = participation.answers[question.id];
+                    if (answer !== undefined && answer !== null && answer !== '') {
+                        aggregated[question.id].responses.push(answer);
+                    }
+                });
+
+                // 선택형 질문은 카운트 집계
+                if (question.type === 'radio' || question.type === 'select') {
+                    const counts = {};
+                    aggregated[question.id].responses.forEach(answer => {
+                        counts[answer] = (counts[answer] || 0) + 1;
+                    });
+                    aggregated[question.id].counts = counts;
+                } else if (question.type === 'checkbox') {
+                    const counts = {};
+                    aggregated[question.id].responses.forEach(answers => {
+                        if (Array.isArray(answers)) {
+                            answers.forEach(answer => {
+                                counts[answer] = (counts[answer] || 0) + 1;
+                            });
+                        }
+                    });
+                    aggregated[question.id].counts = counts;
+                }
+            });
+
+            return aggregated;
+        }
+
+        // 차트 렌더링
+        function renderCharts(survey, aggregatedData) {
+            const container = document.getElementById('analyticsCharts');
+            container.innerHTML = '';
+
+            survey.questions.forEach((question, index) => {
+                const data = aggregatedData[question.id];
+                if (!data || data.responses.length === 0) return;
+
+                const chartSection = document.createElement('div');
+                chartSection.style.cssText = 'margin-bottom: 40px; padding: 20px; background: white; border-radius: 12px; border: 1px solid #e0e0e0;';
+
+                const title = document.createElement('h3');
+                title.textContent = `질문 ${question.id}. ${question.question}`;
+                title.style.cssText = 'margin-bottom: 20px; color: #333; font-size: 16px;';
+                chartSection.appendChild(title);
+
+                // 선택형 질문 - 차트 표시
+                if (question.type === 'radio' || question.type === 'select' || question.type === 'checkbox') {
+                    const canvasContainer = document.createElement('div');
+                    canvasContainer.style.cssText = 'max-width: 600px; margin: 0 auto;';
+
+                    const canvas = document.createElement('canvas');
+                    canvas.id = `chart${question.id}`;
+                    canvasContainer.appendChild(canvas);
+                    chartSection.appendChild(canvasContainer);
+
+                    const labels = Object.keys(data.counts);
+                    const values = Object.values(data.counts);
+                    const total = values.reduce((a, b) => a + b, 0);
+
+                    const ctx = canvas.getContext('2d');
+                    const chart = new Chart(ctx, {
+                        type: question.type === 'checkbox' ? 'bar' : 'pie',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: '응답 수',
+                                data: values,
+                                backgroundColor: [
+                                    '#5B7C99', '#7B9FB8', '#9BBBD4', '#BCD7EE',
+                                    '#FFD700', '#FFA500', '#FF6B6B', '#4ECDC4'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const label = context.label || '';
+                                            const value = context.parsed || context.parsed.y || 0;
+                                            const percentage = ((value / total) * 100).toFixed(1);
+                                            return `${label}: ${value}명 (${percentage}%)`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    currentCharts.push(chart);
+
+                    // 통계 표시
+                    const stats = document.createElement('div');
+                    stats.style.cssText = 'margin-top: 15px; font-size: 13px; color: #666;';
+                    stats.innerHTML = `<strong>총 응답:</strong> ${total}명`;
+                    chartSection.appendChild(stats);
+
+                } else {
+                    // 주관식 질문 - 리스트 표시
+                    const responseList = document.createElement('div');
+                    responseList.style.cssText = 'max-height: 300px; overflow-y: auto;';
+
+                    data.responses.slice(0, 20).forEach((response, idx) => {
+                        const item = document.createElement('div');
+                        item.style.cssText = 'padding: 10px; margin-bottom: 8px; background: #f8f9fa; border-radius: 5px; font-size: 14px; color: #333;';
+                        item.textContent = `${idx + 1}. ${response}`;
+                        responseList.appendChild(item);
+                    });
+
+                    chartSection.appendChild(responseList);
+
+                    if (data.responses.length > 20) {
+                        const more = document.createElement('p');
+                        more.style.cssText = 'margin-top: 10px; font-size: 13px; color: #999; text-align: center;';
+                        more.textContent = `... 외 ${data.responses.length - 20}개 응답 (CSV 다운로드로 전체 확인 가능)`;
+                        chartSection.appendChild(more);
+                    }
+
+                    const stats = document.createElement('div');
+                    stats.style.cssText = 'margin-top: 15px; font-size: 13px; color: #666;';
+                    stats.innerHTML = `<strong>총 응답:</strong> ${data.responses.length}명`;
+                    chartSection.appendChild(stats);
+                }
+
+                container.appendChild(chartSection);
+            });
+        }
+
+        // CSV 다운로드
+        function downloadResults() {
+            if (!currentAnalyticsSurvey) {
+                alert('설문 데이터를 불러올 수 없습니다.');
+                return;
+            }
+
+            const participations = JSON.parse(localStorage.getItem('participations') || '[]');
+            const surveyParticipations = participations.filter(p => p.surveyId === currentAnalyticsSurvey.id);
+
+            if (surveyParticipations.length === 0) {
+                alert('다운로드할 응답이 없습니다.');
+                return;
+            }
+
+            // CSV 헤더 생성
+            let csv = '\uFEFF'; // UTF-8 BOM
+            csv += '응답 번호,참여 일시,';
+            currentAnalyticsSurvey.questions.forEach(q => {
+                csv += `"${q.question}",`;
+            });
+            csv += '\n';
+
+            // CSV 데이터 생성
+            surveyParticipations.forEach((participation, index) => {
+                csv += `${index + 1},`;
+                csv += `"${new Date(participation.completedAt).toLocaleString('ko-KR')}",`;
+                currentAnalyticsSurvey.questions.forEach(q => {
+                    const answer = participation.answers[q.id];
+                    if (Array.isArray(answer)) {
+                        csv += `"${answer.join(', ')}",`;
+                    } else {
+                        csv += `"${answer || ''}",`;
+                    }
+                });
+                csv += '\n';
+            });
+
+            // 파일 다운로드
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `${currentAnalyticsSurvey.title}_결과_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            alert('✅ CSV 파일이 다운로드되었습니다!');
         }
 
         // 상품 교환소 관련 함수
