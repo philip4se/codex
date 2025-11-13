@@ -808,28 +808,39 @@
             <h2>회원가입 🎁 1,000P 지급!</h2>
             <div id="registerMessage"></div>
             <div class="form-group">
-                <label>이름</label>
+                <label>이름 <span style="color: red;">*</span></label>
                 <input type="text" id="regName" placeholder="홍길동">
             </div>
             <div class="form-group">
-                <label>이메일</label>
+                <label>이메일 <span style="color: red;">*</span></label>
                 <input type="email" id="regEmail" placeholder="test@example.com">
             </div>
             <div class="form-group">
-                <label>비밀번호</label>
+                <label>비밀번호 <span style="color: red;">*</span></label>
                 <input type="password" id="regPassword" placeholder="8자 이상">
             </div>
             <div class="form-group">
-                <label>전화번호</label>
-                <input type="tel" id="regPhone" placeholder="010-1234-5678">
+                <label>전화번호 <span style="color: red;">*</span></label>
+                <div style="display: flex; gap: 10px; align-items: flex-start;">
+                    <input type="tel" id="regPhone" placeholder="010-1234-5678" style="flex: 1;">
+                    <button type="button" class="btn btn-small btn-primary" onclick="sendVerificationCode()" style="white-space: nowrap;">인증번호 발송</button>
+                </div>
+            </div>
+            <div class="form-group" id="verificationGroup" style="display: none;">
+                <label>인증번호 <span style="color: red;">*</span></label>
+                <div style="display: flex; gap: 10px; align-items: flex-start;">
+                    <input type="text" id="regVerificationCode" placeholder="6자리 인증번호 입력" style="flex: 1;">
+                    <button type="button" class="btn btn-small btn-success" onclick="verifyCode()" style="white-space: nowrap;">인증 확인</button>
+                </div>
+                <small id="verificationStatus" style="color: #666;"></small>
             </div>
             <div class="form-group">
-                <label>생년월일</label>
+                <label>생년월일 <span style="color: red;">*</span></label>
                 <input type="date" id="regBirthDate">
             </div>
             <div class="form-group">
-                <label>지역</label>
-                <select id="regRegion">
+                <label>시도 <span style="color: red;">*</span></label>
+                <select id="regSido" onchange="updateGungu('reg')">
                     <option value="">선택하세요</option>
                     <option value="서울">서울특별시</option>
                     <option value="부산">부산광역시</option>
@@ -851,7 +862,19 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>직업</label>
+                <label>시군구 <span style="color: red;">*</span></label>
+                <select id="regGungu" onchange="updateDong('reg')" disabled>
+                    <option value="">먼저 시도를 선택하세요</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>읍면동 <span style="color: red;">*</span></label>
+                <select id="regDong" disabled>
+                    <option value="">먼저 시군구를 선택하세요</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>직업 <span style="color: red;">*</span></label>
                 <select id="regJob">
                     <option value="">선택하세요</option>
                     <option value="학생">학생</option>
@@ -862,6 +885,25 @@
                     <option value="기타">기타</option>
                 </select>
             </div>
+
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+
+            <div class="form-group">
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; max-height: 150px; overflow-y: auto; border: 1px solid #ddd;">
+                    <h4 style="margin-bottom: 10px; font-size: 14px;">개인정보 수집 및 이용 동의</h4>
+                    <p style="font-size: 12px; line-height: 1.6; color: #555;">
+                        1. 수집하는 개인정보의 항목: 이름, 이메일, 전화번호, 생년월일, 지역정보, 직업<br>
+                        2. 개인정보의 수집 및 이용 목적: 회원가입, 서비스 제공, 설문 매칭, 포인트 지급<br>
+                        3. 개인정보의 보유 및 이용 기간: 회원 탈퇴 시까지<br>
+                        4. 동의를 거부할 권리 및 거부 시 불이익: 필수항목 미동의 시 회원가입 불가
+                    </p>
+                </div>
+                <label style="display: flex; align-items: center; cursor: pointer;">
+                    <input type="checkbox" id="regPrivacyConsent" style="width: auto; margin-right: 10px; cursor: pointer;">
+                    <span>개인정보 수집 및 이용에 동의합니다 <span style="color: red;">*</span></span>
+                </label>
+            </div>
+
             <button class="btn btn-primary" onclick="register()">가입하기</button>
             <button class="btn btn-secondary" onclick="showLogin()">로그인으로</button>
         </div>
@@ -1002,8 +1044,8 @@
                 <small style="color: #666;">참여자에게 지급할 포인트</small>
             </div>
             <div class="form-group">
-                <label>타깃 지역 (선택사항)</label>
-                <select id="surveyTargetRegion">
+                <label>타깃 시도 (선택사항)</label>
+                <select id="surveyTargetSido" onchange="updateGungu('survey')">
                     <option value="">전체</option>
                     <option value="서울">서울특별시</option>
                     <option value="부산">부산광역시</option>
@@ -1022,6 +1064,18 @@
                     <option value="경북">경상북도</option>
                     <option value="경남">경상남도</option>
                     <option value="제주">제주특별자치도</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>타깃 시군구 (선택사항)</label>
+                <select id="surveyTargetGungu" onchange="updateDong('survey')" disabled>
+                    <option value="">전체</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>타깃 읍면동 (선택사항)</label>
+                <select id="surveyTargetDong" disabled>
+                    <option value="">전체</option>
                 </select>
             </div>
             <div class="form-group">
@@ -1083,6 +1137,133 @@
         let questionCounter = 0;
         let editMode = false;
         let linksLocked = false;
+        let verificationCode = '';
+        let isPhoneVerified = false;
+
+        // 전국 행정구역 데이터 (3단계: 시도 > 시군구 > 읍면동)
+        const regionData = {
+            "서울": {
+                "종로구": ["청운효자동", "사직동", "삼청동", "부암동", "평창동", "무악동", "교남동", "가회동", "종로1.2.3.4가동", "종로5·6가동", "이화동", "혜화동", "창신1동", "창신2동", "창신3동", "숭인1동", "숭인2동"],
+                "중구": ["소공동", "회현동", "명동", "필동", "장충동", "광희동", "을지로동", "신당동", "다산동", "약수동", "청구동", "신당5동", "동화동", "황학동", "중림동"],
+                "용산구": ["후암동", "용산2가동", "남영동", "청파동", "원효로1동", "원효로2동", "효창동", "용문동", "한강로동", "이촌1동", "이촌2동", "이태원1동", "이태원2동", "한남동", "서빙고동", "보광동"],
+                "성동구": ["왕십리도선동", "왕십리2동", "마장동", "사근동", "행당1동", "행당2동", "응봉동", "금호1가동", "금호2·3가동", "금호4가동", "옥수동", "성수1가1동", "성수1가2동", "성수2가1동", "성수2가3동", "송정동", "용답동"],
+                "광진구": ["화양동", "군자동", "중곡1동", "중곡2동", "중곡3동", "중곡4동", "능동", "구의1동", "구의2동", "구의3동", "광장동", "자양1동", "자양2동", "자양3동", "자양4동"],
+                "강남구": ["신사동", "논현1동", "논현2동", "압구정동", "청담동", "삼성1동", "삼성2동", "대치1동", "대치2동", "대치4동", "역삼1동", "역삼2동", "도곡1동", "도곡2동", "개포1동", "개포2동", "개포4동", "세곡동", "일원본동", "일원1동", "일원2동", "수서동", "세곡동"]
+            },
+            "부산": {
+                "중구": ["중앙동", "동광동", "대청동", "보수동", "부평동", "광복동", "남포동", "영주1동", "영주2동"],
+                "서구": ["동대신1동", "동대신2동", "동대신3동", "서대신1동", "서대신3동", "서대신4동", "부민동", "아미동", "초장동", "충무동", "남부민동", "암남동"],
+                "해운대구": ["우1동", "우2동", "우3동", "중1동", "중2동", "송정동", "반여1동", "반여2동", "반여3동", "반여4동", "반송1동", "반송2동", "석대동", "재송1동", "재송2동"],
+                "사하구": ["괴정1동", "괴정2동", "괴정3동", "괴정4동", "당리동", "하단1동", "하단2동", "신평1동", "신평2동", "장림1동", "장림2동", "다대1동", "다대2동", "구평동", "감천1동", "감천2동"],
+                "동래구": ["수민동", "복천동", "명륜동", "온천1동", "온천2동", "온천3동", "사직1동", "사직2동", "사직3동", "안락1동", "안락2동", "명장1동", "명장2동"]
+            },
+            "대구": {
+                "중구": ["삼덕동", "대신동", "남산1동", "남산2동", "남산3동", "남산4동", "대봉1동", "대봉2동", "성내1동", "성내2동", "성내3동", "대신동", "봉산동"],
+                "동구": ["신암1동", "신암2동", "신암3동", "신암4동", "신암5동", "신천1·2동", "신천3동", "신천4동", "효목1동", "효목2동", "도평동", "불로봉무동", "지저동", "동촌동", "방촌동", "해안동", "안심1동", "안심2동", "안심3·4동", "공산동", "용수동"],
+                "수성구": ["범어1동", "범어2동", "범어3동", "범어4동", "만촌1동", "만촌2동", "만촌3동", "수성1가동", "수성2·3가동", "수성4가동", "황금1동", "황금2동", "중동", "상동", "파동", "두산동", "지산1동", "지산2동", "범물1동", "범물2동", "고산1동", "고산2동", "고산3동"],
+                "달서구": ["두류1동", "두류2동", "두류3동", "성당동", "죽전동", "장기동", "용산1동", "용산2동", "이곡1동", "이곡2동", "신당동", "본리동", "감삼동", "대곡동", "대천동", "월성1동", "월성2동", "진천동", "상인1동", "상인2동", "상인3동", "도원동"]
+            },
+            "인천": {
+                "중구": ["신흥동", "선린동", "신생동", "연안동", "북성동1가", "북성동2가", "북성동3가", "용유동", "을왕동", "덕교동", "무의동", "영종동", "운서동", "중산동"],
+                "동구": ["만석동", "화수1동", "화수2동", "송림1동", "송림2동", "송림3동", "송림4동", "송림5동", "송현1·2동", "송현3동", "화평1동", "화평2동", "창영동", "금곡동"],
+                "남동구": ["논현1동", "논현2동", "논현고잔동", "간석1동", "간석2동", "간석3동", "간석4동", "만수1동", "만수2동", "만수3동", "만수4동", "만수5동", "만수6동", "장수서창동", "구월1동", "구월2동", "구월3동", "구월4동", "서창1동", "남촌도림동"],
+                "부평구": ["부평1동", "부평2동", "부평3동", "부평4동", "부평5동", "부평6동", "산곡1동", "산곡2동", "산곡3동", "산곡4동", "청천1동", "청천2동", "갈산1동", "갈산2동", "삼산1동", "삼산2동", "부개1동", "부개2동", "부개3동", "일신동"],
+                "연수구": ["옥련1동", "옥련2동", "선학동", "연수1동", "연수2동", "연수3동", "청학동", "동춘1동", "동춘2동", "동춘3동", "송도1동", "송도2동", "송도3동", "송도4동", "송도5동"]
+            },
+            "광주": {
+                "동구": ["수기동", "지산1동", "지산2동", "황금1동", "황금2동", "동명동", "충장동", "대인동", "금남로1가", "금남로2가", "금남로3가", "금남로4가", "금남로5가", "계림1동", "계림2동", "산수1동", "산수2동", "학동", "용산동", "남동"],
+                "서구": ["양동", "농성1동", "농성2동", "광천동", "유덕동", "치평동", "서창동", "금호1동", "금호2동", "풍암동", "벽진동", "쌍촌동", "세하동", "내방동", "동천동"],
+                "남구": ["사직동", "월산동", "월산4동", "월산5동", "백운1동", "백운2동", "주월1동", "주월2동", "효덕동", "진월동", "대촌동", "양림동", "방림1동", "방림2동", "봉선1동", "봉선2동", "신장동", "구동", "송하동"],
+                "북구": ["중흥1동", "중흥2동", "중흥3동", "임동", "신안동", "용봉동", "동림동", "운암1동", "운암2동", "운암3동", "문흥1동", "문흥2동", "두암1동", "두암2동", "두암3동", "오치1동", "오치2동", "삼각동", "풍향동", "대촌동", "효덕동"],
+                "광산구": ["송정1동", "송정2동", "도산동", "하남동", "우산동", "월곡1동", "월곡2동", "비아동", "신창동", "운남동", "삼도동", "본량동", "쌍암동", "임곡동", "동곡동", "평동", "신가동", "신흥동", "어룡동", "수완동", "장덕동"]
+            },
+            "대전": {
+                "동구": ["중앙동", "신인동", "판암1동", "판암2동", "용운동", "자양동", "가양1동", "가양2동", "효동", "중동", "삼성동", "대동", "홍도동", "성남동", "사성동", "인동", "대별동", "마산동", "비룡동", "직동", "천동", "정동", "가오동"],
+                "중구": ["은행선화동", "목동", "중촌동", "대흥동", "문창동", "석교동", "대사동", "부사동", "용두동", "오류동", "태평1동", "태평2동", "유천1동", "유천2동", "문화1동", "문화2동", "산성동"],
+                "서구": ["복수동", "도마1동", "도마2동", "정림동", "변동", "용문동", "탄방동", "둔산1동", "둔산2동", "둔산3동", "월평1동", "월평2동", "월평3동", "만년동", "가장동", "내동", "갈마1동", "갈마2동", "용촌동", "기성동"],
+                "유성구": ["진잠동", "온천1동", "온천2동", "신성동", "원신흥동", "노은1동", "노은2동", "노은3동", "구즉동", "관평동", "어은동", "궁동", "상대동", "학하동", "덕진동", "반석동"],
+                "대덕구": ["오정동", "대화동", "회덕동", "비래동", "송촌동", "중리동", "법1동", "법2동", "신탄진동", "석봉동", "덕암동"]
+            },
+            "울산": {
+                "중구": ["성안동", "복산1동", "복산2동", "성남동", "유곡동", "우정동", "학성동", "반구1동", "반구2동", "태화동", "다운동", "약사동", "병영1동", "병영2동", "성안동"],
+                "남구": ["신정1동", "신정2동", "신정3동", "신정4동", "신정5동", "달동", "삼산동", "야음장생포동", "무거동", "옥동", "삼호동"],
+                "동구": ["방어동", "일산동", "화정동", "대송동", "전하1동", "전하2동", "남목1동", "남목2동", "서부동", "미포동"],
+                "북구": ["농소1동", "농소2동", "농소3동", "염포동", "매곡동", "송정동", "효문1동", "효문2동", "화봉동", "호계동", "중산동", "산하동", "양정동", "천곡동", "구유동", "무룡동", "청량동"],
+                "울주군": ["온산읍", "온양읍", "범서읍", "언양읍", "두동면", "두서면", "상북면", "삼남면", "삼동면", "서생면"]
+            },
+            "세종": {
+                "세종시": ["조치원읍", "연기면", "연동면", "부강면", "금남면", "장군면", "연서면", "전의면", "전동면", "소정면", "한솔동", "도담동", "아름동", "종촌동", "고운동", "보람동", "대평동", "소담동", "반곡동", "새롬동", "나성동", "다정동", "어진동", "해밀동", "온누리동"]
+            },
+            "경기": {
+                "수원시 장안구": ["파장동", "율천동", "정자1동", "정자2동", "정자3동", "영화동", "송죽동", "조원1동", "조원2동", "연무동"],
+                "수원시 권선구": ["세류1동", "세류2동", "세류3동", "평동", "서둔동", "구운동", "금곡동", "호매실동", "권선1동", "권선2동", "곡반정동", "입북동"],
+                "수원시 팔달구": ["매교동", "매산동", "고등동", "화서1동", "화서2동", "지동", "우만1동", "우만2동", "인계동", "영통1동"],
+                "수원시 영통구": ["매탄1동", "매탄2동", "매탄3동", "매탄4동", "원천동", "영통1동", "영통2동", "영통3동", "광교1동", "광교2동"],
+                "성남시 수정구": ["신흥1동", "신흥2동", "신흥3동", "태평1동", "태평2동", "태평3동", "태평4동", "수진1동", "수진2동", "단대동", "산성동", "양지동"],
+                "성남시 중원구": ["성남동", "중앙동", "금광1동", "금광2동", "은행1동", "은행2동", "상대원1동", "상대원2동", "상대원3동", "도촌동", "하대원동"],
+                "성남시 분당구": ["분당동", "수내1동", "수내2동", "수내3동", "정자동", "정자1동", "정자2동", "정자3동", "서현1동", "서현2동", "이매1동", "이매2동", "야탑1동", "야탑2동", "야탑3동", "금곡동", "구미동", "구미1동", "판교동", "삼평동", "백현동", "운중동"],
+                "용인시 처인구": ["김량장동", "남사면", "원삼면", "백암면", "양지면", "역북동", "삼가동", "포곡읍", "모현읍", "이동읍", "남동", "유방동", "고림동", "동부동", "중앙동"],
+                "용인시 기흥구": ["구갈동", "기흥동", "신갈동", "영덕1동", "영덕2동", "보정동", "상갈동", "동백1동", "동백2동", "동백3동", "마북동", "지곡동", "공세동"],
+                "용인시 수지구": ["풍덕천1동", "풍덕천2동", "신봉동", "죽전1동", "죽전2동", "동천동", "상현1동", "상현2동", "성복동"]
+            },
+            "강원": {
+                "춘천시": ["소양동", "후평1동", "후평2동", "후평3동", "효자1동", "효자2동", "효자3동", "석사동", "퇴계동", "약사명동", "조양동", "근화동", "온의동", "칠전동", "신동", "동내면", "동산면", "사북면", "서면", "신북읍", "남면", "남산면", "북산면"],
+                "원주시": ["중앙동", "원인동", "개운동", "명륜1동", "명륜2동", "단구동", "일산동", "학성동", "단계동", "우산동", "태장1동", "태장2동", "봉산동", "행구동", "무실동", "판부면", "부론면", "소초면", "호저면", "지정면", "문막읍", "신림면", "귀래면", "흥업면"],
+                "강릉시": ["홍제동", "중앙동", "옥천동", "교동", "포남1동", "포남2동", "성남동", "경포동", "강남동", "내곡동", "주문진읍", "성산면", "왕산면", "구정면", "사천면", "연곡면", "옥계면"],
+                "동해시": ["천곡동", "송정동", "북삼동", "삼화동", "망상동", "지가동", "괴란동", "북평동"],
+                "태백시": ["황지동", "황연동", "문곡동", "철암동", "장성동", "통동"],
+                "속초시": ["영랑동", "금호동", "동명동", "청학동", "노학동", "조양동", "대포동"],
+                "삼척시": ["교동", "정라동", "남양동", "성내동", "당저동", "근덕면", "노곡면", "미로면", "가곡면", "신기면", "하장면", "도계읍", "원덕읍"]
+            },
+            "충북": {
+                "청주시 상당구": ["중앙동", "성안동", "탑·대성동", "영운동", "금천동", "용담·명암·산성동", "낭성면", "미원면", "가덕면", "남일면", "문의면"],
+                "청주시 서원구": ["사직1동", "사직2동", "사창동", "모충동", "산남동", "분평동", "수곡1동", "수곡2동", "성화·개신·죽림동", "南이·수의동"],
+                "청주시 흥덕구": ["운천·신봉동", "가경동", "복대1동", "복대2동", "봉명1동", "봉명2·송정동", "강서1동", "강서2동", "비하동", "옥산면", "강내면", "오송읍"],
+                "청주시 청원구": ["우암동", "내덕1동", "내덕2동", "율량·사천동", "오창읍", "내수읍", "북이면", "오송읍"],
+                "충주시": ["성내동", "교현·안림동", "용산동", "칠금·금릉동", "호암동", "연수동", "문화동", "목행·용탄동", "지현동", "봉방동", "직동", "달천동", "충인동", "대소원면", "신니면", "노은면", "앙성면", "중앙탑면", "수안보면", "엄정면", "소태면", "산척면", "금가면"],
+                "제천시": ["의림지동", "중앙로1동", "중앙로2동", "영서동", "신백동", "청전동", "화산동", "명동", "고명동", "송학면", "덕산면", "백운면", "봉양읍", "금성면", "청풍면", "수산면"]
+            },
+            "충남": {
+                "천안시 동남구": ["중앙동", "문화동", "대흥동", "사직동", "오룡동", "원성1동", "원성2동", "청당동", "신부동", "일봉동", "봉명동", "구성동", "안서동", "광덕면", "풍세면", "북면", "성남면", "수신면", "병천면"],
+                "천안시 서북구": ["백석동", "성정1동", "성정2동", "쌍용1동", "쌍용2동", "쌍용3동", "성거읍", "직산읍", "성환읍", "입장면", "차암동"],
+                "공주시": ["중학동", "웅진동", "금성동", "신관동", "반죽동", "금학동", "장기면", "반포면", "의당면", "정안면", "우성면", "사곡면", "계룡면", "신풍면", "유구읍", "이인면", "탄천면"],
+                "보령시": ["동대동", "서림동", "대천1동", "대천2동", "대천3동", "대천4동", "대천5동", "주포면", "오천면", "웅천읍", "주산면", "청소면", "천북면", "청라면", "남포면", "주교면", "미산면"],
+                "아산시": ["온천1동", "온천2동", "배방읍", "염치읍", "신창면", "탕정면", "음봉면", "둔포면", "영인면", "인주면", "선장면", "도고면", "신창면"]
+            },
+            "전북": {
+                "전주시 완산구": ["중앙동", "풍남동", "동서학동", "노송동", "서신동", "중화산1동", "중화산2동", "삼천1동", "삼천2동", "삼천3동", "효자1동", "효자2동", "효자3동", "효자4동", "효자5동", "평화1동", "평화2동"],
+                "전주시 덕진구": ["진북동", "인후1동", "인후2동", "인후3동", "덕진동", "금암1동", "금암2동", "팔복동", "우아1동", "우아2동", "호성동", "송천1동", "송천2동", "여의동", "동산동", "만성동", "화전동", "장동"],
+                "군산시": ["중앙로1가", "중앙로2가", "중앙로3가", "명산동", "월명동", "해신동", "흥남동", "조촌동", "개복동", "금동", "나운1동", "나운2동", "나운3동", "소룡동", "미장동", "수송동", "옥구읍", "옥서면", "회현면", "임피면", "서수면", "대야면", "개정면", "성산면", "나포면"],
+                "익산시": ["중앙동", "남중동", "평화동", "모현동", "인화동", "마동", "송학동", "영등1동", "영등2동", "어양동", "함열읍", "오산면", "황등면", "함라면", "웅포면", "성당면", "용안면", "왕궁면", "망성면", "춘포면", "금마면", "여산면"],
+                "정읍시": ["수성동", "장명동", "내장상동", "시기동", "연지동", "농소동", "흑암동", "초산동", "상평동", "공평동", "신정동", "신태인읍", "북면", "입암면", "소성면", "고부면", "영원면", "덕천면", "이평면", "태인면", "감곡면", "옹동면", "칠보면", "산내면", "산외면"]
+            },
+            "전남": {
+                "목포시": ["죽교동", "호남동", "온금동", "무안동", "유달동", "만호동", "용당1동", "용당2동", "산정동", "대성동", "연산동", "이로동", "삼학동", "삼향동", "하당동", "북항동"],
+                "여수시": ["중앙동", "광림동", "서강동", "대교동", "문수동", "동산동", "국동", "충무동", "여서동", "여천동", "미평동", "둔덕동", "만흥동", "삼일동", "소라면", "율촌면", "화양면", "남면", "화정면", "삼산면"],
+                "순천시": ["장천동", "조례동", "중앙동", "저전동", "덕월동", "매곡동", "연향·석현동", "조곡동", "풍덕동", "왕조1동", "왕조2동", "법원·왕지동", "생목동", "해룡면", "황전면", "월등면", "별량면", "상사면", "승주읍", "주암면", "송광면", "외서면", "낙안면"],
+                "나주시": ["산포면", "빛가람동", "송월동", "금천면", "남평읍", "세지면", "다시면", "공산면", "동강면", "다도면", "문평면", "노안면", "왕곡면", "반남면", "봉황면"],
+                "광양시": ["중마동", "광영동", "골약동", "태인동", "금호동", "황금동", "성황동", "옥곡면", "진상면", "진월면", "다압면", "봉강면"]
+            },
+            "경북": {
+                "포항시 남구": ["상도동", "중앙동", "해도동", "송도동", "효자동", "대도동", "동촌동", "오천읍", "대송면", "동해면", "구룡포읍", "호미곶면", "연일읍", "대이동", "청림동", "장량동"],
+                "포항시 북구": ["죽도동", "중앙동", "우현동", "학산동", "양학동", "창포동", "대흥동", "용흥동", "두호동", "장성동", "송라면", "신광면", "청하면", "송라면", "기계면", "기북면", "죽장면"],
+                "경주시": ["성동동", "중앙동", "황남동", "월성동", "동부동", "서부동", "남산동", "동천동", "불국동", "외동읍", "건천읍", "감포읍", "안강읍", "양남면", "양북면", "천북면", "내남면", "산내면", "현곡면"],
+                "구미시": ["송정동", "원평1동", "원평2동", "지산동", "형곡1동", "형곡2동", "신평1동", "신평2동", "비산동", "공단1동", "공단2동", "광평동", "상모사곡동", "임수동", "인의동", "진미동", "도량동", "선산읍", "고아읍", "선주원남동", "무을면", "옥성면", "도개면", "해평면", "산동면", "장천면"],
+                "김천시": ["평화남산동", "평화동", "삼락동", "양금동", "대항면", "감문면", "아포읍", "지례면", "부항면", "대덕면", "남면", "개령면", "어모면", "봉산면", "증산면"]
+            },
+            "경남": {
+                "창원시 의창구": ["의창동", "팔용동", "사림동", "대산면", "동읍", "북면"],
+                "창원시 성산구": ["상남동", "사파동", "성주동", "중앙동", "웅남동", "남양동", "가음정동"],
+                "창원시 마산합포구": ["오동동", "신포동1가", "신포동2가", "산호동", "추산동", "완월동", "월남동", "문화동", "자산동", "월포동", "교방동", "진북면", "진동면", "진전면"],
+                "창원시 마산회원구": ["회원1동", "회원2동", "석전동", "회성동", "양덕1동", "양덕2동", "합성1동", "합성2동", "구암1동", "구암2동", "봉암동", "내서읍"],
+                "창원시 진해구": ["태백동", "문화동", "충무동", "여좌동", "경화동", "석동", "이동", "덕산동", "제덕동", "웅천동", "웅동1동", "웅동2동"],
+                "진주시": ["중앙동", "상대동", "상봉동", "성북동", "칠암동", "평거동", "신안동", "이현동", "판문동", "가좌동", "상평동", "하대동", "초장동", "수곡면", "대곡면", "금산면", "집현면", "미천면", "일반성면", "이반성면", "사봉면", "지수면", "대평면", "문산읍", "내동면", "정촌면", "금곡면", "진성면", "일반성면", "명석면"]
+            },
+            "제주": {
+                "제주시": ["일도1동", "일도2동", "이도1동", "이도2동", "삼도1동", "삼도2동", "용담1동", "용담2동", "건입동", "화북동", "삼양동", "봉개동", "아라동", "오라동", "연동", "노형동", "외도동", "이호동", "도두동", "한림읍", "애월읍", "구좌읍", "조천읍", "한경면", "추자면", "우도면"],
+                "서귀포시": ["서귀동", "서호동", "송산동", "정방동", "중앙동", "천지동", "효돈동", "영천동", "동홍동", "서호동", "대륜동", "대천동", "중문동", "예래동", "하원동", "도순동", "회수동", "남원읍", "성산읍", "안덕면", "대정읍", "표선면"]
+            }
+        };
 
         // 상품 목록 데이터 (12개)
         const giftProducts = [
@@ -1163,37 +1344,168 @@
             if (currentPointsEl) currentPointsEl.textContent = points.toLocaleString();
         }
 
+        // 3단계 지역 선택: 시군구 업데이트
+        function updateGungu(type) {
+            const sidoId = type === 'reg' ? 'regSido' : 'surveyTargetSido';
+            const gunguId = type === 'reg' ? 'regGungu' : 'surveyTargetGungu';
+            const dongId = type === 'reg' ? 'regDong' : 'surveyTargetDong';
+
+            const sido = document.getElementById(sidoId).value;
+            const gunguSelect = document.getElementById(gunguId);
+            const dongSelect = document.getElementById(dongId);
+
+            // 시군구 초기화
+            gunguSelect.innerHTML = type === 'reg' ? '<option value="">선택하세요</option>' : '<option value="">전체</option>';
+            dongSelect.innerHTML = type === 'reg' ? '<option value="">먼저 시군구를 선택하세요</option>' : '<option value="">전체</option>';
+            dongSelect.disabled = true;
+
+            if (sido && regionData[sido]) {
+                gunguSelect.disabled = false;
+                const gungus = Object.keys(regionData[sido]);
+                gungus.forEach(gungu => {
+                    const option = document.createElement('option');
+                    option.value = gungu;
+                    option.textContent = gungu;
+                    gunguSelect.appendChild(option);
+                });
+            } else {
+                gunguSelect.disabled = type === 'reg';
+            }
+        }
+
+        // 3단계 지역 선택: 읍면동 업데이트
+        function updateDong(type) {
+            const sidoId = type === 'reg' ? 'regSido' : 'surveyTargetSido';
+            const gunguId = type === 'reg' ? 'regGungu' : 'surveyTargetGungu';
+            const dongId = type === 'reg' ? 'regDong' : 'surveyTargetDong';
+
+            const sido = document.getElementById(sidoId).value;
+            const gungu = document.getElementById(gunguId).value;
+            const dongSelect = document.getElementById(dongId);
+
+            dongSelect.innerHTML = type === 'reg' ? '<option value="">선택하세요</option>' : '<option value="">전체</option>';
+
+            if (sido && gungu && regionData[sido] && regionData[sido][gungu]) {
+                dongSelect.disabled = false;
+                const dongs = regionData[sido][gungu];
+                dongs.forEach(dong => {
+                    const option = document.createElement('option');
+                    option.value = dong;
+                    option.textContent = dong;
+                    dongSelect.appendChild(option);
+                });
+            } else {
+                dongSelect.disabled = type === 'reg';
+            }
+        }
+
+        // 전화번호 인증번호 발송
+        function sendVerificationCode() {
+            const phone = document.getElementById('regPhone').value;
+            if (!phone) {
+                alert('전화번호를 입력해주세요.');
+                return;
+            }
+            if (!/^010-\d{4}-\d{4}$/.test(phone)) {
+                alert('전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)');
+                return;
+            }
+
+            // 6자리 랜덤 인증번호 생성
+            verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+            isPhoneVerified = false;
+
+            // 실제로는 SMS API를 호출하지만, 데모에서는 콘솔에 출력
+            console.log('인증번호:', verificationCode);
+            alert(`인증번호가 발송되었습니다!\n\n[데모용] 인증번호: ${verificationCode}\n\n실제 서비스에서는 SMS로 전송됩니다.`);
+
+            // 인증번호 입력 필드 표시
+            document.getElementById('verificationGroup').style.display = 'block';
+            document.getElementById('verificationStatus').textContent = '인증번호를 입력하고 "인증 확인"을 클릭하세요.';
+            document.getElementById('verificationStatus').style.color = '#666';
+        }
+
+        // 전화번호 인증번호 확인
+        function verifyCode() {
+            const inputCode = document.getElementById('regVerificationCode').value;
+            const statusEl = document.getElementById('verificationStatus');
+
+            if (!inputCode) {
+                alert('인증번호를 입력해주세요.');
+                return;
+            }
+
+            if (inputCode === verificationCode) {
+                isPhoneVerified = true;
+                statusEl.textContent = '✅ 인증 완료!';
+                statusEl.style.color = '#28a745';
+                alert('✅ 전화번호 인증이 완료되었습니다!');
+            } else {
+                isPhoneVerified = false;
+                statusEl.textContent = '❌ 인증번호가 일치하지 않습니다.';
+                statusEl.style.color = '#dc3545';
+                alert('❌ 인증번호가 일치하지 않습니다. 다시 확인해주세요.');
+            }
+        }
+
         function register() {
             const name = document.getElementById('regName').value;
             const email = document.getElementById('regEmail').value;
             const password = document.getElementById('regPassword').value;
             const phone = document.getElementById('regPhone').value;
             const birthDate = document.getElementById('regBirthDate').value;
-            const region = document.getElementById('regRegion').value;
+            const sido = document.getElementById('regSido').value;
+            const gungu = document.getElementById('regGungu').value;
+            const dong = document.getElementById('regDong').value;
             const job = document.getElementById('regJob').value;
+            const privacyConsent = document.getElementById('regPrivacyConsent').checked;
 
-            if (!name || !email || !password || !phone || !birthDate || !region || !job) {
-                document.getElementById('registerMessage').innerHTML = '<div class="error-msg">모든 항목을 입력해주세요.</div>';
+            // 필수 항목 체크
+            if (!name || !email || !password || !phone || !birthDate || !sido || !gungu || !dong || !job) {
+                document.getElementById('registerMessage').innerHTML = '<div class="error-msg">모든 필수 항목(*)을 입력해주세요.</div>';
                 return;
             }
+
             if (password.length < 8) {
                 document.getElementById('registerMessage').innerHTML = '<div class="error-msg">비밀번호는 8자 이상이어야 합니다.</div>';
                 return;
             }
 
+            // 전화번호 인증 체크
+            if (!isPhoneVerified) {
+                document.getElementById('registerMessage').innerHTML = '<div class="error-msg">전화번호 인증을 완료해주세요.</div>';
+                return;
+            }
+
+            // 개인정보 동의 체크
+            if (!privacyConsent) {
+                document.getElementById('registerMessage').innerHTML = '<div class="error-msg">개인정보 수집 및 이용에 동의해주세요.</div>';
+                return;
+            }
+
+            // 이메일 중복 체크 (전화번호 중복은 허용)
             const users = JSON.parse(localStorage.getItem('users') || '[]');
             if (users.find(u => u.email === email)) {
                 document.getElementById('registerMessage').innerHTML = '<div class="error-msg">이미 등록된 이메일입니다.</div>';
                 return;
             }
 
+            // 회원 정보 저장
             users.push({
                 id: Date.now().toString(),
-                name, email, password, phone, birthDate, region, job,
+                name, email, password, phone, birthDate,
+                sido, gungu, dong,
+                region: `${sido} ${gungu} ${dong}`,
+                job,
                 points: 1000,
                 createdAt: new Date().toISOString()
             });
             localStorage.setItem('users', JSON.stringify(users));
+
+            // 인증 상태 초기화
+            isPhoneVerified = false;
+            verificationCode = '';
+
             document.getElementById('registerMessage').innerHTML = '<div class="success-msg">🎉 회원가입 완료! 1,000P 지급!</div>';
             setTimeout(() => showLogin(), 2000);
         }
@@ -1719,8 +2031,46 @@
                     el.setAttribute('contenteditable', 'true');
                 });
 
+                // 모든 텍스트 요소를 편집 가능하게 (확장)
+                const editableSelectors = [
+                    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',  // 모든 헤더
+                    '.logo',  // 로고
+                    '.welcome p',  // 웰컴 스크린 텍스트
+                    '.card h2',  // 카드 제목들
+                    '.stat-label',  // 통계 카드 라벨
+                    '.survey-title',  // 설문 제목
+                    '.survey-desc',  // 설문 설명
+                    '.product-name',  // 상품 이름
+                    '.product-desc',  // 상품 설명
+                    'label:not([style*="cursor: pointer"])',  // 폼 라벨 (체크박스 라벨 제외)
+                    '.user-info',  // 사용자 정보
+                    'p:not(.survey-desc):not([style*="cursor"])',  // 일반 문단
+                    '.tab',  // 탭 버튼
+                    'button:not(.btn-small):not([onclick*="toggle"]):not([onclick*="send"]):not([onclick*="verify"])',  // 버튼 (기능 버튼 제외)
+                    '.badge',  // 배지
+                    '.version-info',  // 버전 정보
+                    '.success-msg',  // 성공 메시지
+                    '.error-msg'  // 에러 메시지
+                ];
+
+                editableSelectors.forEach(selector => {
+                    document.querySelectorAll(selector).forEach(el => {
+                        // 이미 contenteditable이 아닌 요소만 편집 가능하게
+                        if (el.getAttribute('contenteditable') !== 'true') {
+                            el.classList.add('editable');
+                            el.setAttribute('contenteditable', 'true');
+                            el.style.border = '1px dashed #667eea';
+                            el.style.padding = '2px';
+                            el.style.borderRadius = '3px';
+                            el.style.outline = 'none';
+                        }
+                    });
+                });
+
                 // 링크 잠금 버튼 활성화
                 document.getElementById('linkLockBtn').disabled = false;
+
+                alert('✏️ 비주얼 수정 모드가 활성화되었습니다!\n\n파란색 점선이 있는 모든 요소를 클릭하여 수정할 수 있습니다.');
             } else {
                 editModeText.textContent = '비주얼 수정 모드 활성화';
                 editModeTextNav.textContent = '✏️ 편집모드';
@@ -1733,6 +2083,9 @@
                 document.querySelectorAll('[contenteditable="true"]').forEach(el => {
                     el.classList.remove('editable');
                     el.setAttribute('contenteditable', 'false');
+                    el.style.border = '';
+                    el.style.padding = '';
+                    el.style.borderRadius = '';
                 });
 
                 // 링크 잠금도 해제
