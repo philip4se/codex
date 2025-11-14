@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>방치형 RPG 게임</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .game-header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .game-header h1 {
+            font-size: 36px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .stage-info {
+            font-size: 18px;
+            color: #ffeb3b;
+        }
+
+        .main-game {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .side-panel {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .center-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .battlefield {
+            min-height: 400px;
+            position: relative;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .team-container {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+
+        .character-slot {
+            width: 80px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #666;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .character-slot:hover {
+            border-color: #4CAF50;
+            transform: scale(1.05);
+        }
+
+        .character-slot.active {
+            border-color: #4CAF50;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+        }
+
+        .character-sprite {
+            width: 48px;
+            height: 48px;
+            image-rendering: pixelated;
+            margin-bottom: 5px;
+        }
+
+        .character-hp-bar {
+            width: 90%;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .character-hp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+            transition: width 0.3s;
+        }
+
+        .character-mp-bar {
+            width: 90%;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 2px;
+        }
+
+        .character-mp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2980b9);
+            transition: width 0.3s;
+        }
+
+        .character-name {
+            font-size: 10px;
+            color: #fff;
+            text-align: center;
+        }
+
+        .character-level {
+            font-size: 9px;
+            color: #ffeb3b;
+        }
+
+        .enemy-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .enemy-slot {
+            width: 70px;
+            height: 90px;
+            background: rgba(255, 0, 0, 0.1);
+            border: 2px solid #e74c3c;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .enemy-sprite {
+            width: 40px;
+            height: 40px;
+            image-rendering: pixelated;
+        }
+
+        .battle-log {
+            height: 150px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 12px;
+            margin-bottom: 20px;
+        }
+
+        .battle-log-entry {
+            margin-bottom: 5px;
+            padding: 3px;
+            border-left: 3px solid #4CAF50;
+            padding-left: 8px;
+        }
+
+        .battle-log-entry.damage {
+            border-left-color: #e74c3c;
+        }
+
+        .battle-log-entry.heal {
+            border-left-color: #2ecc71;
+        }
+
+        .battle-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(56, 239, 125, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            color: #ffeb3b;
+        }
+
+        .character-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .character-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .character-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .character-card.selected {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.2);
+        }
+
+        .character-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .character-stats {
+            font-size: 11px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+        }
+
+        .stat-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 3px 6px;
+            border-radius: 3px;
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .item-slot {
+            aspect-ratio: 1;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #666;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .item-slot:hover {
+            border-color: #4CAF50;
+        }
+
+        .item-slot.rare {
+            border-color: #3498db;
+        }
+
+        .item-slot.epic {
+            border-color: #9b59b6;
+        }
+
+        .item-slot.legendary {
+            border-color: #f39c12;
+        }
+
+        .item-count {
+            position: absolute;
+            bottom: 2px;
+            right: 4px;
+            font-size: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+
+        .stage-select {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stage-zone {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .stage-zone:hover {
+            transform: scale(1.05);
+            border-color: #4CAF50;
+        }
+
+        .stage-zone.active {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.3);
+        }
+
+        .stage-zone.locked {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .substage-select {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .substage-btn {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+        }
+
+        .substage-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .substage-btn.active {
+            border-color: #ffeb3b;
+            background: rgba(255, 235, 59, 0.2);
+        }
+
+        .substage-btn.locked {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #ffeb3b;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 10px;
+        }
+
+        .class-select-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .class-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .class-card:hover {
+            border-color: #4CAF50;
+            transform: scale(1.05);
+        }
+
+        .class-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .class-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .class-stats {
+            font-size: 12px;
+            text-align: left;
+        }
+
+        .damage-number {
+            position: absolute;
+            font-size: 20px;
+            font-weight: bold;
+            animation: floatUp 1s ease-out forwards;
+            pointer-events: none;
+        }
+
+        .damage-number.damage {
+            color: #e74c3c;
+        }
+
+        .damage-number.heal {
+            color: #2ecc71;
+        }
+
+        .damage-number.crit {
+            color: #f39c12;
+            font-size: 28px;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+        }
+
+        .skill-indicator {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap;
+            animation: fadeOut 2s forwards;
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .equipment-slots {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .equipment-slot {
+            aspect-ratio: 1;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #666;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .equipment-slot:hover {
+            border-color: #4CAF50;
+        }
+
+        .equipment-label {
+            font-size: 10px;
+            color: #aaa;
+            margin-top: 5px;
+        }
+
+        .crafting-materials {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .material-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            padding: 8px;
+            text-align: center;
+            font-size: 11px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .tab.active {
+            background: rgba(76, 175, 80, 0.3);
+            border-color: #4CAF50;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .stat-points-available {
+            background: rgba(255, 235, 59, 0.2);
+            border: 2px solid #ffeb3b;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .stat-allocation {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .stat-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .stat-btn {
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(76, 175, 80, 0.5);
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-btn:hover {
+            background: rgba(76, 175, 80, 0.8);
+        }
+
+        .stat-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        @keyframes attack-flash {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(2); }
+        }
+
+        .attacking {
+            animation: attack-flash 0.5s;
+        }
+
+        .taking-damage {
+            animation: shake 0.3s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Header -->
+        <div class="game-header">
+            <h1>⚔️ 방치형 RPG 게임 ⚔️</h1>
+            <div class="stage-info">
+                <span id="current-stage">구역: A-1</span> |
+                <span id="gold-display">골드: 0</span> |
+                <span id="auto-battle-status">자동 전투: OFF</span>
+            </div>
+        </div>
+
+        <!-- Main Game Area -->
+        <div class="main-game">
+            <!-- Left Panel: Party Management -->
+            <div class="side-panel">
+                <div class="panel-title">파티 관리</div>
+                <div class="character-list" id="party-list"></div>
+                <button class="btn btn-primary" onclick="game.showCharacterCreation()" style="width: 100%; margin-top: 15px;">
+                    새 캐릭터 추가
+                </button>
+            </div>
+
+            <!-- Center Panel: Battle Area -->
+            <div class="center-panel">
+                <!-- Stage Selection -->
+                <div class="panel-title">스테이지 선택</div>
+                <div class="stage-select" id="zone-select"></div>
+                <div class="substage-select" id="substage-select"></div>
+
+                <!-- Battlefield -->
+                <div class="battlefield">
+                    <div class="team-container" id="player-team"></div>
+                    <div style="text-align: center; margin: 20px 0; font-size: 24px;">⚔️ VS ⚔️</div>
+                    <div class="enemy-container" id="enemy-team"></div>
+                </div>
+
+                <!-- Battle Log -->
+                <div class="battle-log" id="battle-log"></div>
+
+                <!-- Battle Controls -->
+                <div class="battle-controls">
+                    <button class="btn btn-success" onclick="game.startBattle()" id="battle-btn">전투 시작</button>
+                    <button class="btn btn-primary" onclick="game.toggleAutoBattle()" id="auto-battle-btn">자동 전투</button>
+                    <button class="btn btn-danger" onclick="game.saveGame()">저장</button>
+                    <button class="btn btn-primary" onclick="game.loadGame()">불러오기</button>
+                </div>
+            </div>
+
+            <!-- Right Panel: Inventory & Crafting -->
+            <div class="side-panel">
+                <div class="tabs">
+                    <div class="tab active" onclick="game.switchTab('inventory')">인벤토리</div>
+                    <div class="tab" onclick="game.switchTab('crafting')">제작</div>
+                </div>
+
+                <div id="inventory-tab" class="tab-content active">
+                    <div class="panel-title">수집한 재료</div>
+                    <div class="inventory-grid" id="materials-grid"></div>
+                </div>
+
+                <div id="crafting-tab" class="tab-content">
+                    <div class="panel-title">아이템 제작</div>
+                    <div id="crafting-recipes"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Character Creation Modal -->
+    <div class="modal" id="character-creation-modal">
+        <div class="modal-content">
+            <div class="modal-header">새 캐릭터 생성</div>
+            <label>이름: <input type="text" id="char-name-input" style="padding: 5px; margin-left: 10px;"></label>
+            <div class="class-select-grid" id="class-select"></div>
+        </div>
+    </div>
+
+    <!-- Character Detail Modal -->
+    <div class="modal" id="character-detail-modal">
+        <div class="modal-content">
+            <div class="modal-header" id="char-detail-header">캐릭터 상세</div>
+            <div id="char-detail-content"></div>
+            <button class="btn btn-danger" onclick="game.closeModal('character-detail-modal')" style="width: 100%; margin-top: 20px;">닫기</button>
+        </div>
+    </div>
+
+    <script>
+        // Game Data & Constants
+        const CLASSES = {
+            knight: {
+                name: '기사',
+                icon: '🛡️',
+                stats: { str: 10, dex: 4, int: 4, hp: 10, mp: 4 },
+                skills: [
+                    { name: '강타', power: 1.5, target: 'single', type: 'physical' },
+                    { name: '방어 태세', power: 0.5, target: 'self', type: 'buff', effect: 'defense' }
+                ]
+            },
+            archer: {
+                name: '궁수',
+                icon: '🏹',
+                stats: { str: 6, dex: 10, int: 6, hp: 6, mp: 6 },
+                skills: [
+                    { name: '정밀 사격', power: 2.0, target: 'single', type: 'physical' },
+                    { name: '다중 사격', power: 0.8, target: 'all', type: 'physical' }
+                ]
+            },
+            priest: {
+                name: '성직자',
+                icon: '✝️',
+                stats: { str: 8, dex: 4, int: 8, hp: 8, mp: 8 },
+                skills: [
+                    { name: '신성한 빛', power: 1.2, target: 'single', type: 'magic' },
+                    { name: '치유', power: 1.5, target: 'ally', type: 'heal' }
+                ]
+            },
+            rogue: {
+                name: '도적',
+                icon: '🗡️',
+                stats: { str: 8, dex: 8, int: 6, hp: 6, mp: 6 },
+                skills: [
+                    { name: '급소 공격', power: 1.8, target: 'single', type: 'physical' },
+                    { name: '회피', power: 0, target: 'self', type: 'buff', effect: 'evasion' }
+                ]
+            },
+            druid: {
+                name: '드루이드',
+                icon: '🌿',
+                stats: { str: 8, dex: 6, int: 6, hp: 8, mp: 4 },
+                skills: [
+                    { name: '야수 변신', power: 0, target: 'self', type: 'buff', effect: 'transform' },
+                    { name: '자연의 분노', power: 1.3, target: 'all', type: 'magic' }
+                ]
+            },
+            mage: {
+                name: '법사',
+                icon: '🔮',
+                stats: { str: 4, dex: 4, int: 10, hp: 6, mp: 10 },
+                skills: [
+                    { name: '화염구', power: 1.6, target: 'all', type: 'magic' },
+                    { name: '독구름', power: 0.5, target: 'all', type: 'magic', effect: 'dot' }
+                ]
+            },
+            healer: {
+                name: '치료사',
+                icon: '💊',
+                stats: { str: 4, dex: 4, int: 10, hp: 6, mp: 10 },
+                skills: [
+                    { name: '대치유', power: 2.0, target: 'ally', type: 'heal' },
+                    { name: '축복', power: 0, target: 'ally', type: 'buff', effect: 'bless' }
+                ]
+            }
+        };
+
+        const ZONES = {
+            a: { name: '얼어붙은 빙하', theme: 'ice', color: '#7ec8e3' },
+            b: { name: '작열하는 용암', theme: 'lava', color: '#ff6b35' },
+            c: { name: '신비로운 숲', theme: 'forest', color: '#52b788' },
+            d: { name: '깊은 바다', theme: 'ocean', color: '#2a9d8f' },
+            e: { name: '어둠의 성채', theme: 'dark', color: '#6a4c93' }
+        };
+
+        const MATERIALS = {
+            ice: ['얼음 조각', '서리 결정', '빙하석'],
+            lava: ['용암석', '화염 정수', '마그마 핵'],
+            forest: ['목재', '나뭇가지', '신선한 과일'],
+            ocean: ['진주', '뱃조각', '돗대'],
+            dark: ['어둠의 정수', '망자의 뼈', '저주받은 수정']
+        };
+
+        // Main Game Object
+        const game = {
+            party: [],
+            currentZone: 'a',
+            currentStage: 1,
+            unlockedZones: ['a'],
+            unlockedStages: { a: 1, b: 1, c: 1, d: 1, e: 1 },
+            materials: {},
+            gold: 0,
+            autoBattle: false,
+            inBattle: false,
+            enemies: [],
+
+            init() {
+                this.renderZoneSelect();
+                this.renderSubstageSelect();
+                this.renderPartyList();
+                this.renderMaterials();
+                this.renderCrafting();
+                this.updateDisplay();
+
+                // Initialize materials
+                Object.values(MATERIALS).flat().forEach(mat => {
+                    this.materials[mat] = 0;
+                });
+
+                // Create initial character
+                this.addCharacter('knight', '기본 기사');
+            },
+
+            addCharacter(classId, name) {
+                if (this.party.length >= 5) {
+                    this.addLog('파티는 최대 5명까지만 가능합니다.');
+                    return;
+                }
+
+                const classData = CLASSES[classId];
+                const character = {
+                    id: Date.now(),
+                    name: name,
+                    class: classId,
+                    level: 1,
+                    exp: 0,
+                    expToNext: 100,
+                    stats: { ...classData.stats },
+                    baseStats: { ...classData.stats },
+                    currentHp: classData.stats.hp * 10,
+                    maxHp: classData.stats.hp * 10,
+                    currentMp: classData.stats.mp * 10,
+                    maxMp: classData.stats.mp * 10,
+                    skills: [...classData.skills],
+                    equipment: {},
+                    availableStats: 0,
+                    personality: this.generatePersonality()
+                };
+
+                this.party.push(character);
+                this.renderPartyList();
+                this.addLog(`${name}(${classData.name})이(가) 파티에 합류했습니다!`);
+            },
+
+            generatePersonality() {
+                const traits = ['용감한', '신중한', '무모한', '지혜로운', '행운의'];
+                return traits[Math.floor(Math.random() * traits.length)];
+            },
+
+            showCharacterCreation() {
+                const modal = document.getElementById('character-creation-modal');
+                const classSelect = document.getElementById('class-select');
+
+                classSelect.innerHTML = '';
+                Object.keys(CLASSES).forEach(classId => {
+                    const classData = CLASSES[classId];
+                    const card = document.createElement('div');
+                    card.className = 'class-card';
+                    card.innerHTML = `
+                        <div class="class-icon">${classData.icon}</div>
+                        <div class="class-name">${classData.name}</div>
+                        <div class="class-stats">
+                            힘: ${classData.stats.str} | 민첩: ${classData.stats.dex}<br>
+                            지력: ${classData.stats.int} | HP: ${classData.stats.hp}<br>
+                            MP: ${classData.stats.mp}
+                        </div>
+                    `;
+                    card.onclick = () => {
+                        const name = document.getElementById('char-name-input').value || `${classData.name}${this.party.length + 1}`;
+                        this.addCharacter(classId, name);
+                        this.closeModal('character-creation-modal');
+                        document.getElementById('char-name-input').value = '';
+                    };
+                    classSelect.appendChild(card);
+                });
+
+                modal.classList.add('active');
+            },
+
+            closeModal(modalId) {
+                document.getElementById(modalId).classList.remove('active');
+            },
+
+            renderPartyList() {
+                const container = document.getElementById('party-list');
+                container.innerHTML = '';
+
+                this.party.forEach(char => {
+                    const classData = CLASSES[char.class];
+                    const card = document.createElement('div');
+                    card.className = 'character-card';
+                    card.innerHTML = `
+                        <div class="character-info">
+                            <div>
+                                <span style="font-size: 20px;">${classData.icon}</span>
+                                <strong>${char.name}</strong> (Lv.${char.level})
+                            </div>
+                            <div style="font-size: 11px;">${char.personality}</div>
+                        </div>
+                        <div class="character-stats">
+                            <div class="stat-item">HP: ${char.currentHp}/${char.maxHp}</div>
+                            <div class="stat-item">MP: ${char.currentMp}/${char.maxMp}</div>
+                            <div class="stat-item">힘: ${char.stats.str}</div>
+                            <div class="stat-item">민첩: ${char.stats.dex}</div>
+                            <div class="stat-item">지력: ${char.stats.int}</div>
+                            <div class="stat-item">EXP: ${char.exp}/${char.expToNext}</div>
+                        </div>
+                        ${char.availableStats > 0 ? `<div style="color: #ffeb3b; margin-top: 5px; font-size: 11px;">스탯 포인트: ${char.availableStats}</div>` : ''}
+                    `;
+                    card.onclick = () => this.showCharacterDetail(char);
+                    container.appendChild(card);
+                });
+            },
+
+            showCharacterDetail(char) {
+                const modal = document.getElementById('character-detail-modal');
+                const header = document.getElementById('char-detail-header');
+                const content = document.getElementById('char-detail-content');
+
+                const classData = CLASSES[char.class];
+
+                header.innerHTML = `${classData.icon} ${char.name} (Lv.${char.level})`;
+
+                let html = `
+                    <div style="margin-bottom: 20px;">
+                        <strong>직업:</strong> ${classData.name} | <strong>성격:</strong> ${char.personality}
+                    </div>
+                `;
+
+                if (char.availableStats > 0) {
+                    html += `
+                        <div class="stat-points-available">
+                            <strong>사용 가능한 스탯 포인트: ${char.availableStats}</strong>
+                        </div>
+                        <div class="stat-allocation">
+                            ${this.renderStatAllocation(char)}
+                        </div>
+                    `;
+                }
+
+                html += `
+                    <div style="margin-top: 20px;">
+                        <strong>스킬:</strong><br>
+                        ${char.skills.map(skill => `• ${skill.name} (${skill.type})`).join('<br>')}
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <strong>경험치:</strong> ${char.exp} / ${char.expToNext}
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${(char.exp / char.expToNext) * 100}%">
+                                ${Math.floor((char.exp / char.expToNext) * 100)}%
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                if (char.level >= 30) {
+                    html += `
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 20px;" onclick="game.promoteCharacter(${char.id})">
+                            전직하기 (Lv.1로 초기화, 스탯 유지)
+                        </button>
+                    `;
+                }
+
+                content.innerHTML = html;
+                modal.classList.add('active');
+            },
+
+            renderStatAllocation(char) {
+                const stats = ['str', 'dex', 'int', 'hp', 'mp'];
+                const statNames = { str: '힘', dex: '민첩', int: '지력', hp: '생명력', mp: '마력' };
+
+                return stats.map(stat => `
+                    <div class="stat-row">
+                        <span>${statNames[stat]}: ${char.stats[stat]}</span>
+                        <div class="stat-controls">
+                            <button class="stat-btn" onclick="game.allocateStat(${char.id}, '${stat}', -1)" ${char.stats[stat] <= char.baseStats[stat] ? 'disabled' : ''}>-</button>
+                            <button class="stat-btn" onclick="game.allocateStat(${char.id}, '${stat}', 1)" ${char.availableStats <= 0 ? 'disabled' : ''}>+</button>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            allocateStat(charId, stat, amount) {
+                const char = this.party.find(c => c.id === charId);
+                if (!char) return;
+
+                if (amount > 0 && char.availableStats > 0) {
+                    char.stats[stat]++;
+                    char.availableStats--;
+                    if (stat === 'hp') char.maxHp += 10;
+                    if (stat === 'mp') char.maxMp += 10;
+                } else if (amount < 0 && char.stats[stat] > char.baseStats[stat]) {
+                    char.stats[stat]--;
+                    char.availableStats++;
+                    if (stat === 'hp') char.maxHp -= 10;
+                    if (stat === 'mp') char.maxMp -= 10;
+                }
+
+                this.showCharacterDetail(char);
+                this.renderPartyList();
+            },
+
+            promoteCharacter(charId) {
+                const char = this.party.find(c => c.id === charId);
+                if (!char || char.level < 30) return;
+
+                char.level = 1;
+                char.exp = 0;
+                char.expToNext = 100;
+                char.baseStats = { ...char.stats };
+
+                this.addLog(`${char.name}이(가) 전직했습니다! 레벨 1로 초기화되었지만 모든 스탯이 유지됩니다.`);
+                this.closeModal('character-detail-modal');
+                this.renderPartyList();
+            },
+
+            renderZoneSelect() {
+                const container = document.getElementById('zone-select');
+                container.innerHTML = '';
+
+                Object.keys(ZONES).forEach(zoneId => {
+                    const zone = ZONES[zoneId];
+                    const isUnlocked = this.unlockedZones.includes(zoneId);
+                    const div = document.createElement('div');
+                    div.className = `stage-zone ${!isUnlocked ? 'locked' : ''} ${this.currentZone === zoneId ? 'active' : ''}`;
+                    div.innerHTML = `<strong>${zoneId.toUpperCase()}</strong><br>${zone.name}`;
+                    div.style.borderColor = zone.color;
+
+                    if (isUnlocked) {
+                        div.onclick = () => {
+                            this.currentZone = zoneId;
+                            this.renderZoneSelect();
+                            this.renderSubstageSelect();
+                        };
+                    }
+
+                    container.appendChild(div);
+                });
+            },
+
+            renderSubstageSelect() {
+                const container = document.getElementById('substage-select');
+                container.innerHTML = '';
+
+                for (let i = 1; i <= 10; i++) {
+                    const isUnlocked = i <= this.unlockedStages[this.currentZone];
+                    const btn = document.createElement('button');
+                    btn.className = `substage-btn ${!isUnlocked ? 'locked' : ''} ${this.currentStage === i ? 'active' : ''}`;
+                    btn.textContent = `${this.currentZone.toUpperCase()}-${i}`;
+
+                    if (isUnlocked) {
+                        btn.onclick = () => {
+                            this.currentStage = i;
+                            this.renderSubstageSelect();
+                            this.updateDisplay();
+                        };
+                    }
+
+                    container.appendChild(btn);
+                }
+            },
+
+            startBattle() {
+                if (this.inBattle) return;
+                if (this.party.length === 0) {
+                    this.addLog('파티에 캐릭터가 없습니다!');
+                    return;
+                }
+
+                this.inBattle = true;
+                document.getElementById('battle-btn').disabled = true;
+
+                this.generateEnemies();
+                this.renderBattlefield();
+                this.addLog('--- 전투 시작! ---');
+
+                setTimeout(() => this.battleLoop(), 1000);
+            },
+
+            generateEnemies() {
+                this.enemies = [];
+                const zoneIndex = Object.keys(ZONES).indexOf(this.currentZone);
+                const stageMultiplier = 1 + ((zoneIndex * 10 + this.currentStage - 1) * 0.01);
+                const zoneBonus = zoneIndex * 0.03;
+                const totalMultiplier = stageMultiplier + zoneBonus;
+
+                for (let i = 0; i < 5; i++) {
+                    const baseHp = 50 + Math.random() * 30;
+                    const baseAtk = 5 + Math.random() * 10;
+
+                    this.enemies.push({
+                        id: `enemy-${i}`,
+                        name: `몬스터 ${i + 1}`,
+                        currentHp: baseHp * totalMultiplier,
+                        maxHp: baseHp * totalMultiplier,
+                        attack: baseAtk * totalMultiplier,
+                        alive: true
+                    });
+                }
+            },
+
+            battleLoop() {
+                if (!this.inBattle) return;
+
+                // Check win/lose conditions
+                const aliveParty = this.party.filter(c => c.currentHp > 0);
+                const aliveEnemies = this.enemies.filter(e => e.alive);
+
+                if (aliveParty.length === 0) {
+                    this.endBattle(false);
+                    return;
+                }
+
+                if (aliveEnemies.length === 0) {
+                    this.endBattle(true);
+                    return;
+                }
+
+                // Player turn
+                aliveParty.forEach((char, index) => {
+                    setTimeout(() => {
+                        this.performAction(char, true);
+                    }, index * 800);
+                });
+
+                // Enemy turn
+                setTimeout(() => {
+                    aliveEnemies.forEach((enemy, index) => {
+                        setTimeout(() => {
+                            this.performAction(enemy, false);
+                        }, index * 600);
+                    });
+
+                    setTimeout(() => this.battleLoop(), aliveEnemies.length * 600 + 500);
+                }, aliveParty.length * 800 + 500);
+            },
+
+            performAction(unit, isPlayer) {
+                if (isPlayer) {
+                    const targets = this.enemies.filter(e => e.alive);
+                    if (targets.length === 0) return;
+
+                    const skill = unit.skills[Math.floor(Math.random() * unit.skills.length)];
+
+                    if (skill.type === 'heal') {
+                        const healTarget = this.party.filter(c => c.currentHp > 0 && c.currentHp < c.maxHp)[0];
+                        if (healTarget) {
+                            const healAmount = Math.floor(unit.stats.int * skill.power * 5);
+                            healTarget.currentHp = Math.min(healTarget.currentHp + healAmount, healTarget.maxHp);
+                            this.addLog(`${unit.name}의 ${skill.name}! ${healTarget.name}이(가) ${healAmount} 회복!`, 'heal');
+                        }
+                    } else if (skill.target === 'all') {
+                        targets.forEach(target => {
+                            const damage = this.calculateDamage(unit, skill);
+                            target.currentHp -= damage;
+                            if (target.currentHp <= 0) {
+                                target.currentHp = 0;
+                                target.alive = false;
+                            }
+                            this.addLog(`${unit.name}의 ${skill.name}! ${target.name}에게 ${damage} 데미지!`, 'damage');
+                        });
+                    } else {
+                        const target = targets[Math.floor(Math.random() * targets.length)];
+                        const damage = this.calculateDamage(unit, skill);
+                        target.currentHp -= damage;
+                        if (target.currentHp <= 0) {
+                            target.currentHp = 0;
+                            target.alive = false;
+                        }
+                        this.addLog(`${unit.name}의 ${skill.name}! ${target.name}에게 ${damage} 데미지!`, 'damage');
+                    }
+                } else {
+                    const targets = this.party.filter(c => c.currentHp > 0);
+                    if (targets.length === 0) return;
+
+                    const target = targets[Math.floor(Math.random() * targets.length)];
+                    const damage = Math.floor(unit.attack + Math.random() * 10);
+                    target.currentHp = Math.max(0, target.currentHp - damage);
+
+                    this.addLog(`${unit.name}의 공격! ${target.name}이(가) ${damage} 데미지를 받음!`, 'damage');
+                }
+
+                this.renderBattlefield();
+            },
+
+            calculateDamage(attacker, skill) {
+                let baseDamage;
+                if (skill.type === 'physical') {
+                    baseDamage = attacker.stats.str * 2 + attacker.stats.dex;
+                } else {
+                    baseDamage = attacker.stats.int * 2 + attacker.stats.mp / 2;
+                }
+
+                const damage = Math.floor(baseDamage * skill.power * (0.9 + Math.random() * 0.2));
+                return Math.max(1, damage);
+            },
+
+            endBattle(victory) {
+                this.inBattle = false;
+                document.getElementById('battle-btn').disabled = false;
+
+                if (victory) {
+                    this.addLog('--- 승리! ---');
+
+                    // Exp and level up
+                    const expGain = 50 + this.currentStage * 10;
+                    this.party.forEach(char => {
+                        if (char.currentHp > 0) {
+                            char.exp += expGain;
+                            this.checkLevelUp(char);
+                        }
+                    });
+
+                    // Gold
+                    const goldGain = 30 + this.currentStage * 5;
+                    this.gold += goldGain;
+                    this.addLog(`골드 ${goldGain}을 획득했습니다!`);
+
+                    // Materials
+                    const zone = ZONES[this.currentZone];
+                    const materials = MATERIALS[zone.theme];
+                    const materialGain = materials[Math.floor(Math.random() * materials.length)];
+                    const amount = 1 + Math.floor(Math.random() * 3);
+                    this.materials[materialGain] = (this.materials[materialGain] || 0) + amount;
+                    this.addLog(`${materialGain} ${amount}개를 획득했습니다!`);
+
+                    // Unlock next stage
+                    if (this.currentStage >= this.unlockedStages[this.currentZone]) {
+                        if (this.currentStage < 10) {
+                            this.unlockedStages[this.currentZone] = this.currentStage + 1;
+                        } else {
+                            const nextZone = Object.keys(ZONES)[Object.keys(ZONES).indexOf(this.currentZone) + 1];
+                            if (nextZone && !this.unlockedZones.includes(nextZone)) {
+                                this.unlockedZones.push(nextZone);
+                                this.addLog(`새로운 구역 ${ZONES[nextZone].name}이(가) 해금되었습니다!`);
+                            }
+                        }
+                    }
+
+                    // Heal party
+                    this.party.forEach(char => {
+                        char.currentHp = char.maxHp;
+                        char.currentMp = char.maxMp;
+                    });
+
+                    this.renderZoneSelect();
+                    this.renderSubstageSelect();
+                    this.renderMaterials();
+
+                    if (this.autoBattle) {
+                        setTimeout(() => this.startBattle(), 2000);
+                    }
+                } else {
+                    this.addLog('--- 패배... ---');
+                    // Heal party after defeat
+                    this.party.forEach(char => {
+                        char.currentHp = char.maxHp;
+                        char.currentMp = char.maxMp;
+                    });
+                }
+
+                this.renderPartyList();
+                this.updateDisplay();
+            },
+
+            checkLevelUp(char) {
+                while (char.exp >= char.expToNext) {
+                    char.exp -= char.expToNext;
+                    char.level++;
+                    char.expToNext = Math.floor(char.expToNext * 1.2);
+
+                    // Regular stat point
+                    char.availableStats++;
+
+                    // Bonus stats at milestones
+                    if (char.level % 10 === 0) {
+                        const bonus = char.level / 10;
+                        char.availableStats += bonus;
+                        this.addLog(`${char.name}이(가) 레벨 ${char.level}에 도달! 보너스 스탯 ${bonus}개 획득!`);
+                    } else {
+                        this.addLog(`${char.name}이(가) 레벨 ${char.level}에 도달!`);
+                    }
+
+                    char.maxHp += 5;
+                    char.currentHp = char.maxHp;
+                    char.maxMp += 3;
+                    char.currentMp = char.maxMp;
+                }
+            },
+
+            renderBattlefield() {
+                const playerTeam = document.getElementById('player-team');
+                const enemyTeam = document.getElementById('enemy-team');
+
+                playerTeam.innerHTML = '';
+                this.party.slice(0, 5).forEach(char => {
+                    const classData = CLASSES[char.class];
+                    const slot = document.createElement('div');
+                    slot.className = `character-slot ${char.currentHp > 0 ? 'active' : ''}`;
+                    slot.innerHTML = `
+                        <div class="character-sprite">${classData.icon}</div>
+                        <div class="character-name">${char.name}</div>
+                        <div class="character-level">Lv.${char.level}</div>
+                        <div class="character-hp-bar">
+                            <div class="character-hp-fill" style="width: ${(char.currentHp / char.maxHp) * 100}%"></div>
+                        </div>
+                        <div class="character-mp-bar">
+                            <div class="character-mp-fill" style="width: ${(char.currentMp / char.maxMp) * 100}%"></div>
+                        </div>
+                    `;
+                    playerTeam.appendChild(slot);
+                });
+
+                enemyTeam.innerHTML = '';
+                this.enemies.forEach(enemy => {
+                    const slot = document.createElement('div');
+                    slot.className = 'enemy-slot';
+                    slot.innerHTML = `
+                        <div class="enemy-sprite">👹</div>
+                        <div class="character-name">${enemy.name}</div>
+                        <div class="character-hp-bar">
+                            <div class="character-hp-fill" style="width: ${(enemy.currentHp / enemy.maxHp) * 100}%"></div>
+                        </div>
+                    `;
+                    if (!enemy.alive) slot.style.opacity = '0.3';
+                    enemyTeam.appendChild(slot);
+                });
+            },
+
+            renderMaterials() {
+                const grid = document.getElementById('materials-grid');
+                grid.innerHTML = '';
+
+                Object.entries(this.materials).forEach(([name, count]) => {
+                    if (count > 0) {
+                        const slot = document.createElement('div');
+                        slot.className = 'item-slot';
+                        slot.innerHTML = `
+                            <div style="font-size: 20px;">📦</div>
+                            <div class="item-count">${count}</div>
+                        `;
+                        slot.title = name;
+                        grid.appendChild(slot);
+                    }
+                });
+            },
+
+            renderCrafting() {
+                const container = document.getElementById('crafting-recipes');
+                container.innerHTML = '<div style="font-size: 14px; color: #aaa; text-align: center;">제작 시스템은 추후 업데이트 예정입니다.</div>';
+            },
+
+            toggleAutoBattle() {
+                this.autoBattle = !this.autoBattle;
+                this.updateDisplay();
+
+                if (this.autoBattle && !this.inBattle) {
+                    this.startBattle();
+                }
+            },
+
+            addLog(message, type = 'normal') {
+                const log = document.getElementById('battle-log');
+                const entry = document.createElement('div');
+                entry.className = `battle-log-entry ${type}`;
+                entry.textContent = message;
+                log.appendChild(entry);
+                log.scrollTop = log.scrollHeight;
+
+                // Keep only last 50 entries
+                while (log.children.length > 50) {
+                    log.removeChild(log.firstChild);
+                }
+            },
+
+            updateDisplay() {
+                document.getElementById('current-stage').textContent =
+                    `구역: ${this.currentZone.toUpperCase()}-${this.currentStage} (${ZONES[this.currentZone].name})`;
+                document.getElementById('gold-display').textContent = `골드: ${this.gold}`;
+                document.getElementById('auto-battle-status').textContent =
+                    `자동 전투: ${this.autoBattle ? 'ON' : 'OFF'}`;
+            },
+
+            switchTab(tabName) {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+                event.target.classList.add('active');
+                document.getElementById(`${tabName}-tab`).classList.add('active');
+            },
+
+            saveGame() {
+                const saveData = {
+                    party: this.party,
+                    currentZone: this.currentZone,
+                    currentStage: this.currentStage,
+                    unlockedZones: this.unlockedZones,
+                    unlockedStages: this.unlockedStages,
+                    materials: this.materials,
+                    gold: this.gold
+                };
+
+                localStorage.setItem('idleRpgSave', JSON.stringify(saveData));
+                this.addLog('게임이 저장되었습니다!');
+            },
+
+            loadGame() {
+                const saveData = localStorage.getItem('idleRpgSave');
+                if (!saveData) {
+                    this.addLog('저장된 데이터가 없습니다.');
+                    return;
+                }
+
+                try {
+                    const data = JSON.parse(saveData);
+                    this.party = data.party;
+                    this.currentZone = data.currentZone;
+                    this.currentStage = data.currentStage;
+                    this.unlockedZones = data.unlockedZones;
+                    this.unlockedStages = data.unlockedStages;
+                    this.materials = data.materials;
+                    this.gold = data.gold;
+
+                    this.renderPartyList();
+                    this.renderZoneSelect();
+                    this.renderSubstageSelect();
+                    this.renderMaterials();
+                    this.updateDisplay();
+
+                    this.addLog('게임이 로드되었습니다!');
+                } catch (e) {
+                    this.addLog('저장 데이터를 불러오는데 실패했습니다.');
+                }
+            }
+        };
+
+        // Initialize game on page load
+        window.onload = () => {
+            game.init();
+        };
+    </script>
+</body>
+</html>
