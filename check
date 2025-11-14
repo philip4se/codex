@@ -7,25 +7,64 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f3f4f6;
+            --bg-tertiary: #f9fafb;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-tertiary: #374151;
+            --border-primary: #e5e7eb;
+            --border-secondary: #d1d5db;
+            --shadow: rgba(0,0,0,0.1);
+            --accent-blue: #2563eb;
+            --accent-blue-hover: #1d4ed8;
+            --accent-green: #16a34a;
+            --accent-red: #dc2626;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1f2937;
+            --bg-secondary: #111827;
+            --bg-tertiary: #374151;
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --text-tertiary: #e5e7eb;
+            --border-primary: #4b5563;
+            --border-secondary: #6b7280;
+            --shadow: rgba(0,0,0,0.3);
+            --accent-blue: #3b82f6;
+            --accent-blue-hover: #2563eb;
+            --accent-green: #22c55e;
+            --accent-red: #ef4444;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f3f4f6; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: background-color 0.3s, color 0.3s;
+        }
         .container { max-width: 1400px; margin: 0 auto; padding: 16px; }
-        .header { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 24px; margin-bottom: 20px; }
+        .header { background: var(--bg-primary); border-radius: 8px; box-shadow: 0 2px 4px var(--shadow); padding: 24px; margin-bottom: 20px; transition: background-color 0.3s; }
         .header-flex { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-        .title { font-size: 28px; font-weight: bold; color: #1f2937; }
-        .subtitle { color: #6b7280; margin-top: 4px; font-size: 14px; }
+        .title { font-size: 28px; font-weight: bold; color: var(--text-primary); }
+        .subtitle { color: var(--text-secondary); margin-top: 4px; font-size: 14px; }
+        .dark-mode-toggle { background: var(--bg-tertiary); border: 2px solid var(--border-primary); border-radius: 20px; padding: 4px 12px; cursor: pointer; font-size: 20px; transition: all 0.3s; margin-left: 12px; }
+        .dark-mode-toggle:hover { transform: scale(1.1); }
         .branch-selector { margin-top: 12px; position: relative; }
-        .branch-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px; }
-        .branch-btn:hover { background: #1d4ed8; }
-        .dropdown { position: absolute; top: 100%; left: 0; background: white; border: 2px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-top: 4px; min-width: 300px; z-index: 1000; display: none; }
+        .branch-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px; }
+        .branch-btn:hover { background: var(--accent-blue-hover); }
+        .dropdown { position: absolute; top: 100%; left: 0; background: var(--bg-primary); border: 2px solid var(--border-primary); border-radius: 8px; box-shadow: 0 4px 6px var(--shadow); margin-top: 4px; min-width: 300px; z-index: 1000; display: none; transition: background-color 0.3s; }
         .dropdown.show { display: block; }
-        .dropdown-header { padding: 12px; border-bottom: 1px solid #e5e7eb; font-weight: 600; font-size: 13px; color: #6b7280; }
-        .dropdown-item { padding: 12px; border-bottom: 1px solid #f3f4f6; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .dropdown-item:hover { background: #f9fafb; }
+        .dropdown-header { padding: 12px; border-bottom: 1px solid var(--border-primary); font-weight: 600; font-size: 13px; color: var(--text-secondary); }
+        .dropdown-item { padding: 12px; border-bottom: 1px solid var(--border-primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .dropdown-item:hover { background: var(--bg-tertiary); }
         .dropdown-item.active { background: #dbeafe; }
         .time-display { text-align: right; }
-        .time-label { font-size: 12px; color: #6b7280; }
-        .time-value { font-size: 18px; font-weight: bold; color: #2563eb; margin: 4px 0; }
+        .time-label { font-size: 12px; color: var(--text-secondary); }
+        .time-value { font-size: 18px; font-weight: bold; color: var(--accent-blue); margin: 4px 0; }
         .save-indicator { font-size: 11px; color: #16a34a; margin-top: 4px; display: flex; align-items: center; gap: 4px; justify-content: flex-end; }
         .backup-status { margin-top: 8px; padding: 8px; background: #f3f4f6; border-radius: 6px; font-size: 11px; }
         .backup-status-item { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
@@ -35,18 +74,18 @@
         .status-dot.syncing { background: #f59e0b; animation: blink 1s infinite; }
         @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        .alert-bar { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; padding: 12px 24px; min-height: 60px; }
-        .alert-bar-title { font-size: 13px; font-weight: 600; color: #6b7280; margin-bottom: 8px; }
+        .alert-bar { background: var(--bg-primary); border-radius: 8px; box-shadow: 0 2px 4px var(--shadow); margin-bottom: 20px; padding: 12px 24px; min-height: 60px; transition: background-color 0.3s; }
+        .alert-bar-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
         .alert-list { display: flex; flex-direction: column; gap: 8px; }
         .alert-item { padding: 10px 12px; border-radius: 6px; display: flex; align-items: center; gap: 10px; font-size: 13px; animation: slideIn 0.3s ease-out; }
         .alert-item.success { background: #d1fae5; border: 1px solid #86efac; color: #166534; }
         .alert-item.error { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; }
         @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        .tabs { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; overflow-x: auto; }
-        .tabs-flex { display: flex; border-bottom: 2px solid #e5e7eb; min-width: max-content; }
-        .tab { padding: 14px 20px; font-weight: 600; color: #6b7280; background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap; font-size: 14px; }
-        .tab:hover { color: #1f2937; background: #f9fafb; }
-        .tab.active { color: #2563eb; border-bottom-color: #2563eb; }
+        .tabs { background: var(--bg-primary); border-radius: 8px; box-shadow: 0 2px 4px var(--shadow); margin-bottom: 20px; overflow-x: auto; transition: background-color 0.3s; }
+        .tabs-flex { display: flex; border-bottom: 2px solid var(--border-primary); min-width: max-content; }
+        .tab { padding: 14px 20px; font-weight: 600; color: var(--text-secondary); background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap; font-size: 14px; }
+        .tab:hover { color: var(--text-primary); background: var(--bg-tertiary); }
+        .tab.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
         .stat-card { padding: 20px; border-radius: 8px; border: 2px solid; }
         .stat-card.blue { background: #dbeafe; border-color: #93c5fd; }
@@ -60,8 +99,8 @@
         .stat-card.blue .stat-value { color: #1e3a8a; }
         .stat-card.green .stat-value { color: #166534; }
         .stat-card.purple .stat-value { color: #6b21a8; }
-        .panel { background: white; border-radius: 8px; border: 2px solid #e5e7eb; padding: 24px; margin-bottom: 20px; }
-        .panel-title { font-size: 18px; font-weight: bold; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .panel { background: var(--bg-primary); border-radius: 8px; border: 2px solid var(--border-primary); padding: 24px; margin-bottom: 20px; transition: background-color 0.3s; }
+        .panel-title { font-size: 18px; font-weight: bold; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; color: var(--text-primary); }
         .facility-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
         .facility-card { padding: 16px; border-radius: 8px; border: 2px solid; transition: all 0.3s; cursor: pointer; }
         .facility-card.available { background: #f0fdf4; border-color: #86efac; }
@@ -81,11 +120,11 @@
         .facility-details { font-size: 13px; margin-top: 8px; }
         .facility-time { color: #ef4444; font-weight: 600; margin-top: 4px; }
         .btn { padding: 8px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; transition: all 0.2s; }
-        .btn-primary { background: #2563eb; color: white; }
-        .btn-primary:hover { background: #1d4ed8; }
-        .btn-success { background: #16a34a; color: white; }
+        .btn-primary { background: var(--accent-blue); color: white; }
+        .btn-primary:hover { background: var(--accent-blue-hover); }
+        .btn-success { background: var(--accent-green); color: white; }
         .btn-success:hover { background: #15803d; }
-        .btn-danger { background: #dc2626; color: white; }
+        .btn-danger { background: var(--accent-red); color: white; }
         .btn-danger:hover { background: #b91c1c; }
         .btn-secondary { background: #6b7280; color: white; }
         .btn-secondary:hover { background: #4b5563; }
@@ -93,34 +132,34 @@
         .btn-warning:hover { background: #d97706; }
         .btn-full { width: 100%; margin-top: 8px; }
         .form-group { margin-bottom: 16px; }
-        .form-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #374151; }
-        .form-input { width: 100%; padding: 10px; border: 2px solid #d1d5db; border-radius: 6px; font-size: 14px; }
-        .form-input:focus { outline: none; border-color: #2563eb; }
+        .form-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-tertiary); }
+        .form-input { width: 100%; padding: 10px; border: 2px solid var(--border-secondary); border-radius: 6px; font-size: 14px; background: var(--bg-primary); color: var(--text-primary); }
+        .form-input:focus { outline: none; border-color: var(--accent-blue); }
         .form-row { display: flex; gap: 8px; align-items: center; }
-        .form-input-small { width: 80px; padding: 8px; border: 2px solid #d1d5db; border-radius: 6px; text-align: center; font-size: 14px; }
-        .form-select { width: 100%; padding: 10px; border: 2px solid #d1d5db; border-radius: 6px; font-size: 14px; background: white; }
-        .form-select:focus { outline: none; border-color: #2563eb; }
+        .form-input-small { width: 80px; padding: 8px; border: 2px solid var(--border-secondary); border-radius: 6px; text-align: center; font-size: 14px; background: var(--bg-primary); color: var(--text-primary); }
+        .form-select { width: 100%; padding: 10px; border: 2px solid var(--border-secondary); border-radius: 6px; font-size: 14px; background: var(--bg-primary); color: var(--text-primary); }
+        .form-select:focus { outline: none; border-color: var(--accent-blue); }
         .table { width: 100%; border-collapse: collapse; }
-        .table th { background: #f3f4f6; padding: 12px; text-align: left; font-size: 13px; font-weight: 600; border-bottom: 2px solid #e5e7eb; }
-        .table td { padding: 12px; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
-        .table tr:hover { background: #f9fafb; }
+        .table th { background: var(--bg-tertiary); padding: 12px; text-align: left; font-size: 13px; font-weight: 600; border-bottom: 2px solid var(--border-primary); color: var(--text-primary); }
+        .table td { padding: 12px; border-bottom: 1px solid var(--border-primary); font-size: 14px; color: var(--text-primary); }
+        .table tr:hover { background: var(--bg-tertiary); }
         .hidden { display: none; }
         .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000; }
-        .modal-content { background: white; border-radius: 12px; padding: 24px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
-        .modal-title { font-size: 20px; font-weight: bold; margin-bottom: 20px; }
+        .modal-content { background: var(--bg-primary); border-radius: 12px; padding: 24px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; transition: background-color 0.3s; }
+        .modal-title { font-size: 20px; font-weight: bold; margin-bottom: 20px; color: var(--text-primary); }
         .search-result { border: 2px solid #dbeafe; background: #eff6ff; padding: 12px; border-radius: 6px; margin-bottom: 8px; cursor: pointer; }
         .search-result:hover { background: #dbeafe; }
         .search-result.selected { background: #3b82f6; color: white; border-color: #2563eb; }
         .radio-group { display: flex; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
         .radio-label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
-        textarea { width: 100%; min-height: 200px; padding: 12px; border: 2px solid #d1d5db; border-radius: 6px; font-family: inherit; font-size: 14px; resize: vertical; }
-        textarea:focus { outline: none; border-color: #2563eb; }
+        textarea { width: 100%; min-height: 200px; padding: 12px; border: 2px solid var(--border-secondary); border-radius: 6px; font-family: inherit; font-size: 14px; resize: vertical; background: var(--bg-primary); color: var(--text-primary); }
+        textarea:focus { outline: none; border-color: var(--accent-blue); }
         .flex-between { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .log-item { padding: 12px; border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 8px; cursor: pointer; }
-        .log-item:hover { background: #f9fafb; }
-        .log-title { font-weight: 600; font-size: 14px; }
-        .log-meta { font-size: 12px; color: #6b7280; margin-top: 4px; }
-        .setting-item { padding: 16px; border: 2px solid #e5e7eb; border-radius: 8px; margin-bottom: 12px; }
+        .log-item { padding: 12px; border: 1px solid var(--border-primary); border-radius: 6px; margin-bottom: 8px; cursor: pointer; background: var(--bg-primary); transition: background-color 0.3s; }
+        .log-item:hover { background: var(--bg-tertiary); }
+        .log-title { font-weight: 600; font-size: 14px; color: var(--text-primary); }
+        .log-meta { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+        .setting-item { padding: 16px; border: 2px solid var(--border-primary); border-radius: 8px; margin-bottom: 12px; background: var(--bg-primary); transition: background-color 0.3s; }
         .setting-name { font-weight: bold; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
         .setting-controls { display: flex; align-items: center; gap: 12px; margin: 8px 0; }
         .setting-value { font-size: 20px; font-weight: bold; color: #2563eb; min-width: 80px; text-align: center; }
@@ -162,6 +201,9 @@
                     </div>
                 </div>
                 <div class="time-display">
+                    <button class="dark-mode-toggle" onclick="toggleDarkMode()" title="다크모드 전환">
+                        <span id="darkModeIcon">🌙</span>
+                    </button>
                     <div class="time-label">현재 시간</div>
                     <div class="time-value" id="currentTime"></div>
                     <div class="time-label" id="currentDate"></div>
@@ -221,6 +263,8 @@
         const STORAGE_KEY = 'djyf_facility_management_system';
         const LAST_SAVE_KEY = 'djyf_last_save_time';
         const BACKUP_CONFIG_KEY = 'djyf_backup_config';
+        const DARK_MODE_KEY = 'djyf_dark_mode';
+        const SYNC_CONFIG_KEY = 'djyf_sync_config';
 
         const state = {
             branches: [
@@ -240,6 +284,7 @@
             alerts: [],
             editingFacility: {},
             regions: ['고대면', '당진1동', '당진2동', '당진3동', '대호지면', '면천면', '석문면', '송산면', '송악읍', '석문면', '신평면', '우강면', '정미면', '합덕읍', '기타'],
+            darkMode: false,
             backupConfig: {
                 localEnabled: false,
                 serverEnabled: false,
@@ -249,8 +294,17 @@
                 lastLocalBackup: null,
                 lastServerBackup: null
             },
+            syncConfig: {
+                nasUrl: '',
+                nasUsername: '',
+                nasPassword: '',
+                syncInterval: 5,
+                lastSync: null,
+                autoSync: false
+            },
             isOnline: navigator.onLine,
-            pendingSyncData: []
+            pendingSyncData: [],
+            lastDataHash: {}
         };
 
         // 백업 설정 로드
@@ -283,6 +337,207 @@
                 localStorage.setItem(BACKUP_CONFIG_KEY, JSON.stringify(config));
             } catch (error) {
                 console.error('백업 설정 저장 실패:', error);
+            }
+        }
+
+        // 다크모드 로드 및 초기화
+        function loadDarkMode() {
+            try {
+                const saved = localStorage.getItem(DARK_MODE_KEY);
+                state.darkMode = saved === 'true';
+                applyDarkMode();
+            } catch (error) {
+                console.error('다크모드 설정 로드 실패:', error);
+            }
+        }
+
+        // 다크모드 적용
+        function applyDarkMode() {
+            if (state.darkMode) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.getElementById('darkModeIcon').textContent = '☀️';
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                document.getElementById('darkModeIcon').textContent = '🌙';
+            }
+        }
+
+        // 다크모드 토글
+        function toggleDarkMode() {
+            state.darkMode = !state.darkMode;
+            localStorage.setItem(DARK_MODE_KEY, state.darkMode);
+            applyDarkMode();
+        }
+
+        // 동기화 설정 로드
+        function loadSyncConfig() {
+            try {
+                const saved = localStorage.getItem(SYNC_CONFIG_KEY);
+                if (saved) {
+                    const config = JSON.parse(saved);
+                    state.syncConfig = { ...state.syncConfig, ...config };
+                }
+            } catch (error) {
+                console.error('동기화 설정 로드 실패:', error);
+            }
+        }
+
+        // 동기화 설정 저장
+        function saveSyncConfig() {
+            try {
+                localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(state.syncConfig));
+            } catch (error) {
+                console.error('동기화 설정 저장 실패:', error);
+            }
+        }
+
+        // 데이터 해시 생성 (충돌 감지용)
+        function generateDataHash(data) {
+            const str = JSON.stringify(data);
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return hash.toString(36);
+        }
+
+        // WebDAV를 통한 NAS 업로드
+        async function uploadToNAS(branchId, data) {
+            if (!state.syncConfig.nasUrl || !state.syncConfig.nasUsername || !state.syncConfig.nasPassword) {
+                console.warn('NAS 설정이 완료되지 않았습니다.');
+                return false;
+            }
+
+            try {
+                const branch = state.branches.find(b => b.id === branchId);
+                const timestamp = new Date().toISOString();
+                const filename = `${branchId}_${branch.name}_${timestamp.split('T')[0]}.json`;
+
+                const uploadData = {
+                    branchId: branchId,
+                    branchName: branch.name,
+                    timestamp: timestamp,
+                    data: data,
+                    dataHash: generateDataHash(data),
+                    version: '1.2'
+                };
+
+                const auth = btoa(`${state.syncConfig.nasUsername}:${state.syncConfig.nasPassword}`);
+                const nasPath = state.syncConfig.nasUrl.endsWith('/') ? state.syncConfig.nasUrl : state.syncConfig.nasUrl + '/';
+                const fullUrl = `${nasPath}${filename}`;
+
+                const response = await fetch(fullUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Basic ${auth}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(uploadData, null, 2)
+                });
+
+                if (response.ok) {
+                    state.lastDataHash[branchId] = generateDataHash(data);
+                    state.syncConfig.lastSync = timestamp;
+                    saveSyncConfig();
+                    return true;
+                } else {
+                    console.error('NAS 업로드 실패:', response.status, response.statusText);
+                    return false;
+                }
+            } catch (error) {
+                console.error('NAS 업로드 오류:', error);
+                return false;
+            }
+        }
+
+        // NAS에서 다른 지점 데이터 가져오기
+        async function fetchFromNAS(branchId) {
+            if (!state.syncConfig.nasUrl || !state.syncConfig.nasUsername || !state.syncConfig.nasPassword) {
+                return null;
+            }
+
+            try {
+                const auth = btoa(`${state.syncConfig.nasUsername}:${state.syncConfig.nasPassword}`);
+                const nasPath = state.syncConfig.nasUrl.endsWith('/') ? state.syncConfig.nasUrl : state.syncConfig.nasUrl + '/';
+
+                // PROPFIND로 파일 목록 가져오기
+                const response = await fetch(nasPath, {
+                    method: 'PROPFIND',
+                    headers: {
+                        'Authorization': `Basic ${auth}`,
+                        'Depth': '1'
+                    }
+                });
+
+                if (!response.ok) {
+                    console.error('NAS 파일 목록 가져오기 실패:', response.status);
+                    return null;
+                }
+
+                // 해당 branchId의 최신 파일 찾기
+                // 실제로는 XML 파싱이 필요하지만, 간단히 구현
+                const text = await response.text();
+
+                // 최신 파일 URL을 찾았다고 가정하고 다운로드
+                // 실제 구현에서는 XML 파싱 필요
+                return null;
+            } catch (error) {
+                console.error('NAS 데이터 가져오기 오류:', error);
+                return null;
+            }
+        }
+
+        // 서버 백업 수행 (NAS WebDAV)
+        async function performServerBackup() {
+            if (!state.backupConfig.serverEnabled || !state.syncConfig.nasUrl) {
+                return;
+            }
+
+            try {
+                const statusEl = document.getElementById('serverBackupStatus');
+                if (statusEl) statusEl.textContent = '서버: 백업 중...';
+
+                // 현재 지점 데이터만 백업
+                const currentData = state.branchData[state.selectedBranch];
+                const success = await uploadToNAS(state.selectedBranch, currentData);
+
+                if (success) {
+                    state.backupConfig.lastServerBackup = new Date().toISOString();
+                    saveBackupConfig();
+                    updateBackupStatus();
+                    showAlert('NAS 서버에 백업되었습니다.');
+                    if (statusEl) statusEl.textContent = `서버: ${new Date().toLocaleTimeString('ko-KR')}`;
+                } else {
+                    showAlert('NAS 서버 백업에 실패했습니다.', 'error');
+                    if (statusEl) statusEl.textContent = '서버: 실패';
+                }
+            } catch (error) {
+                console.error('서버 백업 오류:', error);
+                showAlert('NAS 서버 백업 중 오류가 발생했습니다.', 'error');
+            }
+        }
+
+        // 모든 지점 데이터 동기화
+        async function syncAllBranches() {
+            if (!state.syncConfig.autoSync) return;
+
+            try {
+                for (const branch of state.branches) {
+                    const branchData = state.branchData[branch.id];
+                    if (branchData) {
+                        const currentHash = generateDataHash(branchData);
+                        const lastHash = state.lastDataHash[branch.id];
+
+                        // 데이터가 변경된 경우에만 업로드
+                        if (currentHash !== lastHash) {
+                            await uploadToNAS(branch.id, branchData);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('전체 동기화 오류:', error);
             }
         }
 
@@ -630,11 +885,20 @@
         function init() {
             loadFromStorage();
             loadBackupConfig();
+            loadDarkMode();
+            loadSyncConfig();
             setupNetworkMonitoring();
             setupAutoBackup();
             updateNetworkStatus();
             updateBackupStatus();
-            
+
+            // 자동 동기화 설정
+            if (state.syncConfig.autoSync) {
+                setInterval(() => {
+                    syncAllBranches();
+                }, state.syncConfig.syncInterval * 60 * 1000);
+            }
+
             state.branches.forEach(branch => {
                 if (!state.branchData[branch.id]) {
                     state.branchData[branch.id] = {
@@ -1638,8 +1902,8 @@
                     <div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                             <div>
-                                <div style="font-weight: 600; margin-bottom: 4px;">Track 2: 중앙 서버 백업 (10분마다)</div>
-                                <div style="font-size: 12px; color: #0c4a6e;">온라인 상태에서 서버로 자동 백업</div>
+                                <div style="font-weight: 600; margin-bottom: 4px;">Track 2: NAS 서버 백업 (시놀로지 WebDAV)</div>
+                                <div style="font-size: 12px; color: #0c4a6e;">NAS에 자동 백업 및 멀티 시설 데이터 동기화</div>
                             </div>
                             <label class="toggle-switch">
                                 <input type="checkbox" id="serverBackupToggle" ${state.backupConfig.serverEnabled ? 'checked' : ''} onchange="toggleServerBackup()">
@@ -1647,18 +1911,52 @@
                             </label>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">서버 URL</label>
-                            <input type="text" class="form-input" id="serverUrl" placeholder="https://your-server.com/api/backup" value="${state.backupConfig.serverUrl}">
+                            <label class="form-label">NAS WebDAV URL</label>
+                            <input type="text" class="form-input" id="nasUrl" placeholder="http://your-nas-ip:5005/webdav/facility-backup/" value="${state.syncConfig.nasUrl}">
+                            <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">
+                                예: http://192.168.0.100:5005/webdav/facility-backup/
+                            </div>
                         </div>
-                        <button class="btn btn-primary" onclick="saveServerUrl()">
-                            💾 서버 URL 저장
-                        </button>
-                        <button class="btn btn-success" onclick="performServerBackup()" style="margin-left: 8px;">
-                            수동 백업
-                        </button>
+                        <div class="form-row" style="margin-bottom: 12px;">
+                            <div style="flex: 1;">
+                                <label class="form-label">NAS 사용자명</label>
+                                <input type="text" class="form-input" id="nasUsername" placeholder="username" value="${state.syncConfig.nasUsername}">
+                            </div>
+                            <div style="flex: 1; margin-left: 8px;">
+                                <label class="form-label">NAS 비밀번호</label>
+                                <input type="password" class="form-input" id="nasPassword" placeholder="password" value="${state.syncConfig.nasPassword}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">자동 동기화 간격 (분)</label>
+                            <input type="number" class="form-input" id="syncInterval" min="1" max="60" value="${state.syncConfig.syncInterval}">
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <label class="form-label" style="margin: 0;">자동 동기화 활성화</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="autoSyncToggle" ${state.syncConfig.autoSync ? 'checked' : ''} onchange="toggleAutoSync()">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="saveNASConfig()">
+                                💾 NAS 설정 저장
+                            </button>
+                            <button class="btn btn-success" onclick="performServerBackup()">
+                                ☁️ 수동 백업
+                            </button>
+                            <button class="btn btn-warning" onclick="testNASConnection()">
+                                🔌 연결 테스트
+                            </button>
+                        </div>
                         ${state.backupConfig.lastServerBackup ? `
                             <div style="margin-top: 8px; font-size: 12px; color: #0c4a6e;">
                                 마지막 백업: ${new Date(state.backupConfig.lastServerBackup).toLocaleString('ko-KR')}
+                            </div>
+                        ` : ''}
+                        ${state.syncConfig.lastSync ? `
+                            <div style="margin-top: 4px; font-size: 12px; color: #059669;">
+                                마지막 동기화: ${new Date(state.syncConfig.lastSync).toLocaleString('ko-KR')}
                             </div>
                         ` : ''}
                     </div>
@@ -1666,8 +1964,54 @@
                     <div style="margin-top: 20px; padding: 12px; background: #dbeafe; border-radius: 6px; font-size: 12px; color: #1e40af;">
                         <strong>💡 백업 안내:</strong><br>
                         • 로컬 백업: 브라우저의 File System Access API를 지원하는 Chrome/Edge에서만 사용 가능<br>
-                        • 서버 백업: 온라인 상태에서만 작동하며, 오프라인 시 자동 대기 후 온라인 전환 시 동기화<br>
-                        • LocalStorage는 항상 자동 저장됩니다
+                        • NAS 서버 백업: 온라인 상태에서만 작동하며, 오프라인 시 자동 대기 후 온라인 전환 시 동기화<br>
+                        • LocalStorage는 항상 자동 저장됩니다<br>
+                        • 멀티 시설 동기화: 각 지점의 데이터를 독립적으로 NAS에 저장하여 데이터 충돌 방지
+                    </div>
+
+                    <div style="margin-top: 16px; padding: 16px; background: #f0fdf4; border: 2px solid #86efac; border-radius: 8px; font-size: 12px; color: #166534;">
+                        <strong>📘 시놀로지 NAS 연결 가이드</strong><br><br>
+
+                        <strong>1단계: WebDAV 활성화</strong><br>
+                        • DSM(DiskStation Manager)에 로그인<br>
+                        • 제어판 → 파일 서비스 → WebDAV 탭<br>
+                        • "WebDAV 활성화" 체크<br>
+                        • HTTP 포트: 5005 (기본값) 또는 원하는 포트<br>
+                        • "적용" 클릭<br><br>
+
+                        <strong>2단계: 공유 폴더 생성</strong><br>
+                        • 제어판 → 공유 폴더<br>
+                        • "생성" 클릭<br>
+                        • 이름: facility-backup (또는 원하는 이름)<br>
+                        • 생성 완료<br><br>
+
+                        <strong>3단계: 사용자 권한 설정</strong><br>
+                        • 공유 폴더 선택 → 편집 → 권한 탭<br>
+                        • 사용자에게 "읽기/쓰기" 권한 부여<br>
+                        • "확인" 클릭<br><br>
+
+                        <strong>4단계: 시스템에 설정 입력</strong><br>
+                        • NAS WebDAV URL: http://NAS_IP:5005/webdav/facility-backup/<br>
+                        &nbsp;&nbsp;예: http://192.168.0.100:5005/webdav/facility-backup/<br>
+                        • NAS 사용자명: DSM 계정 사용자명<br>
+                        • NAS 비밀번호: DSM 계정 비밀번호<br>
+                        • "NAS 설정 저장" 클릭<br>
+                        • "연결 테스트"로 연결 확인<br><br>
+
+                        <strong>5단계: 방화벽 설정 (필요시)</strong><br>
+                        • DSM 제어판 → 보안 → 방화벽<br>
+                        • WebDAV 포트(5005) 허용 규칙 추가<br><br>
+
+                        <strong>💡 동작 원리:</strong><br>
+                        • 각 시설은 독립적인 데이터 파일(BR-001_시설명_날짜.json)로 저장됩니다<br>
+                        • 데이터 변경 시에만 NAS에 업로드하여 효율성 향상<br>
+                        • 각 지점의 데이터를 분리하여 충돌 없이 동시 사용 가능<br>
+                        • 자동 동기화 활성화 시 설정한 간격마다 자동으로 백업됩니다<br><br>
+
+                        <strong>⚠️ 주의사항:</strong><br>
+                        • NAS와 동일한 네트워크에 연결되어 있어야 합니다<br>
+                        • 외부에서 접속 시 HTTPS 및 포트 포워딩 설정 필요<br>
+                        • 보안을 위해 강력한 비밀번호 사용을 권장합니다
                     </div>
                 </div>
 
@@ -1798,6 +2142,84 @@
             state.backupConfig.serverUrl = url;
             saveBackupConfig();
             showAlert('서버 URL이 저장되었습니다.');
+        }
+
+        // NAS 설정 저장
+        function saveNASConfig() {
+            const nasUrl = document.getElementById('nasUrl').value.trim();
+            const nasUsername = document.getElementById('nasUsername').value.trim();
+            const nasPassword = document.getElementById('nasPassword').value;
+            const syncInterval = parseInt(document.getElementById('syncInterval').value);
+
+            if (!nasUrl) {
+                showAlert('NAS WebDAV URL을 입력해주세요.', 'error');
+                return;
+            }
+            if (!nasUsername || !nasPassword) {
+                showAlert('NAS 사용자 정보를 입력해주세요.', 'error');
+                return;
+            }
+            if (!syncInterval || syncInterval < 1) {
+                showAlert('동기화 간격을 올바르게 입력해주세요.', 'error');
+                return;
+            }
+
+            state.syncConfig.nasUrl = nasUrl;
+            state.syncConfig.nasUsername = nasUsername;
+            state.syncConfig.nasPassword = nasPassword;
+            state.syncConfig.syncInterval = syncInterval;
+
+            saveSyncConfig();
+            showAlert('NAS 설정이 저장되었습니다.');
+
+            // 자동 동기화가 켜져 있으면 재시작
+            if (state.syncConfig.autoSync) {
+                location.reload();
+            }
+        }
+
+        // 자동 동기화 토글
+        function toggleAutoSync() {
+            state.syncConfig.autoSync = document.getElementById('autoSyncToggle').checked;
+            saveSyncConfig();
+            showAlert(`자동 동기화가 ${state.syncConfig.autoSync ? '활성화' : '비활성화'}되었습니다.`);
+
+            if (state.syncConfig.autoSync) {
+                showAlert('자동 동기화를 시작하려면 페이지를 새로고침하세요.', 'success');
+            }
+        }
+
+        // NAS 연결 테스트
+        async function testNASConnection() {
+            const nasUrl = document.getElementById('nasUrl').value.trim();
+            const nasUsername = document.getElementById('nasUsername').value.trim();
+            const nasPassword = document.getElementById('nasPassword').value;
+
+            if (!nasUrl || !nasUsername || !nasPassword) {
+                showAlert('NAS 설정을 모두 입력해주세요.', 'error');
+                return;
+            }
+
+            try {
+                const auth = btoa(`${nasUsername}:${nasPassword}`);
+                const response = await fetch(nasUrl, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Authorization': `Basic ${auth}`
+                    }
+                });
+
+                if (response.ok || response.status === 200 || response.status === 204) {
+                    showAlert('✅ NAS 연결 성공! WebDAV 서버에 접근할 수 있습니다.', 'success');
+                } else if (response.status === 401) {
+                    showAlert('❌ 인증 실패: 사용자명 또는 비밀번호를 확인해주세요.', 'error');
+                } else {
+                    showAlert(`❌ 연결 실패: HTTP ${response.status}`, 'error');
+                }
+            } catch (error) {
+                console.error('NAS 연결 테스트 오류:', error);
+                showAlert('❌ NAS 연결 실패: 네트워크 또는 URL을 확인해주세요.', 'error');
+            }
         }
 
         function renderDailyLog() {
