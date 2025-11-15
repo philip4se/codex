@@ -797,25 +797,25 @@
             knight: {
                 name: '기사',
                 icon: '🛡️',
-                stats: { str: 10, dex: 4, int: 4, hp: 10, mp: 4 },
+                stats: { str: 10, dex: 4, int: 4, hp: 10 },
                 skills: [
-                    { name: '강타', power: 1.5, target: 'single', type: 'physical' },
-                    { name: '방어 태세', power: 0.5, target: 'self', type: 'buff', effect: 'defense' }
+                    { name: '강력한 일격', power: 3.0, target: 'single', type: 'physical', turns: 0, selfDefBonus: 1.0, enemyTaunt: true, skillPowerBonus: 0 },
+                    { name: '수호의 함성', power: 2.0, target: 'multi-2', type: 'physical', turns: 0, allyDefBonus: 0.5, enemyTaunt: true, skillPowerBonus: 0 }
                 ]
             },
             archer: {
                 name: '궁수',
                 icon: '🏹',
-                stats: { str: 6, dex: 10, int: 6, hp: 6, mp: 6 },
+                stats: { str: 6, dex: 10, int: 6, hp: 6 },
                 skills: [
-                    { name: '정밀 사격', power: 2.0, target: 'single', type: 'physical' },
-                    { name: '다중 사격', power: 0.8, target: 'all', type: 'physical' }
+                    { name: '저격', power: 5.0, target: 'single', type: 'physical', skillPowerBonus: 0 },
+                    { name: '신속한 공격', power: 4.0, target: 'single', type: 'physical', selfDexBonus: 1.0, dexTurns: 2, skillPowerBonus: 0 }
                 ]
             },
             priest: {
                 name: '성직자',
                 icon: '✝️',
-                stats: { str: 8, dex: 4, int: 8, hp: 8, mp: 8 },
+                stats: { str: 8, dex: 4, int: 8, hp: 8 },
                 skills: [
                     { name: '신성한 빛', power: 1.2, target: 'single', type: 'magic' },
                     { name: '치유', power: 1.5, target: 'ally', type: 'heal' }
@@ -824,37 +824,37 @@
             rogue: {
                 name: '도적',
                 icon: '🗡️',
-                stats: { str: 8, dex: 8, int: 6, hp: 6, mp: 6 },
+                stats: { str: 8, dex: 8, int: 6, hp: 6 },
                 skills: [
-                    { name: '급소 공격', power: 1.8, target: 'single', type: 'physical' },
-                    { name: '회피', power: 0, target: 'self', type: 'buff', effect: 'evasion' }
+                    { name: '생명력 흡수', power: 1.5, target: 'single', type: 'physical', lifesteal: 0.5, skillPowerBonus: 0 },
+                    { name: '그림자 은신', power: 2.0, target: 'single', type: 'physical', selfDexBonus: 1.0, dexTurns: 3, skillPowerBonus: 0 }
                 ]
             },
             druid: {
                 name: '드루이드',
                 icon: '🌿',
-                stats: { str: 8, dex: 6, int: 6, hp: 8, mp: 4 },
+                stats: { str: 8, dex: 6, int: 6, hp: 8 },
                 skills: [
-                    { name: '야수 변신', power: 0, target: 'self', type: 'buff', effect: 'transform' },
-                    { name: '자연의 분노', power: 1.3, target: 'all', type: 'magic' }
+                    { name: '곰 변신', power: 2.0, target: 'single', type: 'physical', transform: 'bear', transformTurns: 3, skillPowerBonus: 0 },
+                    { name: '늑대 변신', power: 0, target: 'self', type: 'buff', transform: 'wolf', transformTurns: 3, skillPowerBonus: 0 }
                 ]
             },
             mage: {
                 name: '법사',
                 icon: '🔮',
-                stats: { str: 4, dex: 4, int: 10, hp: 6, mp: 10 },
+                stats: { str: 4, dex: 4, int: 10, hp: 6 },
                 skills: [
-                    { name: '화염구', power: 1.6, target: 'all', type: 'magic' },
-                    { name: '독구름', power: 0.5, target: 'all', type: 'magic', effect: 'dot' }
+                    { name: '화염 폭발', power: 4.0, target: 'single', type: 'magic', dot: true, dotTurns: 2, dotPower: 1.0, skillPowerBonus: 0 },
+                    { name: '지옥불', power: 2.0, target: 'all', type: 'magic', dot: true, dotTurns: 2, dotPower: 0.2, skillPowerBonus: 0 }
                 ]
             },
             healer: {
                 name: '치료사',
                 icon: '💊',
-                stats: { str: 4, dex: 4, int: 10, hp: 6, mp: 10 },
+                stats: { str: 4, dex: 4, int: 10, hp: 6 },
                 skills: [
-                    { name: '대치유', power: 2.0, target: 'ally', type: 'heal' },
-                    { name: '축복', power: 0, target: 'ally', type: 'buff', effect: 'bless' }
+                    { name: '강력한 치유', power: 4.0, target: 'ally-lowest', type: 'heal', skillPowerBonus: 0 },
+                    { name: '광역 치유', power: 2.0, target: 'ally-all', type: 'heal', skillPowerBonus: 0 }
                 ]
             }
         };
@@ -923,12 +923,15 @@
                     baseStats: { ...classData.stats },
                     currentHp: classData.stats.hp * 10,
                     maxHp: classData.stats.hp * 10,
-                    currentMp: classData.stats.mp * 10,
-                    maxMp: classData.stats.mp * 10,
-                    skills: [...classData.skills],
+                    skills: JSON.parse(JSON.stringify(classData.skills)),
                     equipment: {},
                     availableStats: 0,
-                    personality: this.generatePersonality()
+                    availableSkillStats: 0,
+                    personality: this.generatePersonality(),
+                    buffs: [],
+                    debuffs: [],
+                    transform: null,
+                    transformTurns: 0
                 };
 
                 this.party.push(character);
@@ -956,7 +959,7 @@
                         <div class="class-stats">
                             힘: ${classData.stats.str} | 민첩: ${classData.stats.dex}<br>
                             지력: ${classData.stats.int} | HP: ${classData.stats.hp}<br>
-                            MP: ${classData.stats.mp}
+                            회피: ${Math.floor(classData.stats.dex / 2)}%
                         </div>
                     `;
                     card.onclick = () => {
@@ -983,6 +986,7 @@
                     const classData = CLASSES[char.class];
                     const card = document.createElement('div');
                     card.className = 'character-card';
+                    const evasion = Math.floor(char.stats.dex / 2);
                     card.innerHTML = `
                         <div class="character-info">
                             <div>
@@ -993,13 +997,13 @@
                         </div>
                         <div class="character-stats">
                             <div class="stat-item">HP: ${char.currentHp}/${char.maxHp}</div>
-                            <div class="stat-item">MP: ${char.currentMp}/${char.maxMp}</div>
+                            <div class="stat-item">회피: ${evasion}%</div>
                             <div class="stat-item">힘: ${char.stats.str}</div>
                             <div class="stat-item">민첩: ${char.stats.dex}</div>
                             <div class="stat-item">지력: ${char.stats.int}</div>
                             <div class="stat-item">EXP: ${char.exp}/${char.expToNext}</div>
                         </div>
-                        ${char.availableStats > 0 ? `<div style="color: #ffeb3b; margin-top: 5px; font-size: 11px;">스탯 포인트: ${char.availableStats}</div>` : ''}
+                        ${char.availableStats > 0 || char.availableSkillStats > 0 ? `<div style="color: #ffeb3b; margin-top: 5px; font-size: 11px;">스탯: ${char.availableStats} | 스킬: ${char.availableSkillStats}</div>` : ''}
                     `;
                     card.onclick = () => this.showCharacterDetail(char);
                     container.appendChild(card);
@@ -1061,10 +1065,10 @@
             },
 
             renderStatAllocation(char) {
-                const stats = ['str', 'dex', 'int', 'hp', 'mp'];
-                const statNames = { str: '힘', dex: '민첩', int: '지력', hp: '생명력', mp: '마력' };
+                const stats = ['str', 'dex', 'int', 'hp'];
+                const statNames = { str: '힘', dex: '민첩', int: '지력', hp: '생명력' };
 
-                return stats.map(stat => `
+                let html = stats.map(stat => `
                     <div class="stat-row">
                         <span>${statNames[stat]}: ${char.stats[stat]}</span>
                         <div class="stat-controls">
@@ -1073,6 +1077,24 @@
                         </div>
                     </div>
                 `).join('');
+
+                if (char.availableSkillStats > 0) {
+                    html += `
+                        <div style="margin-top: 20px; padding: 10px; background: rgba(76, 175, 80, 0.2); border-radius: 5px;">
+                            <strong>사용 가능한 스킬 포인트: ${char.availableSkillStats}</strong>
+                        </div>
+                        ${char.skills.map((skill, idx) => `
+                            <div class="stat-row">
+                                <span>${skill.name} (${Math.floor(skill.power * 100 + skill.skillPowerBonus * 10)}%)</span>
+                                <div class="stat-controls">
+                                    <button class="stat-btn" onclick="game.allocateSkillStat(${char.id}, ${idx}, 1)" ${char.availableSkillStats <= 0 ? 'disabled' : ''}>+</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    `;
+                }
+
+                return html;
             },
 
             allocateStat(charId, stat, amount) {
@@ -1082,13 +1104,31 @@
                 if (amount > 0 && char.availableStats > 0) {
                     char.stats[stat]++;
                     char.availableStats--;
-                    if (stat === 'hp') char.maxHp += 10;
-                    if (stat === 'mp') char.maxMp += 10;
+                    if (stat === 'hp') {
+                        char.maxHp += 10;
+                        char.currentHp += 10;
+                    }
                 } else if (amount < 0 && char.stats[stat] > char.baseStats[stat]) {
                     char.stats[stat]--;
                     char.availableStats++;
-                    if (stat === 'hp') char.maxHp -= 10;
-                    if (stat === 'mp') char.maxMp -= 10;
+                    if (stat === 'hp') {
+                        char.maxHp -= 10;
+                        char.currentHp = Math.min(char.currentHp, char.maxHp);
+                    }
+                }
+
+                this.showCharacterDetail(char);
+                this.renderPartyList();
+            },
+
+            allocateSkillStat(charId, skillIndex, amount) {
+                const char = this.party.find(c => c.id === charId);
+                if (!char || !char.skills[skillIndex]) return;
+
+                if (amount > 0 && char.availableSkillStats > 0) {
+                    char.skills[skillIndex].skillPowerBonus += 1;
+                    char.availableSkillStats--;
+                    this.addLog(`${char.name}의 ${char.skills[skillIndex].name} 스킬이 강화되었습니다!`);
                 }
 
                 this.showCharacterDetail(char);
@@ -1175,21 +1215,34 @@
             generateEnemies() {
                 this.enemies = [];
                 const zoneIndex = Object.keys(ZONES).indexOf(this.currentZone);
-                const stageMultiplier = 1 + ((zoneIndex * 10 + this.currentStage - 1) * 0.01);
-                const zoneBonus = zoneIndex * 0.03;
-                const totalMultiplier = stageMultiplier + zoneBonus;
+                const stageMultiplier = 1 + ((zoneIndex * 10 + this.currentStage - 1) * 0.15);
 
-                for (let i = 0; i < 5; i++) {
-                    const baseHp = 50 + Math.random() * 30;
-                    const baseAtk = 5 + Math.random() * 10;
+                const monsterTypes = [
+                    { name: '전사', icon: '⚔️', type: 'physical', str: 5, dex: 3, int: 2, hp: 5 },
+                    { name: '마법사', icon: '🔮', type: 'magic', str: 2, dex: 3, int: 5, hp: 4 },
+                    { name: '혼합형', icon: '👹', type: 'balanced', str: 3, dex: 4, int: 3, hp: 4 }
+                ];
+
+                for (let i = 0; i < 3; i++) {
+                    const monsterType = monsterTypes[i % 3];
+                    const stats = {
+                        str: Math.floor(monsterType.str * stageMultiplier),
+                        dex: Math.floor(monsterType.dex * stageMultiplier),
+                        int: Math.floor(monsterType.int * stageMultiplier),
+                        hp: Math.floor(monsterType.hp * stageMultiplier)
+                    };
 
                     this.enemies.push({
                         id: `enemy-${i}`,
-                        name: `몬스터 ${i + 1}`,
-                        currentHp: baseHp * totalMultiplier,
-                        maxHp: baseHp * totalMultiplier,
-                        attack: baseAtk * totalMultiplier,
-                        alive: true
+                        name: `${monsterType.name} ${i + 1}`,
+                        icon: monsterType.icon,
+                        type: monsterType.type,
+                        stats: stats,
+                        currentHp: stats.hp * 10,
+                        maxHp: stats.hp * 10,
+                        alive: true,
+                        buffs: [],
+                        debuffs: []
                     });
                 }
             },
@@ -1211,83 +1264,253 @@
                     return;
                 }
 
-                // Player turn
-                aliveParty.forEach((char, index) => {
-                    setTimeout(() => {
-                        this.performAction(char, true);
-                    }, index * 800);
+                // Update buff/debuff durations
+                this.party.forEach(char => this.updateBuffs(char));
+                this.enemies.forEach(enemy => this.updateBuffs(enemy));
+
+                // Build action queue sorted by dexterity
+                const actions = [];
+                aliveParty.forEach(char => {
+                    const dexBonus = this.getStatModifier(char, 'dex');
+                    actions.push({ unit: char, isPlayer: true, speed: char.stats.dex * dexBonus });
+                });
+                aliveEnemies.forEach(enemy => {
+                    const dexBonus = this.getStatModifier(enemy, 'dex');
+                    actions.push({ unit: enemy, isPlayer: false, speed: enemy.stats.dex * dexBonus });
                 });
 
-                // Enemy turn
-                setTimeout(() => {
-                    aliveEnemies.forEach((enemy, index) => {
-                        setTimeout(() => {
-                            this.performAction(enemy, false);
-                        }, index * 600);
-                    });
+                // Sort by speed (higher dex = faster)
+                actions.sort((a, b) => b.speed - a.speed);
 
-                    setTimeout(() => this.battleLoop(), aliveEnemies.length * 600 + 500);
-                }, aliveParty.length * 800 + 500);
+                // Execute actions in order
+                actions.forEach((action, index) => {
+                    setTimeout(() => {
+                        if (action.isPlayer && action.unit.currentHp > 0) {
+                            this.performPlayerAction(action.unit);
+                        } else if (!action.isPlayer && action.unit.alive) {
+                            this.performEnemyAction(action.unit);
+                        }
+                    }, index * 600);
+                });
+
+                setTimeout(() => this.battleLoop(), actions.length * 600 + 800);
             },
 
-            performAction(unit, isPlayer) {
-                if (isPlayer) {
-                    const targets = this.enemies.filter(e => e.alive);
-                    if (targets.length === 0) return;
-
-                    const skill = unit.skills[Math.floor(Math.random() * unit.skills.length)];
-
-                    if (skill.type === 'heal') {
-                        const healTarget = this.party.filter(c => c.currentHp > 0 && c.currentHp < c.maxHp)[0];
-                        if (healTarget) {
-                            const healAmount = Math.floor(unit.stats.int * skill.power * 5);
-                            healTarget.currentHp = Math.min(healTarget.currentHp + healAmount, healTarget.maxHp);
-                            this.addLog(`${unit.name}의 ${skill.name}! ${healTarget.name}이(가) ${healAmount} 회복!`, 'heal');
-                        }
-                    } else if (skill.target === 'all') {
-                        targets.forEach(target => {
-                            const damage = this.calculateDamage(unit, skill);
-                            target.currentHp -= damage;
-                            if (target.currentHp <= 0) {
-                                target.currentHp = 0;
-                                target.alive = false;
+            updateBuffs(unit) {
+                if (unit.buffs) {
+                    unit.buffs = unit.buffs.filter(buff => {
+                        buff.turns--;
+                        return buff.turns > 0;
+                    });
+                }
+                if (unit.debuffs) {
+                    unit.debuffs = unit.debuffs.filter(debuff => {
+                        debuff.turns--;
+                        if (debuff.type === 'dot' && debuff.turns > 0) {
+                            unit.currentHp -= debuff.damage;
+                            if (unit.currentHp <= 0) {
+                                unit.currentHp = 0;
+                                if (unit.alive !== undefined) unit.alive = false;
                             }
-                            this.addLog(`${unit.name}의 ${skill.name}! ${target.name}에게 ${damage} 데미지!`, 'damage');
-                        });
-                    } else {
-                        const target = targets[Math.floor(Math.random() * targets.length)];
-                        const damage = this.calculateDamage(unit, skill);
-                        target.currentHp -= damage;
-                        if (target.currentHp <= 0) {
-                            target.currentHp = 0;
-                            target.alive = false;
+                            this.addLog(`${unit.name}이(가) 지속 피해 ${debuff.damage}를 받았습니다!`, 'damage');
                         }
-                        this.addLog(`${unit.name}의 ${skill.name}! ${target.name}에게 ${damage} 데미지!`, 'damage');
+                        return debuff.turns > 0;
+                    });
+                }
+                if (unit.transformTurns) {
+                    unit.transformTurns--;
+                    if (unit.transformTurns <= 0) {
+                        unit.transform = null;
+                        this.addLog(`${unit.name}의 변신이 해제되었습니다!`);
                     }
+                }
+            },
+
+            getStatModifier(unit, stat) {
+                let modifier = 1.0;
+                if (unit.buffs) {
+                    unit.buffs.forEach(buff => {
+                        if (buff.stat === stat) modifier += buff.amount;
+                    });
+                }
+                if (unit.transform === 'bear') {
+                    if (stat === 'str') modifier += 1.0;
+                    if (stat === 'hp') modifier += 1.0;
+                    if (stat === 'dex') modifier += 1.0;
+                } else if (unit.transform === 'wolf') {
+                    if (stat === 'dex') modifier += 2.0;
+                }
+                return modifier;
+            },
+
+            performPlayerAction(char) {
+                const skill = char.skills[Math.floor(Math.random() * char.skills.length)];
+
+                if (skill.type === 'heal') {
+                    this.performHeal(char, skill);
                 } else {
-                    const targets = this.party.filter(c => c.currentHp > 0);
-                    if (targets.length === 0) return;
-
-                    const target = targets[Math.floor(Math.random() * targets.length)];
-                    const damage = Math.floor(unit.attack + Math.random() * 10);
-                    target.currentHp = Math.max(0, target.currentHp - damage);
-
-                    this.addLog(`${unit.name}의 공격! ${target.name}이(가) ${damage} 데미지를 받음!`, 'damage');
+                    this.performAttack(char, skill, true);
                 }
 
                 this.renderBattlefield();
             },
 
-            calculateDamage(attacker, skill) {
-                let baseDamage;
-                if (skill.type === 'physical') {
-                    baseDamage = attacker.stats.str * 2 + attacker.stats.dex;
-                } else {
-                    baseDamage = attacker.stats.int * 2 + attacker.stats.mp / 2;
+            performEnemyAction(enemy) {
+                const targets = this.party.filter(c => c.currentHp > 0);
+                if (targets.length === 0) return;
+
+                const target = targets[Math.floor(Math.random() * targets.length)];
+
+                // Check evasion
+                const evasionChance = Math.floor(target.stats.dex / 2);
+                if (Math.random() * 100 < evasionChance) {
+                    this.addLog(`${target.name}이(가) ${enemy.name}의 공격을 회피했습니다!`);
+                    this.renderBattlefield();
+                    return;
                 }
 
-                const damage = Math.floor(baseDamage * skill.power * (0.9 + Math.random() * 0.2));
-                return Math.max(1, damage);
+                // Determine attack type based on enemy type
+                const isPhysical = enemy.type === 'physical' || (enemy.type === 'balanced' && Math.random() < 0.5);
+                let damage;
+
+                if (isPhysical) {
+                    const attackPower = enemy.stats.str * this.getStatModifier(enemy, 'str');
+                    const defense = target.stats.str * this.getStatModifier(target, 'str');
+                    damage = Math.max(1, Math.floor(attackPower - defense));
+                } else {
+                    const attackPower = enemy.stats.int * this.getStatModifier(enemy, 'int');
+                    const defense = target.stats.int * this.getStatModifier(target, 'int');
+                    damage = Math.max(1, Math.floor(attackPower - defense));
+                }
+
+                target.currentHp = Math.max(0, target.currentHp - damage);
+                this.addLog(`${enemy.name}의 ${isPhysical ? '물리' : '마법'} 공격! ${target.name}이(가) ${damage} 데미지를 받음!`, 'damage');
+
+                this.renderBattlefield();
+            },
+
+            performAttack(attacker, skill, isPlayer) {
+                const targets = this.getTargets(skill, isPlayer);
+                if (targets.length === 0) return;
+
+                const skillPower = skill.power + (skill.skillPowerBonus || 0) * 0.1;
+
+                targets.forEach(target => {
+                    // Check evasion
+                    const evasionChance = Math.floor(target.stats.dex / 2);
+                    if (Math.random() * 100 < evasionChance) {
+                        this.addLog(`${target.name}이(가) 회피했습니다!`);
+                        return;
+                    }
+
+                    let damage = 0;
+                    const strMod = this.getStatModifier(attacker, 'str');
+                    const intMod = this.getStatModifier(attacker, 'int');
+
+                    if (skill.type === 'physical') {
+                        const attackPower = attacker.stats.str * strMod * skillPower;
+                        const defense = target.stats.str * this.getStatModifier(target, 'str');
+                        damage = Math.max(1, Math.floor(attackPower - defense));
+                    } else if (skill.type === 'magic') {
+                        const attackPower = attacker.stats.int * intMod * skillPower;
+                        const defense = target.stats.int * this.getStatModifier(target, 'int');
+                        damage = Math.max(1, Math.floor(attackPower - defense));
+                    }
+
+                    target.currentHp -= damage;
+                    if (target.currentHp <= 0) {
+                        target.currentHp = 0;
+                        if (target.alive !== undefined) target.alive = false;
+                    }
+
+                    // Lifesteal
+                    if (skill.lifesteal) {
+                        const healAmount = Math.floor(damage * skill.lifesteal);
+                        attacker.currentHp = Math.min(attacker.currentHp + healAmount, attacker.maxHp);
+                        this.addLog(`${attacker.name}이(가) ${healAmount} 체력을 흡수했습니다!`, 'heal');
+                    }
+
+                    // DOT effect
+                    if (skill.dot) {
+                        const dotDamage = Math.floor(attacker.stats.int * intMod * skill.dotPower);
+                        target.debuffs = target.debuffs || [];
+                        target.debuffs.push({ type: 'dot', turns: skill.dotTurns, damage: dotDamage });
+                    }
+
+                    this.addLog(`${attacker.name}의 ${skill.name}! ${target.name}에게 ${damage} 데미지!`, 'damage');
+                });
+
+                // Apply buffs
+                this.applySkillBuffs(attacker, skill);
+            },
+
+            performHeal(healer, skill) {
+                const skillPower = skill.power + (skill.skillPowerBonus || 0) * 0.1;
+                const healAmount = Math.floor(healer.stats.int * this.getStatModifier(healer, 'int') * skillPower);
+
+                if (skill.target === 'ally-lowest') {
+                    const targets = this.party.filter(c => c.currentHp > 0 && c.currentHp < c.maxHp)
+                        .sort((a, b) => a.currentHp - b.currentHp);
+                    if (targets.length > 0) {
+                        const target = targets[0];
+                        target.currentHp = Math.min(target.currentHp + healAmount, target.maxHp);
+                        this.addLog(`${healer.name}의 ${skill.name}! ${target.name}이(가) ${healAmount} 회복!`, 'heal');
+                    }
+                } else if (skill.target === 'ally-all') {
+                    this.party.forEach(char => {
+                        if (char.currentHp > 0 && char.currentHp < char.maxHp) {
+                            char.currentHp = Math.min(char.currentHp + healAmount, char.maxHp);
+                            this.addLog(`${char.name}이(가) ${healAmount} 회복!`, 'heal');
+                        }
+                    });
+                }
+            },
+
+            getTargets(skill, isPlayer) {
+                const enemyList = isPlayer ? this.enemies.filter(e => e.alive) : this.party.filter(c => c.currentHp > 0);
+
+                if (skill.target === 'single') {
+                    return enemyList.length > 0 ? [enemyList[Math.floor(Math.random() * enemyList.length)]] : [];
+                } else if (skill.target === 'all') {
+                    return enemyList;
+                } else if (skill.target === 'multi-2') {
+                    return enemyList.slice(0, 2);
+                }
+                return [];
+            },
+
+            applySkillBuffs(attacker, skill) {
+                // Self defense bonus
+                if (skill.selfDefBonus) {
+                    attacker.buffs = attacker.buffs || [];
+                    attacker.buffs.push({ stat: 'str', amount: skill.selfDefBonus, turns: 2 });
+                    attacker.buffs.push({ stat: 'int', amount: skill.selfDefBonus, turns: 2 });
+                    this.addLog(`${attacker.name}의 방어력이 상승했습니다!`);
+                }
+
+                // Ally defense bonus
+                if (skill.allyDefBonus) {
+                    this.party.forEach(char => {
+                        char.buffs = char.buffs || [];
+                        char.buffs.push({ stat: 'str', amount: skill.allyDefBonus, turns: 2 });
+                        char.buffs.push({ stat: 'int', amount: skill.allyDefBonus, turns: 2 });
+                    });
+                    this.addLog(`아군 전체의 방어력이 상승했습니다!`);
+                }
+
+                // Dex bonus
+                if (skill.selfDexBonus) {
+                    attacker.buffs = attacker.buffs || [];
+                    attacker.buffs.push({ stat: 'dex', amount: skill.selfDexBonus, turns: skill.dexTurns || 2 });
+                    this.addLog(`${attacker.name}의 민첩성이 상승했습니다!`);
+                }
+
+                // Transform
+                if (skill.transform) {
+                    attacker.transform = skill.transform;
+                    attacker.transformTurns = skill.transformTurns || 3;
+                    this.addLog(`${attacker.name}이(가) ${skill.transform === 'bear' ? '곰' : '늑대'}로 변신했습니다!`);
+                }
             },
 
             endBattle(victory) {
@@ -1332,10 +1555,13 @@
                         }
                     }
 
-                    // Heal party
+                    // Heal party and clear buffs
                     this.party.forEach(char => {
                         char.currentHp = char.maxHp;
-                        char.currentMp = char.maxMp;
+                        char.buffs = [];
+                        char.debuffs = [];
+                        char.transform = null;
+                        char.transformTurns = 0;
                     });
 
                     this.renderZoneSelect();
@@ -1347,10 +1573,13 @@
                     }
                 } else {
                     this.addLog('--- 패배... ---');
-                    // Heal party after defeat
+                    // Heal party after defeat and clear buffs
                     this.party.forEach(char => {
                         char.currentHp = char.maxHp;
-                        char.currentMp = char.maxMp;
+                        char.buffs = [];
+                        char.debuffs = [];
+                        char.transform = null;
+                        char.transformTurns = 0;
                     });
                 }
 
@@ -1367,19 +1596,18 @@
                     // Regular stat point
                     char.availableStats++;
 
-                    // Bonus stats at milestones
+                    // Bonus stats and skill points at milestones
                     if (char.level % 10 === 0) {
                         const bonus = char.level / 10;
                         char.availableStats += bonus;
-                        this.addLog(`${char.name}이(가) 레벨 ${char.level}에 도달! 보너스 스탯 ${bonus}개 획득!`);
+                        char.availableSkillStats++;
+                        this.addLog(`${char.name}이(가) 레벨 ${char.level}에 도달! 보너스 스탯 ${bonus}개 + 스킬 포인트 1개 획득!`);
                     } else {
                         this.addLog(`${char.name}이(가) 레벨 ${char.level}에 도달!`);
                     }
 
                     char.maxHp += 5;
                     char.currentHp = char.maxHp;
-                    char.maxMp += 3;
-                    char.currentMp = char.maxMp;
                 }
             },
 
@@ -1399,9 +1627,6 @@
                         <div class="character-hp-bar">
                             <div class="character-hp-fill" style="width: ${(char.currentHp / char.maxHp) * 100}%"></div>
                         </div>
-                        <div class="character-mp-bar">
-                            <div class="character-mp-fill" style="width: ${(char.currentMp / char.maxMp) * 100}%"></div>
-                        </div>
                     `;
                     playerTeam.appendChild(slot);
                 });
@@ -1411,7 +1636,7 @@
                     const slot = document.createElement('div');
                     slot.className = 'enemy-slot';
                     slot.innerHTML = `
-                        <div class="enemy-sprite">👹</div>
+                        <div class="enemy-sprite">${enemy.icon || '👹'}</div>
                         <div class="character-name">${enemy.name}</div>
                         <div class="character-hp-bar">
                             <div class="character-hp-fill" style="width: ${(enemy.currentHp / enemy.maxHp) * 100}%"></div>
@@ -1509,6 +1734,23 @@
                 try {
                     const data = JSON.parse(saveData);
                     this.party = data.party;
+
+                    // Update old characters to new format
+                    this.party.forEach(char => {
+                        if (!char.buffs) char.buffs = [];
+                        if (!char.debuffs) char.debuffs = [];
+                        if (!char.transform) char.transform = null;
+                        if (!char.transformTurns) char.transformTurns = 0;
+                        if (!char.availableSkillStats) char.availableSkillStats = 0;
+
+                        // Update skills to new format
+                        if (char.skills) {
+                            char.skills.forEach(skill => {
+                                if (skill.skillPowerBonus === undefined) skill.skillPowerBonus = 0;
+                            });
+                        }
+                    });
+
                     this.currentZone = data.currentZone;
                     this.currentStage = data.currentStage;
                     this.unlockedZones = data.unlockedZones;
