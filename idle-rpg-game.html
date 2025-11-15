@@ -702,6 +702,56 @@
             25% { transform: translateX(-5px); }
             75% { transform: translateX(5px); }
         }
+
+        .town-building {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .town-building:hover {
+            border-color: #4CAF50;
+            transform: scale(1.05);
+            background: rgba(76, 175, 80, 0.2);
+        }
+
+        .equipment-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+
+        .equipment-item:hover {
+            border-color: #4CAF50;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .equipment-item.common {
+            border-color: #999;
+        }
+
+        .equipment-item.uncommon {
+            border-color: #2ecc71;
+        }
+
+        .equipment-item.rare {
+            border-color: #3498db;
+        }
+
+        .equipment-item.epic {
+            border-color: #9b59b6;
+        }
+
+        .equipment-item.legendary {
+            border-color: #f39c12;
+        }
     </style>
 </head>
 <body>
@@ -748,6 +798,7 @@
                 <div class="battle-controls">
                     <button class="btn btn-success" onclick="game.startBattle()" id="battle-btn">전투 시작</button>
                     <button class="btn btn-primary" onclick="game.toggleAutoBattle()" id="auto-battle-btn">자동 전투</button>
+                    <button class="btn btn-primary" onclick="game.showTown()" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">🏘️ 도시</button>
                     <button class="btn btn-danger" onclick="game.saveGame()">저장</button>
                     <button class="btn btn-primary" onclick="game.loadGame()">불러오기</button>
                 </div>
@@ -788,6 +839,76 @@
             <div class="modal-header" id="char-detail-header">캐릭터 상세</div>
             <div id="char-detail-content"></div>
             <button class="btn btn-danger" onclick="game.closeModal('character-detail-modal')" style="width: 100%; margin-top: 20px;">닫기</button>
+        </div>
+    </div>
+
+    <!-- Town Modal -->
+    <div class="modal" id="town-modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">🏘️ 마을</div>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 20px;">
+                <div class="town-building" onclick="game.showBlacksmith()">
+                    <div style="font-size: 48px; margin-bottom: 10px;">⚒️</div>
+                    <div style="font-size: 18px; font-weight: bold;">대장간</div>
+                    <div style="font-size: 12px; color: #aaa;">장비 제작 및 강화</div>
+                </div>
+                <div class="town-building" onclick="game.showInn()">
+                    <div style="font-size: 48px; margin-bottom: 10px;">🏨</div>
+                    <div style="font-size: 18px; font-weight: bold;">여관</div>
+                    <div style="font-size: 12px; color: #aaa;">휴식 및 회복</div>
+                </div>
+                <div class="town-building" onclick="game.showShop()">
+                    <div style="font-size: 48px; margin-bottom: 10px;">🏪</div>
+                    <div style="font-size: 18px; font-weight: bold;">상점</div>
+                    <div style="font-size: 12px; color: #aaa;">아이템 구매 및 판매</div>
+                </div>
+                <div class="town-building" onclick="game.showGuild()">
+                    <div style="font-size: 48px; margin-bottom: 10px;">🏛️</div>
+                    <div style="font-size: 18px; font-weight: bold;">길드</div>
+                    <div style="font-size: 12px; color: #aaa;">퀘스트 및 의뢰</div>
+                </div>
+            </div>
+            <button class="btn btn-danger" onclick="game.closeModal('town-modal')" style="width: 100%; margin-top: 20px;">나가기</button>
+        </div>
+    </div>
+
+    <!-- Blacksmith Modal -->
+    <div class="modal" id="blacksmith-modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">⚒️ 대장간</div>
+            <div class="tabs" style="margin-top: 20px;">
+                <div class="tab active" onclick="game.switchBlacksmithTab('craft')">제작</div>
+                <div class="tab" onclick="game.switchBlacksmithTab('upgrade')">강화</div>
+            </div>
+            <div id="blacksmith-content"></div>
+            <button class="btn btn-danger" onclick="game.closeModal('blacksmith-modal')" style="width: 100%; margin-top: 20px;">돌아가기</button>
+        </div>
+    </div>
+
+    <!-- Inn Modal -->
+    <div class="modal" id="inn-modal">
+        <div class="modal-content">
+            <div class="modal-header">🏨 여관</div>
+            <div id="inn-content" style="margin-top: 20px;"></div>
+            <button class="btn btn-danger" onclick="game.closeModal('inn-modal')" style="width: 100%; margin-top: 20px;">돌아가기</button>
+        </div>
+    </div>
+
+    <!-- Shop Modal -->
+    <div class="modal" id="shop-modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">🏪 상점</div>
+            <div id="shop-content" style="margin-top: 20px;"></div>
+            <button class="btn btn-danger" onclick="game.closeModal('shop-modal')" style="width: 100%; margin-top: 20px;">돌아가기</button>
+        </div>
+    </div>
+
+    <!-- Guild Modal -->
+    <div class="modal" id="guild-modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">🏛️ 길드</div>
+            <div id="guild-content" style="margin-top: 20px;"></div>
+            <button class="btn btn-danger" onclick="game.closeModal('guild-modal')" style="width: 100%; margin-top: 20px;">돌아가기</button>
         </div>
     </div>
 
@@ -875,6 +996,48 @@
             dark: ['어둠의 정수', '망자의 뼈', '저주받은 수정']
         };
 
+        const EQUIPMENT_TYPES = {
+            weapon: '무기',
+            armor: '갑옷',
+            accessory: '장신구'
+        };
+
+        const EQUIPMENT_TEMPLATES = {
+            // 무기
+            ironSword: { name: '철검', type: 'weapon', rarity: 'common', str: 5, dex: 0, int: 0, hp: 0, cost: 100 },
+            steelSword: { name: '강철검', type: 'weapon', rarity: 'uncommon', str: 10, dex: 0, int: 0, hp: 0, cost: 300 },
+            magicStaff: { name: '마법 지팡이', type: 'weapon', rarity: 'uncommon', str: 0, dex: 0, int: 10, hp: 0, cost: 300 },
+            elvenBow: { name: '엘프의 활', type: 'weapon', rarity: 'rare', str: 5, dex: 15, int: 0, hp: 0, cost: 600 },
+            flameSword: { name: '화염검', type: 'weapon', rarity: 'epic', str: 20, dex: 5, int: 5, hp: 0, cost: 1200 },
+
+            // 갑옷
+            leatherArmor: { name: '가죽 갑옷', type: 'armor', rarity: 'common', str: 3, dex: 2, int: 0, hp: 2, cost: 150 },
+            chainmail: { name: '사슬 갑옷', type: 'armor', rarity: 'uncommon', str: 8, dex: 0, int: 0, hp: 5, cost: 400 },
+            robeOfMagi: { name: '마법사의 로브', type: 'armor', rarity: 'rare', str: 0, dex: 3, int: 12, hp: 3, cost: 700 },
+            dragonScale: { name: '용비늘 갑옷', type: 'armor', rarity: 'epic', str: 15, dex: 5, int: 5, hp: 10, cost: 1500 },
+
+            // 장신구
+            ringOfStrength: { name: '힘의 반지', type: 'accessory', rarity: 'uncommon', str: 5, dex: 0, int: 0, hp: 0, cost: 250 },
+            amuletOfWisdom: { name: '지혜의 목걸이', type: 'accessory', rarity: 'rare', str: 0, dex: 0, int: 10, hp: 3, cost: 500 },
+            beltOfAgility: { name: '민첩의 허리띠', type: 'accessory', rarity: 'rare', str: 0, dex: 10, int: 0, hp: 2, cost: 500 },
+            crownOfKings: { name: '왕의 왕관', type: 'accessory', rarity: 'legendary', str: 10, dex: 10, int: 10, hp: 10, cost: 3000 }
+        };
+
+        const SHOP_ITEMS = {
+            healthPotion: { name: '체력 물약', effect: 'heal', power: 50, cost: 50, description: '체력 50 회복' },
+            strengthPotion: { name: '힘의 물약', effect: 'buff-str', power: 5, duration: 10, cost: 200, description: '10분간 힘 +5' },
+            expBook: { name: '경험치 책', effect: 'exp', power: 500, cost: 300, description: '경험치 500 획득' },
+            resetScroll: { name: '스탯 초기화 주문서', effect: 'reset', cost: 1000, description: '모든 스탯 포인트 초기화' }
+        };
+
+        const GUILD_QUESTS = [
+            { id: 1, name: '고블린 소탕', description: 'A-5 클리어', reward: 500, requirement: { zone: 'a', stage: 5 } },
+            { id: 2, name: '용암 지대 탐험', description: 'B-3 클리어', reward: 800, requirement: { zone: 'b', stage: 3 } },
+            { id: 3, name: '숲의 수호자', description: 'C-7 클리어', reward: 1200, requirement: { zone: 'c', stage: 7 } },
+            { id: 4, name: '심해 탐험가', description: 'D-5 클리어', reward: 1500, requirement: { zone: 'd', stage: 5 } },
+            { id: 5, name: '어둠의 정복자', description: 'E-10 클리어', reward: 3000, requirement: { zone: 'e', stage: 10 } }
+        ];
+
         // Main Game Object
         const game = {
             party: [],
@@ -887,6 +1050,8 @@
             autoBattle: false,
             inBattle: false,
             enemies: [],
+            inventory: [],
+            completedQuests: [],
 
             init() {
                 this.renderZoneSelect();
@@ -1036,7 +1201,30 @@
                     `;
                 }
 
+                // Equipment section
+                if (!char.equipment) char.equipment = {};
                 html += `
+                    <div style="margin-top: 20px;">
+                        <strong>장비:</strong>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                            ${['weapon', 'armor', 'accessory'].map(slot => {
+                                const equipped = this.inventory.find(item => item.equippedBy === char.name && item.type === slot);
+                                return `
+                                    <div style="background: rgba(255, 255, 255, 0.05); padding: 10px; border-radius: 5px;">
+                                        <div style="font-size: 12px; color: #aaa;">${EQUIPMENT_TYPES[slot]}</div>
+                                        <select onchange="game.equipItem(${char.id}, '${slot}', this.value)" style="width: 100%; padding: 5px; margin-top: 5px; background: rgba(0,0,0,0.5); color: white; border: 1px solid #666; border-radius: 3px;">
+                                            <option value="">없음</option>
+                                            ${this.inventory.filter(item => item.type === slot && !item.equippedBy).map(item =>
+                                                `<option value="${item.id}" ${equipped && equipped.id === item.id ? 'selected' : ''}>${item.name} ${item.upgradeLevel ? `+${item.upgradeLevel}` : ''}</option>`
+                                            ).join('')}
+                                            ${equipped ? `<option value="${equipped.id}" selected>${equipped.name} ${equipped.upgradeLevel ? `+${equipped.upgradeLevel}` : ''}</option>` : ''}
+                                        </select>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+
                     <div style="margin-top: 20px;">
                         <strong>스킬:</strong><br>
                         ${char.skills.map(skill => `• ${skill.name} (${skill.type})`).join('<br>')}
@@ -1717,7 +1905,9 @@
                     unlockedZones: this.unlockedZones,
                     unlockedStages: this.unlockedStages,
                     materials: this.materials,
-                    gold: this.gold
+                    gold: this.gold,
+                    inventory: this.inventory,
+                    completedQuests: this.completedQuests
                 };
 
                 localStorage.setItem('idleRpgSave', JSON.stringify(saveData));
@@ -1757,6 +1947,8 @@
                     this.unlockedStages = data.unlockedStages;
                     this.materials = data.materials;
                     this.gold = data.gold;
+                    this.inventory = data.inventory || [];
+                    this.completedQuests = data.completedQuests || [];
 
                     this.renderPartyList();
                     this.renderZoneSelect();
@@ -1768,6 +1960,322 @@
                 } catch (e) {
                     this.addLog('저장 데이터를 불러오는데 실패했습니다.');
                 }
+            },
+
+            // Town System Functions
+            showTown() {
+                document.getElementById('town-modal').classList.add('active');
+            },
+
+            showBlacksmith() {
+                this.closeModal('town-modal');
+                document.getElementById('blacksmith-modal').classList.add('active');
+                this.switchBlacksmithTab('craft');
+            },
+
+            switchBlacksmithTab(tab) {
+                const content = document.getElementById('blacksmith-content');
+
+                if (tab === 'craft') {
+                    let html = '<div style="margin-top: 20px;"><h3>장비 제작</h3>';
+                    html += '<div style="display: grid; gap: 10px; margin-top: 15px;">';
+
+                    Object.entries(EQUIPMENT_TEMPLATES).forEach(([id, item]) => {
+                        html += `
+                            <div class="equipment-item ${item.rarity}">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <strong>${item.name}</strong> (${EQUIPMENT_TYPES[item.type]})
+                                        <div style="font-size: 11px; color: #aaa; margin-top: 5px;">
+                                            ${item.str > 0 ? `힘 +${item.str} ` : ''}
+                                            ${item.dex > 0 ? `민첩 +${item.dex} ` : ''}
+                                            ${item.int > 0 ? `지력 +${item.int} ` : ''}
+                                            ${item.hp > 0 ? `생명력 +${item.hp}` : ''}
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-success" onclick="game.craftEquipment('${id}')"
+                                        ${this.gold < item.cost ? 'disabled' : ''}>
+                                        제작 (${item.cost}G)
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    html += '</div></div>';
+                    content.innerHTML = html;
+                } else if (tab === 'upgrade') {
+                    let html = '<div style="margin-top: 20px;"><h3>장비 강화</h3>';
+                    html += '<p style="color: #aaa; margin-top: 10px;">보유 중인 장비:</p>';
+                    html += '<div style="display: grid; gap: 10px; margin-top: 15px;">';
+
+                    if (this.inventory.length === 0) {
+                        html += '<p style="text-align: center; color: #666;">보유 중인 장비가 없습니다.</p>';
+                    } else {
+                        this.inventory.forEach((item, idx) => {
+                            const upgradeCost = Math.floor(item.cost * 0.5 * (item.upgradeLevel || 0 + 1));
+                            html += `
+                                <div class="equipment-item ${item.rarity}">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <div>
+                                            <strong>${item.name} ${item.upgradeLevel ? `+${item.upgradeLevel}` : ''}</strong>
+                                            <div style="font-size: 11px; color: #aaa; margin-top: 5px;">
+                                                ${item.str > 0 ? `힘 +${item.str} ` : ''}
+                                                ${item.dex > 0 ? `민첩 +${item.dex} ` : ''}
+                                                ${item.int > 0 ? `지력 +${item.int} ` : ''}
+                                                ${item.hp > 0 ? `생명력 +${item.hp}` : ''}
+                                                ${item.equippedBy ? `(${item.equippedBy} 착용 중)` : ''}
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-primary" onclick="game.upgradeEquipment(${idx})"
+                                            ${this.gold < upgradeCost || item.equippedBy ? 'disabled' : ''}>
+                                            강화 (${upgradeCost}G)
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    html += '</div></div>';
+                    content.innerHTML = html;
+                }
+            },
+
+            craftEquipment(templateId) {
+                const template = EQUIPMENT_TEMPLATES[templateId];
+                if (this.gold < template.cost) {
+                    this.addLog('골드가 부족합니다!');
+                    return;
+                }
+
+                this.gold -= template.cost;
+                const newEquipment = {
+                    ...template,
+                    id: Date.now(),
+                    upgradeLevel: 0
+                };
+                this.inventory.push(newEquipment);
+
+                this.addLog(`${template.name}을(를) 제작했습니다!`);
+                this.updateDisplay();
+                this.switchBlacksmithTab('craft');
+            },
+
+            upgradeEquipment(index) {
+                const item = this.inventory[index];
+                const upgradeCost = Math.floor(item.cost * 0.5 * (item.upgradeLevel + 1));
+
+                if (this.gold < upgradeCost) {
+                    this.addLog('골드가 부족합니다!');
+                    return;
+                }
+
+                this.gold -= upgradeCost;
+                item.upgradeLevel = (item.upgradeLevel || 0) + 1;
+
+                // Increase stats by 20% of base
+                const baseTemplate = EQUIPMENT_TEMPLATES[Object.keys(EQUIPMENT_TEMPLATES).find(k =>
+                    EQUIPMENT_TEMPLATES[k].name === item.name.split('+')[0].trim()
+                )];
+
+                item.str += Math.floor(baseTemplate.str * 0.2);
+                item.dex += Math.floor(baseTemplate.dex * 0.2);
+                item.int += Math.floor(baseTemplate.int * 0.2);
+                item.hp += Math.floor(baseTemplate.hp * 0.2);
+
+                this.addLog(`${item.name}을(를) +${item.upgradeLevel}(으)로 강화했습니다!`);
+                this.updateDisplay();
+                this.switchBlacksmithTab('upgrade');
+            },
+
+            showInn() {
+                this.closeModal('town-modal');
+                document.getElementById('inn-modal').classList.add('active');
+
+                const content = document.getElementById('inn-content');
+                let html = '<div style="text-align: center;">';
+                html += '<p style="font-size: 16px; margin-bottom: 20px;">여관에서 휴식을 취하면 파티 전체의 체력이 회복됩니다.</p>';
+                html += '<div style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 10px; margin: 20px 0;">';
+                html += '<div style="font-size: 48px; margin-bottom: 15px;">🛏️</div>';
+                html += '<p style="font-size: 14px; color: #aaa; margin-bottom: 20px;">휴식 비용: 50 골드</p>';
+                html += `<button class="btn btn-success" onclick="game.restAtInn()" ${this.gold < 50 ? 'disabled' : ''} style="padding: 15px 40px; font-size: 16px;">휴식하기</button>`;
+                html += '</div>';
+                html += '<p style="font-size: 12px; color: #666; margin-top: 15px;">※ 전투 중에는 여관을 이용할 수 없습니다.</p>';
+                html += '</div>';
+
+                content.innerHTML = html;
+            },
+
+            restAtInn() {
+                if (this.inBattle) {
+                    this.addLog('전투 중에는 여관을 이용할 수 없습니다!');
+                    return;
+                }
+
+                if (this.gold < 50) {
+                    this.addLog('골드가 부족합니다!');
+                    return;
+                }
+
+                this.gold -= 50;
+                this.party.forEach(char => {
+                    char.currentHp = char.maxHp;
+                });
+
+                this.addLog('파티가 여관에서 휴식을 취했습니다. 체력이 모두 회복되었습니다!');
+                this.updateDisplay();
+                this.renderPartyList();
+                this.closeModal('inn-modal');
+            },
+
+            showShop() {
+                this.closeModal('town-modal');
+                document.getElementById('shop-modal').classList.add('active');
+
+                const content = document.getElementById('shop-content');
+                let html = '<div><h3>🏪 상점</h3>';
+                html += '<p style="color: #ffeb3b; margin: 10px 0;">보유 골드: ' + this.gold + 'G</p>';
+                html += '<div style="display: grid; gap: 10px; margin-top: 15px;">';
+
+                Object.entries(SHOP_ITEMS).forEach(([id, item]) => {
+                    html += `
+                        <div class="equipment-item">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>${item.name}</strong>
+                                    <div style="font-size: 11px; color: #aaa; margin-top: 5px;">${item.description}</div>
+                                </div>
+                                <button class="btn btn-success" onclick="game.buyItem('${id}')"
+                                    ${this.gold < item.cost ? 'disabled' : ''}>
+                                    구매 (${item.cost}G)
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += '</div></div>';
+                content.innerHTML = html;
+            },
+
+            buyItem(itemId) {
+                const item = SHOP_ITEMS[itemId];
+                if (this.gold < item.cost) {
+                    this.addLog('골드가 부족합니다!');
+                    return;
+                }
+
+                this.gold -= item.cost;
+
+                // Apply item effect
+                if (item.effect === 'heal') {
+                    if (this.party.length > 0) {
+                        const char = this.party[0];
+                        char.currentHp = Math.min(char.currentHp + item.power, char.maxHp);
+                        this.addLog(`${item.name}을(를) 사용하여 ${char.name}의 체력이 ${item.power} 회복되었습니다!`);
+                    }
+                } else if (item.effect === 'exp') {
+                    if (this.party.length > 0) {
+                        this.party.forEach(char => {
+                            char.exp += item.power;
+                            this.checkLevelUp(char);
+                        });
+                        this.addLog(`${item.name}을(를) 사용하여 파티 전체가 경험치 ${item.power}를 획득했습니다!`);
+                    }
+                } else if (item.effect === 'reset') {
+                    this.addLog(`${item.name} 기능은 캐릭터 상세 화면에서 사용할 수 있습니다.`);
+                }
+
+                this.updateDisplay();
+                this.renderPartyList();
+                this.showShop();
+            },
+
+            showGuild() {
+                this.closeModal('town-modal');
+                document.getElementById('guild-modal').classList.add('active');
+
+                const content = document.getElementById('guild-content');
+                let html = '<div><h3>🏛️ 길드 의뢰</h3>';
+                html += '<p style="color: #aaa; margin: 10px 0;">퀘스트를 완료하고 보상을 받으세요!</p>';
+                html += '<div style="display: grid; gap: 10px; margin-top: 15px;">';
+
+                GUILD_QUESTS.forEach(quest => {
+                    const isCompleted = this.completedQuests.includes(quest.id);
+                    const canComplete = this.unlockedStages[quest.requirement.zone] >= quest.requirement.stage;
+
+                    html += `
+                        <div class="equipment-item ${isCompleted ? 'common' : canComplete ? 'uncommon' : ''}">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>${quest.name}</strong> ${isCompleted ? '✅' : ''}
+                                    <div style="font-size: 11px; color: #aaa; margin-top: 5px;">
+                                        ${quest.description}<br>
+                                        보상: ${quest.reward} 골드
+                                    </div>
+                                </div>
+                                <button class="btn btn-success" onclick="game.completeQuest(${quest.id})"
+                                    ${!canComplete || isCompleted ? 'disabled' : ''}>
+                                    ${isCompleted ? '완료됨' : canComplete ? '보상 받기' : '미달성'}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += '</div></div>';
+                content.innerHTML = html;
+            },
+
+            completeQuest(questId) {
+                const quest = GUILD_QUESTS.find(q => q.id === questId);
+                if (!quest || this.completedQuests.includes(questId)) return;
+
+                this.completedQuests.push(questId);
+                this.gold += quest.reward;
+
+                this.addLog(`퀘스트 "${quest.name}"을(를) 완료했습니다! ${quest.reward} 골드를 획득했습니다!`);
+                this.updateDisplay();
+                this.showGuild();
+            },
+
+            equipItem(charId, slot, itemId) {
+                const char = this.party.find(c => c.id === charId);
+                if (!char) return;
+
+                // Unequip current item in this slot
+                const currentEquipped = this.inventory.find(item => item.equippedBy === char.name && item.type === slot);
+                if (currentEquipped) {
+                    currentEquipped.equippedBy = null;
+                    // Remove stats from character
+                    char.stats.str -= currentEquipped.str || 0;
+                    char.stats.dex -= currentEquipped.dex || 0;
+                    char.stats.int -= currentEquipped.int || 0;
+                    char.stats.hp -= currentEquipped.hp || 0;
+                    char.maxHp -= (currentEquipped.hp || 0) * 10;
+                    char.currentHp = Math.min(char.currentHp, char.maxHp);
+                }
+
+                // Equip new item
+                if (itemId && itemId !== '') {
+                    const newItem = this.inventory.find(item => item.id == itemId);
+                    if (newItem) {
+                        newItem.equippedBy = char.name;
+                        // Add stats to character
+                        char.stats.str += newItem.str || 0;
+                        char.stats.dex += newItem.dex || 0;
+                        char.stats.int += newItem.int || 0;
+                        char.stats.hp += newItem.hp || 0;
+                        char.maxHp += (newItem.hp || 0) * 10;
+                        char.currentHp = Math.min(char.currentHp + (newItem.hp || 0) * 10, char.maxHp);
+
+                        this.addLog(`${char.name}이(가) ${newItem.name}을(를) 장착했습니다!`);
+                    }
+                }
+
+                this.showCharacterDetail(char);
+                this.renderPartyList();
             }
         };
 
