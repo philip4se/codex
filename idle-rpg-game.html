@@ -2320,8 +2320,12 @@
                     if (item) {
                         const icon = getItemIcon(item.name, item.type);
                         slotDiv.style.borderColor = item.skill ? '#f39c12' : '#4CAF50';
+
+                        // Display "양손무기" for two-handed weapons instead of "왼손 무기"
+                        const displaySlotName = (slotType === 'leftWeapon' && item.isTwoHanded) ? '양손무기' : slotNames[slotType];
+
                         slotDiv.innerHTML = `
-                            <div style="font-size: 10px; color: #aaa; margin-bottom: 5px;">${slotNames[slotType]}</div>
+                            <div style="font-size: 10px; color: #aaa; margin-bottom: 5px;">${displaySlotName}</div>
                             <div style="font-size: 20px; text-align: center;">${icon}</div>
                             <div style="font-size: 11px; text-align: center; margin-top: 5px;">${item.name}</div>
                             ${item.enhancement > 0 ? `<div style="font-size: 10px; color: #4CAF50; text-align: center;">+${item.enhancement}</div>` : ''}
@@ -2389,6 +2393,24 @@
 
                 const item = this.inventory[itemIndex];
                 if (!item) return;
+
+                // Two-handed weapon system
+                // If equipping a two-handed weapon on left hand, unequip right hand
+                if (item.isTwoHanded && item.type === 'leftWeapon') {
+                    if (char.equipment.rightWeapon) {
+                        const rightWeaponName = char.equipment.rightWeapon.name;
+                        this.inventory.push(char.equipment.rightWeapon);
+                        char.equipment.rightWeapon = null;
+                        this.addLog(`양손무기 착용으로 ${rightWeaponName}를 해제했습니다.`);
+                    }
+                }
+
+                // If equipping right hand weapon/shield while left hand has two-handed weapon, unequip left hand
+                if ((item.type === 'rightWeapon') && char.equipment.leftWeapon?.isTwoHanded) {
+                    this.inventory.push(char.equipment.leftWeapon);
+                    this.addLog(`${char.equipment.leftWeapon.name}(양손무기)를 해제했습니다.`);
+                    char.equipment.leftWeapon = null;
+                }
 
                 // Unequip existing item in that slot
                 if (char.equipment[item.type]) {
@@ -2853,6 +2875,11 @@
                         char.currentHp = char.maxHp;
                         char.currentMp = char.maxMp;
                     });
+
+                    // Auto-retry on defeat if auto battle is enabled (auto climb mode)
+                    if (this.autoBattle) {
+                        setTimeout(() => this.startBattle(), 2000 / this.gameSpeed);
+                    }
                 }
 
                 this.renderPartyList();
