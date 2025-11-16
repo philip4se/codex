@@ -748,8 +748,14 @@
                 <div class="battle-controls">
                     <button class="btn btn-success" onclick="game.startBattle()" id="battle-btn">전투 시작</button>
                     <button class="btn btn-primary" onclick="game.toggleAutoBattle()" id="auto-battle-btn">자동 전투</button>
+                    <button class="btn btn-primary" onclick="game.toggleRepeatStage()" id="repeat-stage-btn">반복 전투: OFF</button>
                     <button class="btn btn-danger" onclick="game.saveGame()">저장</button>
                     <button class="btn btn-primary" onclick="game.loadGame()">불러오기</button>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 10px;">
+                    <button class="btn btn-primary" onclick="game.setBattleSpeed(1)" id="speed-1x">1배속</button>
+                    <button class="btn btn-primary" onclick="game.setBattleSpeed(2)" id="speed-2x">2배속</button>
+                    <button class="btn btn-primary" onclick="game.setBattleSpeed(3)" id="speed-3x">3배속</button>
                 </div>
             </div>
 
@@ -826,7 +832,8 @@
                 skills: [
                     { name: '강타', power: 1.5, target: 'single', type: 'physical' },
                     { name: '방어 태세', power: 0.5, target: 'self', type: 'buff', effect: 'defense' }
-                ]
+                ],
+                levelUpOrder: ['str', 'hp', 'str', 'hp', 'dex', 'int']
             },
             archer: {
                 name: '궁수',
@@ -835,7 +842,8 @@
                 skills: [
                     { name: '정밀 사격', power: 2.0, target: 'single', type: 'physical' },
                     { name: '다중 사격', power: 0.8, target: 'all', type: 'physical' }
-                ]
+                ],
+                levelUpOrder: ['dex', 'str', 'dex', 'str', 'hp', 'int']
             },
             priest: {
                 name: '성직자',
@@ -844,7 +852,8 @@
                 skills: [
                     { name: '신성한 빛', power: 1.2, target: 'single', type: 'magic' },
                     { name: '치유', power: 1.5, target: 'ally', type: 'heal' }
-                ]
+                ],
+                levelUpOrder: ['str', 'hp', 'str', 'hp', 'dex', 'int']
             },
             rogue: {
                 name: '도적',
@@ -853,7 +862,8 @@
                 skills: [
                     { name: '급소 공격', power: 1.8, target: 'single', type: 'physical' },
                     { name: '회피', power: 0, target: 'self', type: 'buff', effect: 'evasion' }
-                ]
+                ],
+                levelUpOrder: ['dex', 'str', 'dex', 'str', 'hp', 'int']
             },
             druid: {
                 name: '드루이드',
@@ -862,7 +872,8 @@
                 skills: [
                     { name: '야수 변신', power: 0, target: 'self', type: 'buff', effect: 'transform' },
                     { name: '자연의 분노', power: 1.3, target: 'all', type: 'magic' }
-                ]
+                ],
+                levelUpOrder: ['str', 'hp', 'str', 'hp', 'dex', 'int']
             },
             mage: {
                 name: '법사',
@@ -871,7 +882,8 @@
                 skills: [
                     { name: '화염구', power: 1.6, target: 'all', type: 'magic' },
                     { name: '독구름', power: 0.5, target: 'all', type: 'magic', effect: 'dot' }
-                ]
+                ],
+                levelUpOrder: ['int', 'hp', 'int', 'hp', 'dex', 'dex']
             },
             healer: {
                 name: '치료사',
@@ -880,7 +892,8 @@
                 skills: [
                     { name: '대치유', power: 2.0, target: 'ally', type: 'heal' },
                     { name: '축복', power: 0, target: 'ally', type: 'buff', effect: 'bless' }
-                ]
+                ],
+                levelUpOrder: ['int', 'hp', 'int', 'hp', 'dex', 'hp']
             }
         };
 
@@ -959,6 +972,10 @@
             guildUpgradeCost: 5000,
             inventory: [],
             blacksmith: { purchasable: [], craftable: [] },
+            battleSpeed: 1,
+            repeatStage: false,
+            lastClearedZone: 'a',
+            lastClearedStage: 1,
 
             init() {
                 this.renderZoneSelect();
@@ -1027,6 +1044,7 @@
                     expToNext: 100,
                     stats: { ...finalStats },
                     baseStats: { ...finalStats },
+                    originalStats: { ...finalStats },
                     currentHp: finalStats.hp * 10,
                     maxHp: finalStats.hp * 10,
                     currentMp: finalStats.mp * 10,
@@ -1038,7 +1056,10 @@
                         leftRing: null, rightRing: null
                     },
                     availableStats: 0,
-                    personality: this.generatePersonality()
+                    personality: this.generatePersonality(),
+                    promotionCount: 0,
+                    rebirthCount: 0,
+                    statusEffects: []
                 };
 
                 this.party.push(character);
@@ -1214,7 +1235,8 @@
 
                 let html = `
                     <div style="margin-bottom: 20px;">
-                        <strong>직업:</strong> ${classData.name} | <strong>성격:</strong> ${char.personality}
+                        <strong>직업:</strong> ${classData.name} | <strong>성격:</strong> ${char.personality}<br>
+                        <strong>전직:</strong> ${char.promotionCount || 0}차 | <strong>환생:</strong> ${char.rebirthCount || 0}차
                     </div>
                 `;
 
@@ -1246,11 +1268,20 @@
                 `;
 
                 if (char.level >= 30) {
-                    html += `
-                        <button class="btn btn-primary" style="width: 100%; margin-top: 20px;" onclick="game.promoteCharacter(${char.id})">
-                            전직하기 (Lv.1로 초기화, 스탯 유지)
-                        </button>
-                    `;
+                    const promotionCount = char.promotionCount || 0;
+                    if (promotionCount < 4) {
+                        html += `
+                            <button class="btn btn-primary" style="width: 100%; margin-top: 20px;" onclick="game.promoteCharacter(${char.id})">
+                                ${promotionCount + 1}차 전직하기 (스탯 +2, 포인트 +5, Lv.1로 초기화)
+                            </button>
+                        `;
+                    } else {
+                        html += `
+                            <button class="btn btn-primary" style="width: 100%; margin-top: 20px; background: linear-gradient(135deg, #f39c12 0%, #e74c3c 100%);" onclick="game.rebirthCharacter(${char.id})">
+                                환생하기 (초기 스탯 ${Math.pow(2, (char.rebirthCount || 0) + 1)}배, 전직 리셋)
+                            </button>
+                        `;
+                    }
                 }
 
                 content.innerHTML = html;
@@ -1293,15 +1324,74 @@
             },
 
             promoteCharacter(charId) {
-                const char = this.party.find(c => c.id === charId);
+                const char = this.party.find(c => c.id === charId) || this.inn.mercenaries.find(c => c.id === charId);
                 if (!char || char.level < 30) return;
 
+                // 전직 횟수 확인
+                if (!char.promotionCount) char.promotionCount = 0;
+                if (char.promotionCount >= 4) {
+                    // 환생 시스템
+                    this.rebirthCharacter(charId);
+                    return;
+                }
+
+                // 전직 시 추가 스탯 5개 + 전체 스탯 2 증가
+                char.promotionCount++;
+                char.stats.str += 2;
+                char.stats.dex += 2;
+                char.stats.int += 2;
+                char.stats.hp += 2;
+                char.stats.mp += 2;
+                char.availableStats += 5;
+
+                // 레벨 초기화
                 char.level = 1;
                 char.exp = 0;
                 char.expToNext = 100;
                 char.baseStats = { ...char.stats };
 
-                this.addLog(`${char.name}이(가) 전직했습니다! 레벨 1로 초기화되었지만 모든 스탯이 유지됩니다.`);
+                // HP/MP 최대치 업데이트
+                char.maxHp = char.stats.hp * 10;
+                char.currentHp = char.maxHp;
+                char.maxMp = char.stats.mp * 10;
+                char.currentMp = char.maxMp;
+
+                this.addLog(`${char.name}이(가) ${char.promotionCount}차 전직 완료! 스탯 +2, 포인트 +5`);
+                this.closeModal('character-detail-modal');
+                this.renderPartyList();
+            },
+
+            rebirthCharacter(charId) {
+                const char = this.party.find(c => c.id === charId) || this.inn.mercenaries.find(c => c.id === charId);
+                if (!char) return;
+
+                // 환생 시 초기 스탯의 2배로 리셋
+                if (!char.rebirthCount) char.rebirthCount = 0;
+                char.rebirthCount++;
+
+                const multiplier = Math.pow(2, char.rebirthCount);
+                char.stats = {
+                    str: char.originalStats.str * multiplier,
+                    dex: char.originalStats.dex * multiplier,
+                    int: char.originalStats.int * multiplier,
+                    hp: char.originalStats.hp * multiplier,
+                    mp: char.originalStats.mp * multiplier
+                };
+
+                char.baseStats = { ...char.stats };
+                char.level = 1;
+                char.exp = 0;
+                char.expToNext = 100;
+                char.promotionCount = 0;
+                char.availableStats = 0;
+
+                // HP/MP 최대치 업데이트
+                char.maxHp = char.stats.hp * 10;
+                char.currentHp = char.maxHp;
+                char.maxMp = char.stats.mp * 10;
+                char.currentMp = char.maxMp;
+
+                this.addLog(`✨ ${char.name}이(가) ${char.rebirthCount}차 환생! 초기 스탯 ${multiplier}배로 재탄생!`);
                 this.closeModal('character-detail-modal');
                 this.renderPartyList();
             },
@@ -1374,7 +1464,7 @@
                 const zoneIndex = Object.keys(ZONES).indexOf(this.currentZone);
                 const stageMultiplier = 1 + ((zoneIndex * 10 + this.currentStage - 1) * 0.01);
                 const zoneBonus = zoneIndex * 0.03;
-                const totalMultiplier = stageMultiplier + zoneBonus;
+                const totalMultiplier = (stageMultiplier + zoneBonus) * 1.5; // 50% 증가
                 const zone = ZONES[this.currentZone];
                 const isBossStage = this.currentStage === 10;
 
@@ -1391,7 +1481,8 @@
                         attack: baseAtk * totalMultiplier * (isBoss ? 2 : 1),
                         isBoss: isBoss,
                         bossSkill: isBoss ? BOSS_SKILLS[zone.theme] : null,
-                        alive: true
+                        alive: true,
+                        statusEffects: []
                     });
                 }
             },
@@ -1413,11 +1504,13 @@
                     return;
                 }
 
+                const speedMultiplier = 1 / this.battleSpeed;
+
                 // Player turn
                 aliveParty.forEach((char, index) => {
                     setTimeout(() => {
                         this.performAction(char, true);
-                    }, index * 800);
+                    }, index * 800 * speedMultiplier);
                 });
 
                 // Enemy turn
@@ -1425,11 +1518,11 @@
                     aliveEnemies.forEach((enemy, index) => {
                         setTimeout(() => {
                             this.performAction(enemy, false);
-                        }, index * 600);
+                        }, index * 600 * speedMultiplier);
                     });
 
-                    setTimeout(() => this.battleLoop(), aliveEnemies.length * 600 + 500);
-                }, aliveParty.length * 800 + 500);
+                    setTimeout(() => this.battleLoop(), aliveEnemies.length * 600 * speedMultiplier + 500 * speedMultiplier);
+                }, aliveParty.length * 800 * speedMultiplier + 500 * speedMultiplier);
             },
 
             performAction(unit, isPlayer) {
@@ -1509,8 +1602,8 @@
                 if (victory) {
                     this.addLog('--- 승리! ---');
 
-                    // Exp and level up
-                    const expGain = 50 + this.currentStage * 10;
+                    // Exp and level up (1/5로 감소)
+                    const expGain = Math.floor((50 + this.currentStage * 10) / 5);
                     this.party.forEach(char => {
                         if (char.currentHp > 0) {
                             char.exp += expGain;
@@ -1518,8 +1611,8 @@
                         }
                     });
 
-                    // Gold (reduced to 1/10)
-                    let goldGain = Math.floor((30 + this.currentStage * 5) / 10);
+                    // Gold (2배 증가)
+                    let goldGain = Math.floor((30 + this.currentStage * 5) * 2);
                     this.gold += goldGain;
                     this.addLog(`골드 ${goldGain}을 획득했습니다!`);
 
@@ -1541,21 +1634,37 @@
                     const materialGain = materials[Math.floor(Math.random() * materials.length)];
                     const amount = 1 + Math.floor(Math.random() * 3);
                     this.materials[materialGain] = (this.materials[materialGain] || 0) + amount;
-                    this.addLog(`${materialGain} ${amount}개를 획득했습니다!`);
+
+                    // 아이템 타입별 이미지 표시
+                    let itemIcon = '📦';
+                    if (zone.theme === 'ice') itemIcon = '❄️';
+                    else if (zone.theme === 'lava') itemIcon = '🔥';
+                    else if (zone.theme === 'forest') itemIcon = '🌿';
+                    else if (zone.theme === 'ocean') itemIcon = '🌊';
+                    else if (zone.theme === 'dark') itemIcon = '🌑';
+
+                    this.addLog(`${itemIcon} ${materialGain} ${amount}개를 획득했습니다!`);
 
                     // Legendary Equipment (0.001% chance per item)
                     const legendaryItems = LEGENDARY_EQUIPMENT[zone.theme];
                     legendaryItems.forEach(item => {
                         if (Math.random() < 0.00001) {
                             this.inventory.push({ ...item, enhancement: 0 });
-                            this.addLog(`전설의 장비 [${item.name}]을(를) 획득했습니다!!!`);
+                            this.addLog(`⭐ 전설의 장비 [${item.name}]을(를) 획득했습니다!!!`);
                         }
                     });
 
-                    // Unlock next stage
+                    // Unlock next stage and save last cleared
                     if (this.currentStage >= this.unlockedStages[this.currentZone]) {
+                        this.lastClearedZone = this.currentZone;
+                        this.lastClearedStage = this.currentStage;
+
                         if (this.currentStage < 10) {
                             this.unlockedStages[this.currentZone] = this.currentStage + 1;
+                            // 자동으로 다음 스테이지로 이동 (반복전투 모드가 아닐 때)
+                            if (!this.repeatStage) {
+                                this.currentStage++;
+                            }
                         } else {
                             const nextZone = Object.keys(ZONES)[Object.keys(ZONES).indexOf(this.currentZone) + 1];
                             if (nextZone && !this.unlockedZones.includes(nextZone)) {
@@ -1580,6 +1689,11 @@
                     }
                 } else {
                     this.addLog('--- 패배... ---');
+                    // 패배 시 직전 클리어 성공한 스테이지로 이동
+                    this.currentZone = this.lastClearedZone;
+                    this.currentStage = this.lastClearedStage;
+                    this.addLog(`${this.lastClearedZone.toUpperCase()}-${this.lastClearedStage}로 이동합니다.`);
+
                     // Heal party after defeat
                     this.party.forEach(char => {
                         char.currentHp = char.maxHp;
@@ -1597,16 +1711,32 @@
                     char.level++;
                     char.expToNext = Math.floor(char.expToNext * 1.2);
 
-                    // Regular stat point
-                    char.availableStats++;
+                    // 자동 스탯 증가 (레벨 업 순서에 따라)
+                    const classData = CLASSES[char.class];
+                    if (classData.levelUpOrder) {
+                        const orderIndex = (char.level - 1) % classData.levelUpOrder.length;
+                        const statToIncrease = classData.levelUpOrder[orderIndex];
+
+                        if (statToIncrease === 'hp') {
+                            char.stats.hp++;
+                            char.maxHp += 10;
+                            char.currentHp = char.maxHp;
+                        } else if (statToIncrease === 'mp') {
+                            char.stats.mp++;
+                            char.maxMp += 10;
+                            char.currentMp = char.maxMp;
+                        } else {
+                            char.stats[statToIncrease]++;
+                        }
+
+                        this.addLog(`${char.name}이(가) 레벨 ${char.level}에 도달! ${this.getStatName(statToIncrease)} +1`);
+                    }
 
                     // Bonus stats at milestones
                     if (char.level % 10 === 0) {
                         const bonus = char.level / 10;
                         char.availableStats += bonus;
-                        this.addLog(`${char.name}이(가) 레벨 ${char.level}에 도달! 보너스 스탯 ${bonus}개 획득!`);
-                    } else {
-                        this.addLog(`${char.name}이(가) 레벨 ${char.level}에 도달!`);
+                        this.addLog(`레벨 ${char.level} 달성! 보너스 스탯 포인트 ${bonus}개 획득!`);
                     }
 
                     char.maxHp += 5;
@@ -1614,6 +1744,17 @@
                     char.maxMp += 3;
                     char.currentMp = char.maxMp;
                 }
+            },
+
+            getStatName(stat) {
+                const names = {
+                    str: '힘',
+                    dex: '민첩',
+                    int: '지력',
+                    hp: '생명력',
+                    mp: '마력'
+                };
+                return names[stat] || stat;
             },
 
             renderBattlefield() {
@@ -1625,8 +1766,21 @@
                     const classData = CLASSES[char.class];
                     const slot = document.createElement('div');
                     slot.className = `character-slot ${char.currentHp > 0 ? 'active' : ''}`;
+
+                    // 상태이상 이모티콘
+                    let statusIcons = '';
+                    if (char.statusEffects && char.statusEffects.length > 0) {
+                        char.statusEffects.forEach(effect => {
+                            if (effect.type === 'dot') statusIcons += '🔥';
+                            if (effect.type === 'stun') statusIcons += '💫';
+                            if (effect.type === 'poison') statusIcons += '☠️';
+                            if (effect.type === 'freeze') statusIcons += '❄️';
+                        });
+                    }
+
                     slot.innerHTML = `
                         <div class="character-sprite">${classData.icon}</div>
+                        ${statusIcons ? `<div style="position: absolute; top: 2px; right: 2px; font-size: 12px;">${statusIcons}</div>` : ''}
                         <div class="character-name">${char.name}</div>
                         <div class="character-level">Lv.${char.level}</div>
                         <div class="character-hp-bar">
@@ -1643,8 +1797,21 @@
                 this.enemies.forEach(enemy => {
                     const slot = document.createElement('div');
                     slot.className = 'enemy-slot';
+
+                    // 상태이상 이모티콘
+                    let statusIcons = '';
+                    if (enemy.statusEffects && enemy.statusEffects.length > 0) {
+                        enemy.statusEffects.forEach(effect => {
+                            if (effect.type === 'dot') statusIcons += '🔥';
+                            if (effect.type === 'stun') statusIcons += '💫';
+                            if (effect.type === 'poison') statusIcons += '☠️';
+                            if (effect.type === 'freeze') statusIcons += '❄️';
+                        });
+                    }
+
                     slot.innerHTML = `
                         <div class="enemy-sprite">👹</div>
+                        ${statusIcons ? `<div style="position: absolute; top: 2px; right: 2px; font-size: 12px;">${statusIcons}</div>` : ''}
                         <div class="character-name">${enemy.name}</div>
                         <div class="character-hp-bar">
                             <div class="character-hp-fill" style="width: ${(enemy.currentHp / enemy.maxHp) * 100}%"></div>
@@ -1795,6 +1962,24 @@
                 if (this.autoBattle && !this.inBattle) {
                     this.startBattle();
                 }
+            },
+
+            toggleRepeatStage() {
+                this.repeatStage = !this.repeatStage;
+                const btn = document.getElementById('repeat-stage-btn');
+                btn.textContent = this.repeatStage ? '반복 전투: ON' : '반복 전투: OFF';
+                this.addLog(this.repeatStage ? '현재 스테이지 반복 전투 모드 활성화' : '반복 전투 모드 비활성화');
+            },
+
+            setBattleSpeed(speed) {
+                this.battleSpeed = speed;
+                // 모든 버튼 스타일 초기화
+                document.getElementById('speed-1x').style.backgroundColor = '';
+                document.getElementById('speed-2x').style.backgroundColor = '';
+                document.getElementById('speed-3x').style.backgroundColor = '';
+                // 선택된 버튼 강조
+                document.getElementById(`speed-${speed}x`).style.backgroundColor = 'rgba(76, 175, 80, 0.5)';
+                this.addLog(`전투 속도: ${speed}배속`);
             },
 
             addLog(message, type = 'normal') {
@@ -1956,6 +2141,7 @@
                     expToNext: 100,
                     stats: { ...finalStats },
                     baseStats: { ...finalStats },
+                    originalStats: { ...finalStats },
                     currentHp: finalStats.hp * 10,
                     maxHp: finalStats.hp * 10,
                     currentMp: finalStats.mp * 10,
@@ -1967,7 +2153,10 @@
                         leftRing: null, rightRing: null
                     },
                     availableStats: 0,
-                    personality: this.generatePersonality()
+                    personality: this.generatePersonality(),
+                    promotionCount: 0,
+                    rebirthCount: 0,
+                    statusEffects: []
                 };
             },
 
@@ -2083,7 +2272,11 @@
                     innUpgradeCost: this.innUpgradeCost,
                     mercenaryGuild: this.mercenaryGuild,
                     guildUpgradeCost: this.guildUpgradeCost,
-                    inventory: this.inventory
+                    inventory: this.inventory,
+                    battleSpeed: this.battleSpeed,
+                    repeatStage: this.repeatStage,
+                    lastClearedZone: this.lastClearedZone,
+                    lastClearedStage: this.lastClearedStage
                 };
 
                 localStorage.setItem('idleRpgSave', JSON.stringify(saveData));
@@ -2111,12 +2304,22 @@
                     this.mercenaryGuild = data.mercenaryGuild || { slots: 3, availableMercenaries: [] };
                     this.guildUpgradeCost = data.guildUpgradeCost || 5000;
                     this.inventory = data.inventory || [];
+                    this.battleSpeed = data.battleSpeed || 1;
+                    this.repeatStage = data.repeatStage || false;
+                    this.lastClearedZone = data.lastClearedZone || 'a';
+                    this.lastClearedStage = data.lastClearedStage || 1;
 
                     this.renderPartyList();
                     this.renderZoneSelect();
                     this.renderSubstageSelect();
                     this.renderMaterials();
                     this.updateDisplay();
+
+                    // UI 업데이트
+                    this.setBattleSpeed(this.battleSpeed);
+                    if (this.repeatStage) {
+                        document.getElementById('repeat-stage-btn').textContent = '반복 전투: ON';
+                    }
 
                     this.addLog('게임이 로드되었습니다!');
                 } catch (e) {
