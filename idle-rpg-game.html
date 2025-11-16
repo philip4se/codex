@@ -1222,7 +1222,7 @@
                 ]
             },
             priest: {
-                name: '성직자',
+                name: '성기사',
                 icon: '✝️',
                 stats: { str: 8, dex: 4, int: 8, hp: 8, mp: 8 },
                 skills: [
@@ -1323,44 +1323,164 @@
         const LEGENDARY_EQUIPMENT = {
             // A구역 (1-200층): 기사, 궁수 전설 장비
             ice: [
-                { name: '얼음의 수호자', type: 'leftWeapon', class: 'knight', stats: { str: 18, hp: 24 }, skill: '빙하의 수호', dropRate: 0.00001 },
-                { name: '극북의 성벽', type: 'rightWeapon', class: 'knight', stats: { hp: 30, def: 18 }, skill: '절대방어', dropRate: 0.00001 },
-                { name: '서리바람의 장궁', type: 'leftWeapon', class: 'archer', stats: { dex: 24, int: 12 }, skill: '빙설의 화살', dropRate: 0.00001 },
-                { name: '동토의 신궁', type: 'leftWeapon', class: 'archer', stats: { dex: 27, hp: 15 }, skill: '관통빙탄', dropRate: 0.00001 }
+                { name: '얼음의 수호자', type: 'leftWeapon', class: 'knight', stats: { str: 18, hp: 24 }, skill: '빙하의 수호', dropRate: 0.0001 },
+                { name: '극북의 성벽', type: 'rightWeapon', class: 'knight', stats: { hp: 30, def: 18 }, skill: '절대방어', dropRate: 0.0001 },
+                { name: '서리바람의 장궁', type: 'leftWeapon', class: 'archer', stats: { dex: 24, int: 12 }, skill: '빙설의 화살', dropRate: 0.0001 },
+                { name: '동토의 신궁', type: 'leftWeapon', class: 'archer', stats: { dex: 27, hp: 15 }, skill: '관통빙탄', dropRate: 0.0001 },
+                { name: '빙하의 성벽', type: 'rightWeapon', class: 'knight', stats: { hp: 40, def: 25 }, skill: '얼음 요새', dropRate: 0.0001, isShield: true }
             ],
-            // B구역 (201-400층): 성직자, 치료사 전설 장비
+            // B구역 (201-400층): 성기사, 치료사 전설 장비
             lava: [
-                { name: '태양의 성배', type: 'leftWeapon', class: 'priest', stats: { int: 24, mp: 30 }, skill: '신성한 빛의 심판', dropRate: 0.00001 },
-                { name: '화염심장의 지팡이', type: 'leftWeapon', class: 'priest', stats: { int: 21, hp: 24 }, skill: '정화의 불꽃', dropRate: 0.00001 },
-                { name: '생명의 영약', type: 'leftWeapon', class: 'healer', stats: { int: 27, mp: 36 }, skill: '완전치유', dropRate: 0.00001 },
-                { name: '희망의 등불', type: 'leftWeapon', class: 'healer', stats: { int: 24, mp: 30 }, skill: '축복의 빛', dropRate: 0.00001 }
+                { name: '태양의 성배', type: 'leftWeapon', class: 'priest', stats: { int: 24, mp: 30 }, skill: '신성한 빛의 심판', dropRate: 0.0001 },
+                { name: '화염심장의 지팡이', type: 'leftWeapon', class: 'priest', stats: { int: 21, hp: 24 }, skill: '정화의 불꽃', dropRate: 0.0001 },
+                { name: '생명의 영약', type: 'leftWeapon', class: 'healer', stats: { int: 27, mp: 36 }, skill: '완전치유', dropRate: 0.0001 },
+                { name: '희망의 등불', type: 'leftWeapon', class: 'healer', stats: { int: 24, mp: 30 }, skill: '축복의 빛', dropRate: 0.0001 },
+                { name: '신성한 방패', type: 'rightWeapon', class: 'priest', stats: { hp: 38, mp: 28, def: 22 }, skill: '성스러운 가호', dropRate: 0.0001, isShield: true }
             ],
             // C구역 (401-600층): 드루이드, 도적 전설 장비
             forest: [
-                { name: '세계수의 가지', type: 'leftWeapon', class: 'druid', stats: { int: 21, hp: 27 }, skill: '자연의 분노', dropRate: 0.00001 },
-                { name: '대지의 권능', type: 'leftWeapon', class: 'druid', stats: { str: 18, int: 18, hp: 24 }, skill: '야수왕의 강림', dropRate: 0.00001 },
-                { name: '그림자 추적자', type: 'leftWeapon', class: 'rogue', stats: { dex: 30, str: 18 }, skill: '암살', dropRate: 0.00001 },
-                { name: '은밀의 단검', type: 'rightWeapon', class: 'rogue', stats: { dex: 27, int: 15 }, skill: '연쇄 급습', dropRate: 0.00001 }
+                { name: '세계수의 가지', type: 'leftWeapon', class: 'druid', stats: { int: 21, hp: 27 }, skill: '자연의 분노', dropRate: 0.0001 },
+                { name: '대지의 권능', type: 'leftWeapon', class: 'druid', stats: { str: 18, int: 18, hp: 24 }, skill: '야수왕의 강림', dropRate: 0.0001 },
+                { name: '그림자 추적자', type: 'leftWeapon', class: 'rogue', stats: { dex: 30, str: 18 }, skill: '암살', dropRate: 0.0001 },
+                { name: '은밀의 단검', type: 'rightWeapon', class: 'rogue', stats: { dex: 27, int: 15 }, skill: '연쇄 급습', dropRate: 0.0001 },
+                { name: '타이탄의 대검', type: 'leftWeapon', class: 'knight', stats: { str: 45, hp: 35, def: 20 }, skill: '대지 분쇄', dropRate: 0.0001, isTwoHanded: true }
             ],
             // D구역 (601-800층): 법사, 갑옷 전설 장비
             ocean: [
-                { name: '심연의 마도서', type: 'leftWeapon', class: 'mage', stats: { int: 36, mp: 36 }, skill: '해일의 마법진', dropRate: 0.00001 },
-                { name: '파도를 삼킨 지팡이', type: 'leftWeapon', class: 'mage', stats: { int: 33, dex: 15 }, skill: '얼어붙은 파도', dropRate: 0.00001 },
-                { name: '심해용의 갑주', type: 'armor', stats: { hp: 42, def: 30 }, skill: '수호의 물결', dropRate: 0.00001 },
-                { name: '아틀란티스의 전갑', type: 'armor', stats: { hp: 45, mp: 30 }, skill: '물의 축복', dropRate: 0.00001 }
+                { name: '심연의 마도서', type: 'leftWeapon', class: 'mage', stats: { int: 36, mp: 36 }, skill: '해일의 마법진', dropRate: 0.0001 },
+                { name: '파도를 삼킨 지팡이', type: 'leftWeapon', class: 'mage', stats: { int: 33, dex: 15 }, skill: '얼어붙은 파도', dropRate: 0.0001 },
+                { name: '심해용의 갑주', type: 'armor', stats: { hp: 42, def: 30 }, skill: '수호의 물결', dropRate: 0.0001 },
+                { name: '아틀란티스의 전갑', type: 'armor', stats: { hp: 45, mp: 30 }, skill: '물의 축복', dropRate: 0.0001 }
             ],
             // E구역 (801-1000층): 투구, 신발, 귀걸이, 반지 전설 장비
             dark: [
-                { name: '지배자의 왕관', type: 'helmet', stats: { int: 30, hp: 30, mp: 30 }, skill: '암흑의 권능', dropRate: 0.00001 },
-                { name: '어둠의 제왕투구', type: 'helmet', stats: { str: 27, hp: 36 }, skill: '공포의 지배', dropRate: 0.00001 },
-                { name: '심연보행자의 신발', type: 'boots', stats: { dex: 33, hp: 27 }, skill: '차원이동', dropRate: 0.00001 },
-                { name: '밤그림자의 장화', type: 'boots', stats: { dex: 30, int: 24 }, skill: '은신술', dropRate: 0.00001 },
-                { name: '영혼의 귀걸이', type: 'leftEarring', stats: { int: 36, mp: 42 }, skill: '마나 폭발', dropRate: 0.00002 },
-                { name: '공허의 귀걸이', type: 'rightEarring', stats: { int: 36, mp: 42 }, skill: '마나 재생', dropRate: 0.00002 },
-                { name: '파멸의 반지', type: 'leftRing', stats: { str: 30, int: 30 }, skill: '생명 흡수', dropRate: 0.00002 },
-                { name: '영원의 반지', type: 'rightRing', stats: { hp: 36, mp: 36 }, skill: '불멸의 의지', dropRate: 0.00002 }
+                { name: '지배자의 왕관', type: 'helmet', stats: { int: 30, hp: 30, mp: 30 }, skill: '암흑의 권능', dropRate: 0.0001 },
+                { name: '어둠의 제왕투구', type: 'helmet', stats: { str: 27, hp: 36 }, skill: '공포의 지배', dropRate: 0.0001 },
+                { name: '심연보행자의 신발', type: 'boots', stats: { dex: 33, hp: 27 }, skill: '차원이동', dropRate: 0.0001 },
+                { name: '밤그림자의 장화', type: 'boots', stats: { dex: 30, int: 24 }, skill: '은신술', dropRate: 0.0001 },
+                { name: '영혼의 귀걸이', type: 'leftEarring', stats: { int: 36, mp: 42 }, skill: '마나 폭발', dropRate: 0.0002 },
+                { name: '공허의 귀걸이', type: 'rightEarring', stats: { int: 36, mp: 42 }, skill: '마나 재생', dropRate: 0.0002 },
+                { name: '파멸의 반지', type: 'leftRing', stats: { str: 30, int: 30 }, skill: '생명 흡수', dropRate: 0.0002 },
+                { name: '영원의 반지', type: 'rightRing', stats: { hp: 36, mp: 36 }, skill: '불멸의 의지', dropRate: 0.0002 }
             ]
         };
+
+        // Zone-based crafting recipes (110-200% random stats)
+        const ZONE_CRAFTING_RECIPES = {
+            ice: {
+                weapons: [
+                    { name: '빙하의 검', type: 'leftWeapon', class: 'knight', baseStats: { str: 15, hp: 12 }, materials: { '빙하석': 3, '얼음 조각': 5 } },
+                    { name: '서리의 단검', type: 'leftWeapon', class: 'rogue', baseStats: { dex: 18, str: 8 }, materials: { '서리 결정': 4, '얼음 파편': 6 } },
+                    { name: '동토의 지팡이', type: 'leftWeapon', class: 'mage', baseStats: { int: 20, mp: 15 }, materials: { '동토의 정수': 3, '냉기석': 5 } },
+                    { name: '얼음 활', type: 'leftWeapon', class: 'archer', baseStats: { dex: 17, int: 10 }, materials: { '서리 가루': 5, '빙설 조각': 7 } },
+                    { name: '빙설의 완드', type: 'leftWeapon', class: 'healer', baseStats: { int: 16, mp: 18 }, materials: { '동결 결정': 4, '한기의 정수': 5 } },
+                    { name: '성빙의 메이스', type: 'leftWeapon', class: 'priest', baseStats: { str: 14, int: 14, hp: 10 }, materials: { '얼어붙은 물': 5, '극한의 얼음': 4 } }
+                ],
+                armor: [
+                    { name: '빙하 투구', type: 'helmet', baseStats: { hp: 20, def: 12 }, materials: { '북극석': 3, '냉기 결정': 4 } },
+                    { name: '서리 갑옷', type: 'armor', baseStats: { hp: 30, def: 18 }, materials: { '빙하석': 5, '동토의 정수': 6 } },
+                    { name: '동토 하의', type: 'leggings', baseStats: { hp: 25, def: 15 }, materials: { '얼음 조각': 8, '서리 결정': 5 } },
+                    { name: '빙설 장화', type: 'boots', baseStats: { hp: 18, dex: 12 }, materials: { '얼음 파편': 6, '냉기석': 4 } },
+                    { name: '얼음 귀걸이', type: 'leftEarring', baseStats: { int: 15, mp: 15 }, materials: { '서리 가루': 7, '빙설 조각': 5 } },
+                    { name: '극북 반지', type: 'leftRing', baseStats: { str: 12, int: 12 }, materials: { '동결 결정': 5, '한기의 정수': 6 } }
+                ]
+            },
+            lava: {
+                weapons: [
+                    { name: '용암 대검', type: 'leftWeapon', class: 'knight', baseStats: { str: 18, hp: 10 }, materials: { '용암석': 4, '화염 정수': 5 } },
+                    { name: '화염 쌍검', type: 'leftWeapon', class: 'rogue', baseStats: { dex: 20, str: 10 }, materials: { '마그마 핵': 3, '불꽃 가루': 7 } },
+                    { name: '작열의 완드', type: 'leftWeapon', class: 'mage', baseStats: { int: 22, mp: 14 }, materials: { '열기석': 5, '화산재': 6 } },
+                    { name: '불화살 활', type: 'leftWeapon', class: 'archer', baseStats: { dex: 19, int: 11 }, materials: { '용암 파편': 6, '불의 정수': 5 } },
+                    { name: '성화의 완드', type: 'leftWeapon', class: 'healer', baseStats: { int: 18, mp: 20 }, materials: { '작열석': 4, '화염 조각': 6 } },
+                    { name: '신성한 화염검', type: 'leftWeapon', class: 'priest', baseStats: { str: 16, int: 16, hp: 12 }, materials: { '마그마 결정': 5, '불타는 돌': 5 } }
+                ],
+                armor: [
+                    { name: '용암 투구', type: 'helmet', baseStats: { hp: 22, def: 14 }, materials: { '화염 핵': 4, '용암 결정': 5 } },
+                    { name: '마그마 갑옷', type: 'armor', baseStats: { hp: 35, def: 20 }, materials: { '용암석': 7, '불의 핵': 6 } },
+                    { name: '화염 하의', type: 'leggings', baseStats: { hp: 28, def: 16 }, materials: { '화염 정수': 8, '마그마 핵': 6 } },
+                    { name: '작열 장화', type: 'boots', baseStats: { hp: 20, dex: 14 }, materials: { '불꽃 가루': 9, '열기석': 5 } },
+                    { name: '화염 귀걸이', type: 'leftEarring', baseStats: { int: 18, mp: 18 }, materials: { '화산재': 8, '용암 파편': 6 } },
+                    { name: '용암 반지', type: 'leftRing', baseStats: { str: 14, int: 14 }, materials: { '불의 정수': 7, '작열석': 6 } }
+                ]
+            },
+            forest: {
+                weapons: [
+                    { name: '대지의 검', type: 'leftWeapon', class: 'knight', baseStats: { str: 20, hp: 15 }, materials: { '목재': 8, '나뭇가지': 10 } },
+                    { name: '자연 단검', type: 'leftWeapon', class: 'rogue', baseStats: { dex: 22, str: 12 }, materials: { '신선한 과일': 6, '나뭇잎': 12 } },
+                    { name: '숲의 지팡이', type: 'leftWeapon', class: 'mage', baseStats: { int: 24, mp: 16 }, materials: { '덩굴': 7, '이끼': 8 } },
+                    { name: '생명의 활', type: 'leftWeapon', class: 'archer', baseStats: { dex: 21, int: 13 }, materials: { '버섯': 9, '꽃잎': 10 } },
+                    { name: '자연의 완드', type: 'leftWeapon', class: 'healer', baseStats: { int: 20, mp: 22 }, materials: { '나무껍질': 8, '뿌리': 7 } },
+                    { name: '성목의 장', type: 'leftWeapon', class: 'priest', baseStats: { str: 18, int: 18, hp: 14 }, materials: { '수액': 6, '씨앗': 9 } }
+                ],
+                armor: [
+                    { name: '자연 투구', type: 'helmet', baseStats: { hp: 25, def: 16 }, materials: { '자연의 정수': 5, '숲의 열매': 6 } },
+                    { name: '대지 갑옷', type: 'armor', baseStats: { hp: 40, def: 22 }, materials: { '생명의 가지': 6, '목재': 10 } },
+                    { name: '숲 하의', type: 'leggings', baseStats: { hp: 30, def: 18 }, materials: { '나뭇가지': 12, '덩굴': 8 } },
+                    { name: '자연 장화', type: 'boots', baseStats: { hp: 22, dex: 16 }, materials: { '이끼': 10, '버섯': 8 } },
+                    { name: '숲 귀걸이', type: 'leftEarring', baseStats: { int: 20, mp: 20 }, materials: { '꽃잎': 12, '나무껍질': 7 } },
+                    { name: '대지 반지', type: 'leftRing', baseStats: { str: 16, int: 16 }, materials: { '뿌리': 9, '수액': 7 } }
+                ]
+            },
+            ocean: {
+                weapons: [
+                    { name: '심해의 검', type: 'leftWeapon', class: 'knight', baseStats: { str: 22, hp: 18 }, materials: { '진주': 4, '뱃조각': 6 } },
+                    { name: '파도 단검', type: 'leftWeapon', class: 'rogue', baseStats: { dex: 24, str: 14 }, materials: { '돗대': 5, '산호': 7 } },
+                    { name: '해양 지팡이', type: 'leftWeapon', class: 'mage', baseStats: { int: 26, mp: 18 }, materials: { '조개껍질': 8, '해초': 9 } },
+                    { name: '물결 활', type: 'leftWeapon', class: 'archer', baseStats: { dex: 23, int: 15 }, materials: { '파도 결정': 6, '심해석': 7 } },
+                    { name: '해류의 완드', type: 'leftWeapon', class: 'healer', baseStats: { int: 22, mp: 24 }, materials: { '물의 정수': 6, '물고기 비늘': 8 } },
+                    { name: '성해의 창', type: 'leftWeapon', class: 'priest', baseStats: { str: 20, int: 20, hp: 16 }, materials: { '해양 결정': 6, '조수 가루': 8 } }
+                ],
+                armor: [
+                    { name: '해양 투구', type: 'helmet', baseStats: { hp: 28, def: 18 }, materials: { '바다의 정수': 6, '해저 광물': 7 } },
+                    { name: '심해 갑옷', type: 'armor', baseStats: { hp: 45, def: 24 }, materials: { '물결석': 7, '진주': 8 } },
+                    { name: '파도 하의', type: 'leggings', baseStats: { hp: 35, def: 20 }, materials: { '산호': 10, '조개껍질': 12 } },
+                    { name: '물결 장화', type: 'boots', baseStats: { hp: 25, dex: 18 }, materials: { '해초': 11, '파도 결정': 8 } },
+                    { name: '바다 귀걸이', type: 'leftEarring', baseStats: { int: 22, mp: 22 }, materials: { '심해석': 9, '물의 정수': 8 } },
+                    { name: '해양 반지', type: 'leftRing', baseStats: { str: 18, int: 18 }, materials: { '물고기 비늘': 10, '해양 결정': 8 } }
+                ]
+            },
+            dark: {
+                weapons: [
+                    { name: '어둠의 검', type: 'leftWeapon', class: 'knight', baseStats: { str: 25, hp: 20 }, materials: { '어둠의 정수': 5, '망자의 뼈': 7 } },
+                    { name: '저주 단검', type: 'leftWeapon', class: 'rogue', baseStats: { dex: 26, str: 16 }, materials: { '저주받은 수정': 6, '어둠 조각': 8 } },
+                    { name: '암흑 지팡이', type: 'leftWeapon', class: 'mage', baseStats: { int: 28, mp: 20 }, materials: { '암흑석': 7, '사령의 정수': 8 } },
+                    { name: '망령 활', type: 'leftWeapon', class: 'archer', baseStats: { dex: 25, int: 17 }, materials: { '저주 가루': 8, '망령석': 9 } },
+                    { name: '사령의 완드', type: 'leftWeapon', class: 'healer', baseStats: { int: 24, mp: 26 }, materials: { '어둠 결정': 7, '사악한 정수': 9 } },
+                    { name: '성암의 검', type: 'leftWeapon', class: 'priest', baseStats: { str: 22, int: 22, hp: 18 }, materials: { '그림자 조각': 8, '악몽의 파편': 10 } }
+                ],
+                armor: [
+                    { name: '어둠 투구', type: 'helmet', baseStats: { hp: 30, def: 20 }, materials: { '어둠 핵': 7, '저주석': 8 } },
+                    { name: '암흑 갑옷', type: 'armor', baseStats: { hp: 50, def: 26 }, materials: { '혼돈의 결정': 8, '어둠의 정수': 10 } },
+                    { name: '저주 하의', type: 'leggings', baseStats: { hp: 40, def: 22 }, materials: { '망자의 뼈': 12, '암흑석': 9 } },
+                    { name: '망령 장화', type: 'boots', baseStats: { hp: 28, dex: 20 }, materials: { '사령의 정수': 11, '저주 가루': 10 } },
+                    { name: '암흑 귀걸이', type: 'leftEarring', baseStats: { int: 25, mp: 25 }, materials: { '망령석': 10, '어둠 결정': 9 } },
+                    { name: '어둠 반지', type: 'leftRing', baseStats: { str: 20, int: 20 }, materials: { '사악한 정수': 11, '그림자 조각': 10 } }
+                ]
+            }
+        };
+
+        // Unique equipment recipes (uses materials from all 5 zones, 180% stats, +5% total stats bonus)
+        const UNIQUE_EQUIPMENT_RECIPES = [
+            // Weapons
+            { name: '타이탄의 대검', type: 'leftWeapon', class: 'knight', baseStats: { str: 30, hp: 25, def: 15 }, materials: { '빙하석': 2, '동토의 정수': 2, '용암석': 2, '마그마 핵': 2, '목재': 2, '자연의 정수': 2, '진주': 2, '바다의 정수': 2, '어둠의 정수': 2, '암흑석': 2 }, bonusEffect: '총 능력치 +5%' },
+            { name: '영혼 수확자', type: 'leftWeapon', class: 'rogue', baseStats: { dex: 35, str: 20, int: 15 }, materials: { '서리 결정': 2, '얼음 파편': 2, '화염 정수': 2, '열기석': 2, '덩굴': 2, '이끼': 2, '산호': 2, '물의 정수': 2, '저주받은 수정': 2, '사령의 정수': 2 }, bonusEffect: '총 능력치 +5%' },
+            { name: '시공의 지팡이', type: 'leftWeapon', class: 'mage', baseStats: { int: 40, mp: 30, str: 10 }, materials: { '냉기석': 2, '서리 가루': 2, '화산재': 2, '용암 파편': 2, '버섯': 2, '꽃잎': 2, '해초': 2, '심해석': 2, '망령석': 2, '어둠 결정': 2 }, bonusEffect: '총 능력치 +5%' },
+            { name: '천공의 활', type: 'leftWeapon', class: 'archer', baseStats: { dex: 38, int: 22, hp: 18 }, materials: { '빙설 조각': 2, '동결 결정': 2, '불의 정수': 2, '작열석': 2, '나무껍질': 2, '뿌리': 2, '파도 결정': 2, '물고기 비늘': 2, '저주 가루': 2, '사악한 정수': 2 }, bonusEffect: '총 능력치 +5%' },
+            { name: '생명의 성배', type: 'leftWeapon', class: 'healer', baseStats: { int: 35, mp: 35, hp: 20 }, materials: { '한기의 정수': 2, '얼어붙은 물': 2, '화염 조각': 2, '마그마 결정': 2, '수액': 2, '씨앗': 2, '해양 결정': 2, '조수 가루': 2, '그림자 조각': 2, '악몽의 파편': 2 }, bonusEffect: '총 능력치 +5%' },
+            { name: '성스러운 심판', type: 'leftWeapon', class: 'priest', baseStats: { str: 28, int: 28, hp: 25, def: 12 }, materials: { '극한의 얼음': 2, '북극석': 2, '불타는 돌': 2, '화염 핵': 2, '숲의 열매': 2, '생명의 가지': 2, '해저 광물': 2, '물결석': 2, '어둠 핵': 2, '저주석': 2 }, bonusEffect: '총 능력치 +5%' },
+
+            // Armor
+            { name: '불멸의 투구', type: 'helmet', baseStats: { hp: 40, def: 28, int: 15 }, materials: { '냉기 결정': 2, '빙하석': 2, '용암 결정': 2, '불의 핵': 2, '자연의 정수': 2, '목재': 2, '바다의 정수': 2, '진주': 2, '혼돈의 결정': 2, '어둠의 정수': 2 }, bonusEffect: '총 능력치 +5%' },
+            { name: '영원의 갑옷', type: 'armor', baseStats: { hp: 60, def: 35, str: 15 }, materials: { '동토의 정수': 2, '얼음 조각': 2, '용암석': 2, '화염 정수': 2, '나뭇가지': 2, '덩굴': 2, '산호': 2, '조개껍질': 2, '망자의 뼈': 2, '암흑석': 2 }, bonusEffect: '총 능력치 +5%' },
+            { name: '지배자의 하의', type: 'leggings', baseStats: { hp: 50, def: 30, dex: 15 }, materials: { '서리 결정': 2, '얼음 파편': 2, '마그마 핵': 2, '열기석': 2, '이끼': 2, '버섯': 2, '해초': 2, '파도 결정': 2, '사령의 정수': 2, '저주 가루': 2 }, bonusEffect: '총 능력치 +5%' },
+            { name: '신속의 장화', type: 'boots', baseStats: { hp: 35, dex: 30, str: 18 }, materials: { '냉기석': 2, '서리 가루': 2, '화산재': 2, '용암 파편': 2, '꽃잎': 2, '나무껍질': 2, '심해석': 2, '물의 정수': 2, '망령석': 2, '어둠 결정': 2 }, bonusEffect: '총 능력치 +5%' },
+
+            // Accessories
+            { name: '지혜의 귀걸이', type: 'leftEarring', baseStats: { int: 35, mp: 35, hp: 20 }, materials: { '빙설 조각': 2, '동결 결정': 2, '불의 정수': 2, '작열석': 2, '뿌리': 2, '수액': 2, '물고기 비늘': 2, '해양 결정': 2, '사악한 정수': 2, '그림자 조각': 2 }, bonusEffect: '총 능력치 +5%' },
+            { name: '빛의 귀걸이', type: 'rightEarring', baseStats: { int: 35, mp: 35, str: 15 }, materials: { '한기의 정수': 2, '얼어붙은 물': 2, '화염 조각': 2, '마그마 결정': 2, '씨앗': 2, '숲의 열매': 2, '조수 가루': 2, '바다의 정수': 2, '악몽의 파편': 2, '어둠 핵': 2 }, bonusEffect: '총 능력치 +5%' },
+            { name: '힘의 반지', type: 'leftRing', baseStats: { str: 30, hp: 30, def: 18 }, materials: { '극한의 얼음': 2, '북극석': 2, '불타는 돌': 2, '화염 핵': 2, '생명의 가지': 2, '자연의 정수': 2, '해저 광물': 2, '물결석': 2, '저주석': 2, '혼돈의 결정': 2 }, bonusEffect: '총 능력치 +5%' },
+            { name: '마력의 반지', type: 'rightRing', baseStats: { int: 32, mp: 32, dex: 18 }, materials: { '냉기 결정': 2, '빙하석': 2, '용암 결정': 2, '불의 핵': 2, '목재': 2, '덩굴': 2, '진주': 2, '산호': 2, '어둠의 정수': 2, '암흑석': 2 }, bonusEffect: '총 능력치 +5%' }
+        ];
 
         // Icon mapping functions
         function getItemIcon(itemName, itemType = null) {
@@ -1423,6 +1543,7 @@
             lastGuildRefresh: Date.now(), // Last time guild mercenaries were refreshed
             inventory: [],
             blacksmith: { purchasable: [], craftable: [] },
+            currentBlacksmithTab: 'ice', // Current blacksmith tab (ice, lava, forest, ocean, dark, unique)
             marketplace: { enabled: true, items: [] },
             isAdmin: false,
             gameSpeed: 1,
@@ -2292,11 +2413,16 @@
 
                 // Add equipment bonuses
                 let hasLegendaryEquipment = false;
+                let hasUniqueEquipment = false;
                 Object.values(char.equipment).forEach(item => {
                     if (item && item.stats) {
                         // Check if this is a legendary equipment (has skill property)
                         const isLegendary = item.skill !== undefined;
                         if (isLegendary) hasLegendaryEquipment = true;
+
+                        // Check if this is unique equipment
+                        const isUnique = item.isUnique === true;
+                        if (isUnique) hasUniqueEquipment = true;
 
                         Object.entries(item.stats).forEach(([stat, value]) => {
                             if (char.stats[stat] !== undefined) {
@@ -2312,6 +2438,13 @@
                 if (hasLegendaryEquipment) {
                     Object.keys(baseStatsBeforeEquip).forEach(stat => {
                         char.stats[stat] += Math.floor(baseStatsBeforeEquip[stat] * 0.2);
+                    });
+                }
+
+                // Unique equipment bonus: +5% of total stats (excluding equipment)
+                if (hasUniqueEquipment) {
+                    Object.keys(baseStatsBeforeEquip).forEach(stat => {
+                        char.stats[stat] += Math.floor(baseStatsBeforeEquip[stat] * 0.05);
                     });
                 }
 
@@ -2615,12 +2748,12 @@
                     this.addLog(`${materialGain} ${amount}개를 획득했습니다!`);
 
                     // Legendary Equipment with floor-based increasing drop rate
-                    // Base drop rate: 0.001% (0.00001)
-                    // Increase: 0.01% per floor (multiplier: 1.01^floor)
-                    // For rings and earrings: 0.002% base (0.00002)
+                    // Base drop rate: 0.01% (0.0001)
+                    // Increase: 1% per floor (multiplier: 1.01^floor)
+                    // For rings and earrings: 0.02% base (0.0002)
                     const legendaryItems = LEGENDARY_EQUIPMENT[zone.theme];
                     legendaryItems.forEach(item => {
-                        const baseDropRate = (item.type.includes('Earring') || item.type.includes('Ring')) ? 0.00002 : 0.00001;
+                        const baseDropRate = (item.type.includes('Earring') || item.type.includes('Ring')) ? 0.0002 : 0.0001;
                         // Drop rate increases by 1% per floor: dropRate * (1.01 ^ floor)
                         const currentFloor = this.currentFloor || this.currentStage;
                         const adjustedDropRate = baseDropRate * Math.pow(1.01, currentFloor - 1);
@@ -2917,11 +3050,119 @@
                 const container = document.getElementById('blacksmith-content');
                 if (!container) return;
 
+                const zoneNames = {
+                    ice: 'A구역 (얼어붙은 빙하)',
+                    lava: 'B구역 (용암 지대)',
+                    forest: 'C구역 (생명의 숲)',
+                    ocean: 'D구역 (심해)',
+                    dark: 'E구역 (어둠의 땅)'
+                };
+
+                const slotNames = {
+                    leftWeapon: '왼손 무기',
+                    rightWeapon: '오른손 무기',
+                    helmet: '투구',
+                    armor: '갑옷',
+                    leggings: '하의',
+                    boots: '신발',
+                    leftEarring: '왼쪽 귀걸이',
+                    rightEarring: '오른쪽 귀걸이',
+                    leftRing: '왼쪽 반지',
+                    rightRing: '오른쪽 반지'
+                };
+
+                // Build content based on current tab
+                let craftingContent = '';
+
+                if (this.currentBlacksmithTab === 'unique') {
+                    // Unique equipment tab
+                    craftingContent = `
+                        <div style="font-size: 11px; color: #ffd700; margin-bottom: 10px; line-height: 1.4;">
+                            유니크 장비는 모든 구역의 재료(각 구역당 2개)가 필요하며,<br>
+                            180% 능력치와 총 능력치 +5% 효과를 제공합니다.
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            ${UNIQUE_EQUIPMENT_RECIPES.map((recipe, index) => {
+                                const canCraft = Object.entries(recipe.materials).every(([mat, amt]) => (this.materials[mat] || 0) >= amt);
+                                const materialsText = Object.entries(recipe.materials).map(([mat, amt]) => {
+                                    const has = this.materials[mat] || 0;
+                                    const color = has >= amt ? '#4caf50' : '#f44336';
+                                    return `<span style="color: ${color}">${mat} ${has}/${amt}</span>`;
+                                }).join(', ');
+
+                                return `
+                                    <div style="background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.3); padding: 8px; border-radius: 5px;">
+                                        <div style="font-size: 12px; color: #ffd700; margin-bottom: 3px;">
+                                            <strong>${recipe.name}</strong> (${slotNames[recipe.type]})
+                                            ${recipe.class ? ` - ${CLASSES[recipe.class].name} 전용` : ''}
+                                        </div>
+                                        <div style="font-size: 10px; margin-bottom: 3px;">
+                                            기본 스탯 (180%): ${Object.entries(recipe.baseStats).map(([k, v]) => `${k}:${Math.floor(v * 1.8)}`).join(', ')}
+                                        </div>
+                                        <div style="font-size: 10px; margin-bottom: 3px; color: #4caf50;">
+                                            특수 효과: ${recipe.bonusEffect}
+                                        </div>
+                                        <div style="font-size: 9px; margin-bottom: 5px; line-height: 1.3;">
+                                            ${materialsText}
+                                        </div>
+                                        <button class="btn ${canCraft ? 'btn-warning' : 'btn-secondary'}"
+                                                onclick="game.craftUniqueEquipment(${index})"
+                                                style="font-size: 11px; padding: 5px; width: 100%;"
+                                                ${!canCraft ? 'disabled' : ''}>
+                                            ${canCraft ? '제작' : '재료 부족'}
+                                        </button>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                } else {
+                    // Zone-based crafting tab
+                    const zone = this.currentBlacksmithTab;
+                    const recipes = ZONE_CRAFTING_RECIPES[zone];
+
+                    craftingContent = `
+                        <div style="font-size: 11px; color: #aaa; margin-bottom: 10px;">
+                            ${zoneNames[zone]} 장비는 110~200% 랜덤 능력치를 가지며,<br>
+                            능력치에 따라 등급이 분류됩니다.
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            ${[...recipes.weapons, ...recipes.armor].map((recipe, index) => {
+                                const canCraft = Object.entries(recipe.materials).every(([mat, amt]) => (this.materials[mat] || 0) >= amt);
+                                const materialsText = Object.entries(recipe.materials).map(([mat, amt]) => {
+                                    const has = this.materials[mat] || 0;
+                                    const color = has >= amt ? '#4caf50' : '#f44336';
+                                    return `<span style="color: ${color}">${mat} ${has}/${amt}</span>`;
+                                }).join(', ');
+
+                                return `
+                                    <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
+                                        <div style="font-size: 12px; margin-bottom: 3px;">
+                                            <strong>${recipe.name}</strong> (${slotNames[recipe.type]})
+                                            ${recipe.class ? ` - ${CLASSES[recipe.class].name} 전용` : ''}
+                                        </div>
+                                        <div style="font-size: 10px; margin-bottom: 3px;">
+                                            기본 스탯: ${Object.entries(recipe.baseStats).map(([k, v]) => `${k}:${v}`).join(', ')}
+                                        </div>
+                                        <div style="font-size: 10px; margin-bottom: 5px;">
+                                            ${materialsText}
+                                        </div>
+                                        <button class="btn ${canCraft ? 'btn-success' : 'btn-secondary'}"
+                                                onclick="game.craftZoneEquipment('${zone}', ${index})"
+                                                style="font-size: 11px; padding: 5px; width: 100%;"
+                                                ${!canCraft ? 'disabled' : ''}>
+                                            ${canCraft ? '제작' : '재료 부족'}
+                                        </button>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                }
+
                 container.innerHTML = `
                     <div class="panel-title">기본 장비 구매</div>
-                    <div style="font-size: 12px; margin-bottom: 10px;">
-                        각 100골드
-                    </div>
+                    <div style="font-size: 12px; margin-bottom: 10px;">각 100골드</div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 20px;">
                         <button class="btn btn-primary" onclick="game.buyEquipment('sword')" style="font-size: 11px; padding: 8px;">
                             기본 검 구매
@@ -2932,80 +3173,41 @@
                     </div>
 
                     <div class="panel-title">장비 제작</div>
-                    <div style="font-size: 12px; margin-bottom: 10px;">
-                        제작 장비는 구매 장비 대비 10~100% 좋은 능력치를 가집니다.
+                    <div style="display: flex; gap: 3px; margin-bottom: 10px; flex-wrap: wrap;">
+                        <button class="btn ${this.currentBlacksmithTab === 'ice' ? 'btn-info' : 'btn-secondary'}"
+                                onclick="game.switchBlacksmithTab('ice')"
+                                style="font-size: 10px; padding: 5px 8px; flex: 1; min-width: 80px;">
+                            A구역
+                        </button>
+                        <button class="btn ${this.currentBlacksmithTab === 'lava' ? 'btn-info' : 'btn-secondary'}"
+                                onclick="game.switchBlacksmithTab('lava')"
+                                style="font-size: 10px; padding: 5px 8px; flex: 1; min-width: 80px;">
+                            B구역
+                        </button>
+                        <button class="btn ${this.currentBlacksmithTab === 'forest' ? 'btn-info' : 'btn-secondary'}"
+                                onclick="game.switchBlacksmithTab('forest')"
+                                style="font-size: 10px; padding: 5px 8px; flex: 1; min-width: 80px;">
+                            C구역
+                        </button>
+                        <button class="btn ${this.currentBlacksmithTab === 'ocean' ? 'btn-info' : 'btn-secondary'}"
+                                onclick="game.switchBlacksmithTab('ocean')"
+                                style="font-size: 10px; padding: 5px 8px; flex: 1; min-width: 80px;">
+                            D구역
+                        </button>
+                        <button class="btn ${this.currentBlacksmithTab === 'dark' ? 'btn-info' : 'btn-secondary'}"
+                                onclick="game.switchBlacksmithTab('dark')"
+                                style="font-size: 10px; padding: 5px 8px; flex: 1; min-width: 80px;">
+                            E구역
+                        </button>
+                        <button class="btn ${this.currentBlacksmithTab === 'unique' ? 'btn-warning' : 'btn-secondary'}"
+                                onclick="game.switchBlacksmithTab('unique')"
+                                style="font-size: 10px; padding: 5px 8px; flex: 1; min-width: 80px;">
+                            유니크
+                        </button>
                     </div>
-                    <div id="craft-recipes" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
-                        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
-                            <div style="font-size: 12px; margin-bottom: 5px;"><strong>얼음 검</strong> (왼손 무기)</div>
-                            <div style="font-size: 10px; margin-bottom: 5px;">필요: 빙하석 x5, 얼음 조각 x10</div>
-                            <button class="btn btn-success" onclick="game.craftSampleEquipment('iceSword')" style="font-size: 11px; padding: 5px; width: 100%;">
-                                제작
-                            </button>
-                        </div>
-                        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
-                            <div style="font-size: 12px; margin-bottom: 5px;"><strong>서리 갑옷</strong> (갑옷)</div>
-                            <div style="font-size: 10px; margin-bottom: 5px;">필요: 서리 결정 x8, 동토의 정수 x5</div>
-                            <button class="btn btn-success" onclick="game.craftSampleEquipment('frostArmor')" style="font-size: 11px; padding: 5px; width: 100%;">
-                                제작
-                            </button>
-                        </div>
-                        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
-                            <div style="font-size: 12px; margin-bottom: 5px;"><strong>화염 검</strong> (왼손 무기)</div>
-                            <div style="font-size: 10px; margin-bottom: 5px;">필요: 용암석 x6, 화염 정수 x8</div>
-                            <button class="btn btn-success" onclick="game.craftSampleEquipment('flameSword')" style="font-size: 11px; padding: 5px; width: 100%;">
-                                제작
-                            </button>
-                        </div>
-                        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
-                            <div style="font-size: 12px; margin-bottom: 5px;"><strong>마그마 갑옷</strong> (갑옷)</div>
-                            <div style="font-size: 10px; margin-bottom: 5px;">필요: 마그마 핵 x7, 작열석 x10</div>
-                            <button class="btn btn-success" onclick="game.craftSampleEquipment('magmaArmor')" style="font-size: 11px; padding: 5px; width: 100%;">
-                                제작
-                            </button>
-                        </div>
-                        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
-                            <div style="font-size: 12px; margin-bottom: 5px;"><strong>자연의 활</strong> (왼손 무기)</div>
-                            <div style="font-size: 10px; margin-bottom: 5px;">필요: 나뭇가지 x10, 숲의 정수 x6</div>
-                            <button class="btn btn-success" onclick="game.craftSampleEquipment('natureBow')" style="font-size: 11px; padding: 5px; width: 100%;">
-                                제작
-                            </button>
-                        </div>
-                        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
-                            <div style="font-size: 12px; margin-bottom: 5px;"><strong>대지의 투구</strong> (투구)</div>
-                            <div style="font-size: 10px; margin-bottom: 5px;">필요: 이끼 조각 x12, 나무 열매 x8</div>
-                            <button class="btn btn-success" onclick="game.craftSampleEquipment('earthHelmet')" style="font-size: 11px; padding: 5px; width: 100%;">
-                                제작
-                            </button>
-                        </div>
-                        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
-                            <div style="font-size: 12px; margin-bottom: 5px;"><strong>파도의 지팡이</strong> (왼손 무기)</div>
-                            <div style="font-size: 10px; margin-bottom: 5px;">필요: 산호 조각 x8, 물의 정수 x10</div>
-                            <button class="btn btn-success" onclick="game.craftSampleEquipment('waveStaff')" style="font-size: 11px; padding: 5px; width: 100%;">
-                                제작
-                            </button>
-                        </div>
-                        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
-                            <div style="font-size: 12px; margin-bottom: 5px;"><strong>심해의 신발</strong> (신발)</div>
-                            <div style="font-size: 10px; margin-bottom: 5px;">필요: 진주 x6, 조개껍질 x15</div>
-                            <button class="btn btn-success" onclick="game.craftSampleEquipment('deepBoots')" style="font-size: 11px; padding: 5px; width: 100%;">
-                                제작
-                            </button>
-                        </div>
-                        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
-                            <div style="font-size: 12px; margin-bottom: 5px;"><strong>어둠의 단검</strong> (왼손 무기)</div>
-                            <div style="font-size: 10px; margin-bottom: 5px;">필요: 어둠의 파편 x9, 그림자 정수 x12</div>
-                            <button class="btn btn-success" onclick="game.craftSampleEquipment('darkDagger')" style="font-size: 11px; padding: 5px; width: 100%;">
-                                제작
-                            </button>
-                        </div>
-                        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
-                            <div style="font-size: 12px; margin-bottom: 5px;"><strong>공허의 반지</strong> (왼쪽 반지)</div>
-                            <div style="font-size: 10px; margin-bottom: 5px;">필요: 공허석 x7, 어둠의 보석 x10</div>
-                            <button class="btn btn-success" onclick="game.craftSampleEquipment('voidRing')" style="font-size: 11px; padding: 5px; width: 100%;">
-                                제작
-                            </button>
-                        </div>
+
+                    <div id="craft-recipes" style="margin-bottom: 20px; max-height: 400px; overflow-y: auto;">
+                        ${craftingContent}
                     </div>
 
                     <div class="panel-title">장비 강화</div>
@@ -3114,6 +3316,116 @@
 
                 this.craftEquipment(recipe);
                 this.renderBlacksmith();
+            },
+
+            switchBlacksmithTab(tab) {
+                this.currentBlacksmithTab = tab;
+                this.renderBlacksmith();
+            },
+
+            craftZoneEquipment(zone, index) {
+                const recipes = ZONE_CRAFTING_RECIPES[zone];
+                const allRecipes = [...recipes.weapons, ...recipes.armor];
+                const recipe = allRecipes[index];
+
+                if (!recipe) return;
+
+                // Check materials
+                for (const [material, amount] of Object.entries(recipe.materials)) {
+                    if ((this.materials[material] || 0) < amount) {
+                        this.addLog(`재료가 부족합니다: ${material}`);
+                        return;
+                    }
+                }
+
+                // Deduct materials
+                for (const [material, amount] of Object.entries(recipe.materials)) {
+                    this.materials[material] -= amount;
+                }
+
+                // Generate random stats (110-200%)
+                const statMultiplier = 1.1 + Math.random() * 0.9; // 1.1 to 2.0
+                const stats = {};
+                for (const [stat, value] of Object.entries(recipe.baseStats)) {
+                    stats[stat] = Math.floor(value * statMultiplier);
+                }
+
+                // Determine grade based on multiplier
+                let grade = '';
+                let gradeColor = '';
+                if (statMultiplier >= 1.9) {
+                    grade = '전설';
+                    gradeColor = '#ff6b35';
+                } else if (statMultiplier >= 1.7) {
+                    grade = '영웅';
+                    gradeColor = '#9b59b6';
+                } else if (statMultiplier >= 1.5) {
+                    grade = '희귀';
+                    gradeColor = '#3498db';
+                } else if (statMultiplier >= 1.3) {
+                    grade = '고급';
+                    gradeColor = '#2ecc71';
+                } else {
+                    grade = '일반';
+                    gradeColor = '#95a5a6';
+                }
+
+                const item = {
+                    name: recipe.name,
+                    type: recipe.type,
+                    class: recipe.class,
+                    stats: stats,
+                    enhancement: 0,
+                    grade: grade,
+                    gradeColor: gradeColor,
+                    statMultiplier: Math.floor(statMultiplier * 100)
+                };
+
+                this.inventory.push(item);
+                this.addLog(`[${grade}] ${recipe.name}을(를) 제작했습니다! (능력치: ${Math.floor(statMultiplier * 100)}%)`);
+                this.renderMaterials();
+                this.renderBlacksmith();
+                this.updateDisplay();
+            },
+
+            craftUniqueEquipment(index) {
+                const recipe = UNIQUE_EQUIPMENT_RECIPES[index];
+                if (!recipe) return;
+
+                // Check materials
+                for (const [material, amount] of Object.entries(recipe.materials)) {
+                    if ((this.materials[material] || 0) < amount) {
+                        this.addLog(`재료가 부족합니다: ${material}`);
+                        return;
+                    }
+                }
+
+                // Deduct materials
+                for (const [material, amount] of Object.entries(recipe.materials)) {
+                    this.materials[material] -= amount;
+                }
+
+                // Apply 180% stats
+                const stats = {};
+                for (const [stat, value] of Object.entries(recipe.baseStats)) {
+                    stats[stat] = Math.floor(value * 1.8);
+                }
+
+                const item = {
+                    name: recipe.name,
+                    type: recipe.type,
+                    class: recipe.class,
+                    stats: stats,
+                    enhancement: 0,
+                    isUnique: true,
+                    bonusEffect: recipe.bonusEffect
+                };
+
+                this.inventory.push(item);
+                this.addLog(`⭐ [유니크] ${recipe.name}을(를) 제작했습니다! (${recipe.bonusEffect})`);
+                this.renderMaterials();
+                this.renderBlacksmith();
+                this.updateDisplay();
             },
 
             toggleAutoBattle() {
