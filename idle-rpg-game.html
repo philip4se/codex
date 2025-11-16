@@ -1303,6 +1303,15 @@
                     logoutBtn.innerHTML = ' | <a href="#" onclick="auth.logout(); return false;" style="color: #ffeb3b; text-decoration: none;">로그아웃</a>';
                     header.appendChild(logoutBtn);
                 }
+
+                // 용병 길드 타이머 업데이트 (1초마다)
+                setInterval(() => {
+                    this.checkMercenaryRefresh();
+                    const refreshTimeElement = document.getElementById('refresh-time');
+                    if (refreshTimeElement) {
+                        refreshTimeElement.textContent = this.getMercenaryRefreshTimeRemaining();
+                    }
+                }, 1000);
             },
 
             loadUserData(user) {
@@ -1492,8 +1501,11 @@
                             <div class="stat-item">EXP: ${char.exp}/${char.expToNext}</div>
                         </div>
                         ${char.availableStats > 0 ? `<div style="color: #ffeb3b; margin-top: 5px; font-size: 11px;">스탯 포인트: ${char.availableStats}</div>` : ''}
+                        <button class="btn btn-primary" onclick="event.stopPropagation(); game.showCharacterDetail(game.party.find(c => c.id === ${char.id}))"
+                            style="width: 100%; margin-top: 8px; padding: 5px; font-size: 11px;">
+                            상세 ${char.availableStats > 0 ? '(스탯 포인트 사용)' : ''}
+                        </button>
                     `;
-                    card.onclick = () => this.showCharacterDetail(char);
                     container.appendChild(card);
                 });
 
@@ -1530,9 +1542,16 @@
                             </div>
                             <div style="font-size: 11px; color: ${gradeColors[char.grade || 'common']};">${gradeData.name}</div>
                         </div>
-                        <button class="btn btn-success" onclick="game.moveToParty(${char.id})" style="width: 100%; margin-top: 5px; padding: 5px; font-size: 11px;">
-                            파티로 이동
-                        </button>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 5px;">
+                            <button class="btn btn-primary" onclick="game.showCharacterDetail(game.inn.mercenaries.find(c => c.id === ${char.id}))"
+                                style="padding: 5px; font-size: 11px;">
+                                상세
+                            </button>
+                            <button class="btn btn-success" onclick="game.moveToParty(${char.id})"
+                                style="padding: 5px; font-size: 11px;">
+                                파티로
+                            </button>
+                        </div>
                     `;
                     container.appendChild(card);
                 });
@@ -1548,6 +1567,13 @@
                 const costs = [5000, 20000, 100000];
                 const costIndex = this.mercenaryGuild.slots - 3;
                 document.getElementById('guild-cost').textContent = costs[costIndex] || '최대';
+
+                // 타이머 표시 추가
+                const timerDiv = document.createElement('div');
+                timerDiv.id = 'guild-refresh-timer';
+                timerDiv.style.cssText = 'background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px; margin-bottom: 10px; text-align: center; font-size: 12px;';
+                timerDiv.innerHTML = `<div style="color: #ffeb3b;">다음 갱신까지: <span id="refresh-time">${this.getMercenaryRefreshTimeRemaining()}</span></div>`;
+                container.appendChild(timerDiv);
 
                 const mercCosts = {
                     common: 100,
@@ -2060,7 +2086,15 @@
                             <div style="font-size: 20px;">📦</div>
                             <div class="item-count">${count}</div>
                         `;
-                        slot.title = name;
+
+                        // 마우스 이벤트로 title 동적 표시/제거
+                        slot.addEventListener('mouseenter', function() {
+                            this.title = name;
+                        });
+                        slot.addEventListener('mouseleave', function() {
+                            this.title = '';
+                        });
+
                         grid.appendChild(slot);
                     }
                 });
@@ -2085,7 +2119,16 @@
                         <div style="font-size: 16px;">⚔️</div>
                         ${item.enhancement > 0 ? `<div style="position: absolute; top: 2px; left: 4px; font-size: 10px; color: #4CAF50;">+${item.enhancement}</div>` : ''}
                     `;
-                    slot.title = `${item.name}${item.enhancement > 0 ? ' +' + item.enhancement : ''}\n${Object.entries(item.stats).map(([k, v]) => `${k}: ${v}`).join(', ')}`;
+
+                    // 마우스 이벤트로 title 동적 표시/제거
+                    const itemTitle = `${item.name}${item.enhancement > 0 ? ' +' + item.enhancement : ''}\n${Object.entries(item.stats).map(([k, v]) => `${k}: ${v}`).join(', ')}`;
+                    slot.addEventListener('mouseenter', function() {
+                        this.title = itemTitle;
+                    });
+                    slot.addEventListener('mouseleave', function() {
+                        this.title = '';
+                    });
+
                     equipGrid.appendChild(slot);
                 });
             },
@@ -2097,6 +2140,152 @@
             renderBlacksmith() {
                 const container = document.getElementById('blacksmith-content');
                 if (!container) return;
+
+                // 구역별 장비 레시피 정의
+                const equipmentRecipes = {
+                    a: { // 얼어붙은 빙하
+                        materials: { '빙하석': 3, '얼음 조각': 5 },
+                        weapons: {
+                            knight: { name: '빙하의 대검', type: 'leftWeapon', stats: { str: 15, dex: 5, hp: 20 } },
+                            archer: { name: '얼음 장궁', type: 'leftWeapon', stats: { dex: 20, str: 5 } },
+                            priest: { name: '서리 지팡이', type: 'leftWeapon', stats: { int: 18, mp: 20 } },
+                            rogue: { name: '빙설 단검', type: 'leftWeapon', stats: { dex: 18, str: 8 } },
+                            druid: { name: '동토의 창', type: 'leftWeapon', stats: { str: 12, int: 12 } },
+                            mage: { name: '빙하 마봉석', type: 'leftWeapon', stats: { int: 20, mp: 25 } },
+                            healer: { name: '치유의 얼음 성물', type: 'leftWeapon', stats: { int: 15, mp: 30 } }
+                        },
+                        helmet: { name: '빙하 투구', type: 'helmet', stats: { hp: 15, str: 3 } },
+                        armor: { name: '빙하 갑옷', type: 'armor', stats: { hp: 30, str: 5 } },
+                        boots: { name: '빙하 신발', type: 'boots', stats: { hp: 10, dex: 5 } },
+                        earring: { name: '빙하 귀걸이', type: 'leftEarring', stats: { int: 5, mp: 10 } },
+                        ring: { name: '빙하 반지', type: 'leftRing', stats: { str: 3, dex: 3, int: 3 } }
+                    },
+                    b: { // 작열하는 용암
+                        materials: { '용암석': 3, '화염 정수': 5 },
+                        weapons: {
+                            knight: { name: '용암 대검', type: 'leftWeapon', stats: { str: 25, hp: 30 } },
+                            archer: { name: '화염 장궁', type: 'leftWeapon', stats: { dex: 30, str: 10 } },
+                            priest: { name: '불꽃 성물', type: 'leftWeapon', stats: { int: 28, mp: 30 } },
+                            rogue: { name: '화염 단검', type: 'leftWeapon', stats: { dex: 28, str: 12 } },
+                            druid: { name: '열기의 창', type: 'leftWeapon', stats: { str: 18, int: 18 } },
+                            mage: { name: '화염 마봉석', type: 'leftWeapon', stats: { int: 30, mp: 35 } },
+                            healer: { name: '치유의 불꽃', type: 'leftWeapon', stats: { int: 25, mp: 40 } }
+                        },
+                        helmet: { name: '용암 투구', type: 'helmet', stats: { hp: 25, str: 5 } },
+                        armor: { name: '용암 갑옷', type: 'armor', stats: { hp: 50, str: 8 } },
+                        boots: { name: '용암 신발', type: 'boots', stats: { hp: 20, dex: 8 } },
+                        earring: { name: '용암 귀걸이', type: 'leftEarring', stats: { int: 8, mp: 15 } },
+                        ring: { name: '용암 반지', type: 'leftRing', stats: { str: 5, dex: 5, int: 5 } }
+                    },
+                    c: { // 신비로운 숲
+                        materials: { '자연의 정수': 3, '숲의 열매': 5 },
+                        weapons: {
+                            knight: { name: '나무정령 대검', type: 'leftWeapon', stats: { str: 35, hp: 40 } },
+                            archer: { name: '신비의 장궁', type: 'leftWeapon', stats: { dex: 40, str: 15 } },
+                            priest: { name: '생명의 지팡이', type: 'leftWeapon', stats: { int: 38, mp: 40 } },
+                            rogue: { name: '숲의 단검', type: 'leftWeapon', stats: { dex: 38, str: 17 } },
+                            druid: { name: '자연의 창', type: 'leftWeapon', stats: { str: 25, int: 25 } },
+                            mage: { name: '자연 마봉석', type: 'leftWeapon', stats: { int: 40, mp: 45 } },
+                            healer: { name: '치유의 생명석', type: 'leftWeapon', stats: { int: 35, mp: 50 } }
+                        },
+                        helmet: { name: '숲의 투구', type: 'helmet', stats: { hp: 35, str: 7 } },
+                        armor: { name: '숲의 갑옷', type: 'armor', stats: { hp: 70, str: 12 } },
+                        boots: { name: '숲의 신발', type: 'boots', stats: { hp: 30, dex: 12 } },
+                        earring: { name: '숲의 귀걸이', type: 'leftEarring', stats: { int: 12, mp: 20 } },
+                        ring: { name: '숲의 반지', type: 'leftRing', stats: { str: 7, dex: 7, int: 7 } }
+                    },
+                    d: { // 깊은 바다
+                        materials: { '물의 정수': 3, '바다의 정수': 5 },
+                        weapons: {
+                            knight: { name: '심해 대검', type: 'leftWeapon', stats: { str: 45, hp: 50 } },
+                            archer: { name: '조류 장궁', type: 'leftWeapon', stats: { dex: 50, str: 20 } },
+                            priest: { name: '심해의 성물', type: 'leftWeapon', stats: { int: 48, mp: 50 } },
+                            rogue: { name: '조류 단검', type: 'leftWeapon', stats: { dex: 48, str: 22 } },
+                            druid: { name: '심해의 창', type: 'leftWeapon', stats: { str: 32, int: 32 } },
+                            mage: { name: '심해 마봉석', type: 'leftWeapon', stats: { int: 50, mp: 55 } },
+                            healer: { name: '치유의 진주', type: 'leftWeapon', stats: { int: 45, mp: 60 } }
+                        },
+                        helmet: { name: '심해 투구', type: 'helmet', stats: { hp: 45, str: 10 } },
+                        armor: { name: '심해 갑옷', type: 'armor', stats: { hp: 90, str: 15 } },
+                        boots: { name: '심해 신발', type: 'boots', stats: { hp: 40, dex: 15 } },
+                        earring: { name: '심해 귀걸이', type: 'leftEarring', stats: { int: 15, mp: 25 } },
+                        ring: { name: '심해 반지', type: 'leftRing', stats: { str: 10, dex: 10, int: 10 } }
+                    },
+                    e: { // 어둠의 성채
+                        materials: { '어둠의 정수': 3, '사령의 정수': 5 },
+                        weapons: {
+                            knight: { name: '어둠의 대검', type: 'leftWeapon', stats: { str: 55, hp: 60 } },
+                            archer: { name: '암흑 장궁', type: 'leftWeapon', stats: { dex: 60, str: 25 } },
+                            priest: { name: '어둠의 성물', type: 'leftWeapon', stats: { int: 58, mp: 60 } },
+                            rogue: { name: '암살자의 단검', type: 'leftWeapon', stats: { dex: 58, str: 27 } },
+                            druid: { name: '저주의 창', type: 'leftWeapon', stats: { str: 40, int: 40 } },
+                            mage: { name: '암흑 마봉석', type: 'leftWeapon', stats: { int: 60, mp: 65 } },
+                            healer: { name: '정화의 빛', type: 'leftWeapon', stats: { int: 55, mp: 70 } }
+                        },
+                        helmet: { name: '어둠 투구', type: 'helmet', stats: { hp: 55, str: 12 } },
+                        armor: { name: '어둠 갑옷', type: 'armor', stats: { hp: 110, str: 18 } },
+                        boots: { name: '어둠 신발', type: 'boots', stats: { hp: 50, dex: 18 } },
+                        earring: { name: '어둠 귀걸이', type: 'leftEarring', stats: { int: 18, mp: 30 } },
+                        ring: { name: '어둠 반지', type: 'leftRing', stats: { str: 12, dex: 12, int: 12 } }
+                    }
+                };
+
+                let craftingHtml = '';
+
+                // 해금된 구역별로 제작 가능한 장비 표시
+                this.unlockedZones.forEach(zone => {
+                    const zoneData = ZONES[zone];
+                    const recipes = equipmentRecipes[zone];
+                    if (!recipes) return;
+
+                    craftingHtml += `
+                        <div style="background: rgba(255,255,255,0.08); padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                            <div style="font-size: 14px; font-weight: bold; color: ${zoneData.color}; margin-bottom: 10px;">
+                                ${zoneData.name} 장비
+                            </div>
+                            <div style="font-size: 10px; margin-bottom: 10px; color: #aaa;">
+                                필요 재료: ${Object.entries(recipes.materials).map(([mat, count]) => `${mat} x${count}`).join(', ')} + 500 골드
+                            </div>
+
+                            <div style="font-size: 12px; font-weight: bold; margin: 10px 0 5px 0;">직업별 무기</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 10px;">
+                                ${Object.entries(recipes.weapons).map(([cls, weapon]) => {
+                                    const classData = CLASSES[cls];
+                                    return `
+                                        <button class="btn btn-success" onclick="game.craftZoneEquipment('${zone}', 'weapon', '${cls}')"
+                                            style="font-size: 10px; padding: 6px;">
+                                            ${classData.icon} ${weapon.name}
+                                        </button>
+                                    `;
+                                }).join('')}
+                            </div>
+
+                            <div style="font-size: 12px; font-weight: bold; margin: 10px 0 5px 0;">일반 장비</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                                <button class="btn btn-success" onclick="game.craftZoneEquipment('${zone}', 'helmet')"
+                                    style="font-size: 10px; padding: 6px;">
+                                    ${recipes.helmet.name}
+                                </button>
+                                <button class="btn btn-success" onclick="game.craftZoneEquipment('${zone}', 'armor')"
+                                    style="font-size: 10px; padding: 6px;">
+                                    ${recipes.armor.name}
+                                </button>
+                                <button class="btn btn-success" onclick="game.craftZoneEquipment('${zone}', 'boots')"
+                                    style="font-size: 10px; padding: 6px;">
+                                    ${recipes.boots.name}
+                                </button>
+                                <button class="btn btn-success" onclick="game.craftZoneEquipment('${zone}', 'earring')"
+                                    style="font-size: 10px; padding: 6px;">
+                                    ${recipes.earring.name}
+                                </button>
+                                <button class="btn btn-success" onclick="game.craftZoneEquipment('${zone}', 'ring')"
+                                    style="font-size: 10px; padding: 6px; grid-column: 1 / -1;">
+                                    ${recipes.ring.name}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
 
                 container.innerHTML = `
                     <div class="panel-title">기본 장비 구매</div>
@@ -2116,15 +2305,7 @@
                     <div style="font-size: 12px; margin-bottom: 10px;">
                         제작 장비는 구매 장비 대비 10~100% 좋은 능력치를 가집니다.
                     </div>
-                    <div id="craft-recipes" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
-                        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
-                            <div style="font-size: 12px; margin-bottom: 5px;"><strong>강화된 검</strong></div>
-                            <div style="font-size: 10px; margin-bottom: 5px;">필요: 빙하석 x5, 얼음 조각 x10</div>
-                            <button class="btn btn-success" onclick="game.craftSampleEquipment('enhancedSword')" style="font-size: 11px; padding: 5px; width: 100%;">
-                                제작
-                            </button>
-                        </div>
-                    </div>
+                    ${craftingHtml}
 
                     <div class="panel-title">장비 강화</div>
                     <div style="font-size: 12px; margin-bottom: 10px;">
@@ -2178,6 +2359,151 @@
 
                 this.craftEquipment(recipe);
                 this.renderBlacksmith();
+            },
+
+            craftZoneEquipment(zone, equipmentType, classType = null) {
+                // 구역별 장비 레시피 정의 (renderBlacksmith와 동일한 데이터)
+                const equipmentRecipes = {
+                    a: {
+                        materials: { '빙하석': 3, '얼음 조각': 5 },
+                        weapons: {
+                            knight: { name: '빙하의 대검', type: 'leftWeapon', stats: { str: 15, dex: 5, hp: 20 } },
+                            archer: { name: '얼음 장궁', type: 'leftWeapon', stats: { dex: 20, str: 5 } },
+                            priest: { name: '서리 지팡이', type: 'leftWeapon', stats: { int: 18, mp: 20 } },
+                            rogue: { name: '빙설 단검', type: 'leftWeapon', stats: { dex: 18, str: 8 } },
+                            druid: { name: '동토의 창', type: 'leftWeapon', stats: { str: 12, int: 12 } },
+                            mage: { name: '빙하 마봉석', type: 'leftWeapon', stats: { int: 20, mp: 25 } },
+                            healer: { name: '치유의 얼음 성물', type: 'leftWeapon', stats: { int: 15, mp: 30 } }
+                        },
+                        helmet: { name: '빙하 투구', type: 'helmet', stats: { hp: 15, str: 3 } },
+                        armor: { name: '빙하 갑옷', type: 'armor', stats: { hp: 30, str: 5 } },
+                        boots: { name: '빙하 신발', type: 'boots', stats: { hp: 10, dex: 5 } },
+                        earring: { name: '빙하 귀걸이', type: 'leftEarring', stats: { int: 5, mp: 10 } },
+                        ring: { name: '빙하 반지', type: 'leftRing', stats: { str: 3, dex: 3, int: 3 } }
+                    },
+                    b: {
+                        materials: { '용암석': 3, '화염 정수': 5 },
+                        weapons: {
+                            knight: { name: '용암 대검', type: 'leftWeapon', stats: { str: 25, hp: 30 } },
+                            archer: { name: '화염 장궁', type: 'leftWeapon', stats: { dex: 30, str: 10 } },
+                            priest: { name: '불꽃 성물', type: 'leftWeapon', stats: { int: 28, mp: 30 } },
+                            rogue: { name: '화염 단검', type: 'leftWeapon', stats: { dex: 28, str: 12 } },
+                            druid: { name: '열기의 창', type: 'leftWeapon', stats: { str: 18, int: 18 } },
+                            mage: { name: '화염 마봉석', type: 'leftWeapon', stats: { int: 30, mp: 35 } },
+                            healer: { name: '치유의 불꽃', type: 'leftWeapon', stats: { int: 25, mp: 40 } }
+                        },
+                        helmet: { name: '용암 투구', type: 'helmet', stats: { hp: 25, str: 5 } },
+                        armor: { name: '용암 갑옷', type: 'armor', stats: { hp: 50, str: 8 } },
+                        boots: { name: '용암 신발', type: 'boots', stats: { hp: 20, dex: 8 } },
+                        earring: { name: '용암 귀걸이', type: 'leftEarring', stats: { int: 8, mp: 15 } },
+                        ring: { name: '용암 반지', type: 'leftRing', stats: { str: 5, dex: 5, int: 5 } }
+                    },
+                    c: {
+                        materials: { '자연의 정수': 3, '숲의 열매': 5 },
+                        weapons: {
+                            knight: { name: '나무정령 대검', type: 'leftWeapon', stats: { str: 35, hp: 40 } },
+                            archer: { name: '신비의 장궁', type: 'leftWeapon', stats: { dex: 40, str: 15 } },
+                            priest: { name: '생명의 지팡이', type: 'leftWeapon', stats: { int: 38, mp: 40 } },
+                            rogue: { name: '숲의 단검', type: 'leftWeapon', stats: { dex: 38, str: 17 } },
+                            druid: { name: '자연의 창', type: 'leftWeapon', stats: { str: 25, int: 25 } },
+                            mage: { name: '자연 마봉석', type: 'leftWeapon', stats: { int: 40, mp: 45 } },
+                            healer: { name: '치유의 생명석', type: 'leftWeapon', stats: { int: 35, mp: 50 } }
+                        },
+                        helmet: { name: '숲의 투구', type: 'helmet', stats: { hp: 35, str: 7 } },
+                        armor: { name: '숲의 갑옷', type: 'armor', stats: { hp: 70, str: 12 } },
+                        boots: { name: '숲의 신발', type: 'boots', stats: { hp: 30, dex: 12 } },
+                        earring: { name: '숲의 귀걸이', type: 'leftEarring', stats: { int: 12, mp: 20 } },
+                        ring: { name: '숲의 반지', type: 'leftRing', stats: { str: 7, dex: 7, int: 7 } }
+                    },
+                    d: {
+                        materials: { '물의 정수': 3, '바다의 정수': 5 },
+                        weapons: {
+                            knight: { name: '심해 대검', type: 'leftWeapon', stats: { str: 45, hp: 50 } },
+                            archer: { name: '조류 장궁', type: 'leftWeapon', stats: { dex: 50, str: 20 } },
+                            priest: { name: '심해의 성물', type: 'leftWeapon', stats: { int: 48, mp: 50 } },
+                            rogue: { name: '조류 단검', type: 'leftWeapon', stats: { dex: 48, str: 22 } },
+                            druid: { name: '심해의 창', type: 'leftWeapon', stats: { str: 32, int: 32 } },
+                            mage: { name: '심해 마봉석', type: 'leftWeapon', stats: { int: 50, mp: 55 } },
+                            healer: { name: '치유의 진주', type: 'leftWeapon', stats: { int: 45, mp: 60 } }
+                        },
+                        helmet: { name: '심해 투구', type: 'helmet', stats: { hp: 45, str: 10 } },
+                        armor: { name: '심해 갑옷', type: 'armor', stats: { hp: 90, str: 15 } },
+                        boots: { name: '심해 신발', type: 'boots', stats: { hp: 40, dex: 15 } },
+                        earring: { name: '심해 귀걸이', type: 'leftEarring', stats: { int: 15, mp: 25 } },
+                        ring: { name: '심해 반지', type: 'leftRing', stats: { str: 10, dex: 10, int: 10 } }
+                    },
+                    e: {
+                        materials: { '어둠의 정수': 3, '사령의 정수': 5 },
+                        weapons: {
+                            knight: { name: '어둠의 대검', type: 'leftWeapon', stats: { str: 55, hp: 60 } },
+                            archer: { name: '암흑 장궁', type: 'leftWeapon', stats: { dex: 60, str: 25 } },
+                            priest: { name: '어둠의 성물', type: 'leftWeapon', stats: { int: 58, mp: 60 } },
+                            rogue: { name: '암살자의 단검', type: 'leftWeapon', stats: { dex: 58, str: 27 } },
+                            druid: { name: '저주의 창', type: 'leftWeapon', stats: { str: 40, int: 40 } },
+                            mage: { name: '암흑 마봉석', type: 'leftWeapon', stats: { int: 60, mp: 65 } },
+                            healer: { name: '정화의 빛', type: 'leftWeapon', stats: { int: 55, mp: 70 } }
+                        },
+                        helmet: { name: '어둠 투구', type: 'helmet', stats: { hp: 55, str: 12 } },
+                        armor: { name: '어둠 갑옷', type: 'armor', stats: { hp: 110, str: 18 } },
+                        boots: { name: '어둠 신발', type: 'boots', stats: { hp: 50, dex: 18 } },
+                        earring: { name: '어둠 귀걸이', type: 'leftEarring', stats: { int: 18, mp: 30 } },
+                        ring: { name: '어둠 반지', type: 'leftRing', stats: { str: 12, dex: 12, int: 12 } }
+                    }
+                };
+
+                const zoneRecipes = equipmentRecipes[zone];
+                if (!zoneRecipes) return;
+
+                // 500 골드 확인
+                if (this.gold < 500) {
+                    this.addLog('골드가 부족합니다. 필요: 500골드');
+                    return;
+                }
+
+                // 재료 확인
+                for (let [material, amount] of Object.entries(zoneRecipes.materials)) {
+                    if ((this.materials[material] || 0) < amount) {
+                        this.addLog(`재료가 부족합니다: ${material} (필요: ${amount}, 보유: ${this.materials[material] || 0})`);
+                        return;
+                    }
+                }
+
+                // 장비 데이터 가져오기
+                let equipmentData;
+                if (equipmentType === 'weapon') {
+                    equipmentData = zoneRecipes.weapons[classType];
+                } else {
+                    equipmentData = zoneRecipes[equipmentType];
+                }
+
+                if (!equipmentData) return;
+
+                // 골드 차감
+                this.gold -= 500;
+
+                // 재료 소모
+                for (let [material, amount] of Object.entries(zoneRecipes.materials)) {
+                    this.materials[material] -= amount;
+                }
+
+                // 장비 생성 (10~100% 보너스 스탯)
+                const bonus = 1.1 + Math.random() * 0.9;
+                const newItem = {
+                    name: equipmentData.name,
+                    type: equipmentData.type,
+                    stats: {},
+                    enhancement: 0
+                };
+
+                for (let [stat, value] of Object.entries(equipmentData.stats)) {
+                    newItem.stats[stat] = Math.floor(value * bonus);
+                }
+
+                this.inventory.push(newItem);
+                this.addLog(`${equipmentData.name}을(를) 제작했습니다!`);
+                this.renderMaterials();
+                this.renderBlacksmith();
+                this.updateDisplay();
             },
 
             toggleAutoBattle() {
@@ -2277,6 +2603,38 @@
                         name: `${classData.name}${Math.floor(Math.random() * 1000)}`
                     });
                 }
+
+                // 6시간 후 갱신 시간 설정 (밀리초)
+                this.mercenaryGuild.nextRefreshTime = Date.now() + (6 * 60 * 60 * 1000);
+                this.renderGuildList();
+            },
+
+            checkMercenaryRefresh() {
+                if (!this.mercenaryGuild.nextRefreshTime) {
+                    this.mercenaryGuild.nextRefreshTime = Date.now() + (6 * 60 * 60 * 1000);
+                }
+
+                if (Date.now() >= this.mercenaryGuild.nextRefreshTime) {
+                    this.generateMercenaries();
+                    this.addLog('용병 길드 리스트가 갱신되었습니다!');
+                }
+            },
+
+            getMercenaryRefreshTimeRemaining() {
+                if (!this.mercenaryGuild.nextRefreshTime) {
+                    return '계산 중...';
+                }
+
+                const timeLeft = this.mercenaryGuild.nextRefreshTime - Date.now();
+                if (timeLeft <= 0) {
+                    return '갱신 가능';
+                }
+
+                const hours = Math.floor(timeLeft / (60 * 60 * 1000));
+                const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
+                const seconds = Math.floor((timeLeft % (60 * 1000)) / 1000);
+
+                return `${hours}시간 ${minutes}분 ${seconds}초`;
             },
 
             hireMercenary(index) {
