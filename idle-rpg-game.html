@@ -957,6 +957,9 @@
                     <button class="btn btn-primary" onclick="game.upgradeGuild()" style="width: 100%; margin-bottom: 10px;">
                         길드 확장 (<span id="guild-cost">5000</span> 골드)
                     </button>
+                    <div id="guild-refresh-timer" style="font-size: 11px; color: #aaa; text-align: center; margin-bottom: 10px; padding: 5px; background: rgba(0,0,0,0.3); border-radius: 5px;">
+                        다음 갱신까지: 계산 중...
+                    </div>
                     <div id="mercenary-list"></div>
                 </div>
 
@@ -1195,6 +1198,9 @@
     </script>
 
     <script>
+        // Global character ID counter
+        let globalCharacterId = 1;
+
         // Game Data & Constants
         const CLASSES = {
             knight: {
@@ -1494,7 +1500,9 @@
                 this.partyAssignments = user.partyAssignments || Array(10).fill(null).map(() => ({ floor: 1 }));
                 // Ensure all assignments have floor property
                 this.partyAssignments = this.partyAssignments.map(a => a.floor ? a : { floor: 1 });
-                this.nextCharacterId = user.nextCharacterId || 1000;
+
+                // Restore global character ID counter
+                globalCharacterId = user.globalCharacterId || 1000;
 
                 if (!this.mercenaryGuild.availableMercenaries || this.mercenaryGuild.availableMercenaries.length === 0) {
                     this.generateMercenaries();
@@ -1768,6 +1776,24 @@
 
                 // Check if guild needs refresh
                 this.checkGuildRefresh();
+
+                // Update refresh timer
+                const timerDiv = document.getElementById('guild-refresh-timer');
+                if (timerDiv) {
+                    const sixHours = 6 * 60 * 60 * 1000;
+                    const elapsed = Date.now() - this.lastGuildRefresh;
+                    const remaining = Math.max(0, sixHours - elapsed);
+
+                    const hours = Math.floor(remaining / (60 * 60 * 1000));
+                    const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+                    const seconds = Math.floor((remaining % (60 * 1000)) / 1000);
+
+                    if (remaining > 0) {
+                        timerDiv.textContent = `다음 갱신까지: ${hours}시간 ${minutes}분 ${seconds}초`;
+                    } else {
+                        timerDiv.textContent = `갱신 가능! (새로고침 시 적용)`;
+                    }
+                }
 
                 container.innerHTML = '';
                 document.getElementById('guild-slots').textContent = this.mercenaryGuild.slots;
@@ -2911,9 +2937,72 @@
                     </div>
                     <div id="craft-recipes" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
                         <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
-                            <div style="font-size: 12px; margin-bottom: 5px;"><strong>강화된 검</strong></div>
+                            <div style="font-size: 12px; margin-bottom: 5px;"><strong>얼음 검</strong> (왼손 무기)</div>
                             <div style="font-size: 10px; margin-bottom: 5px;">필요: 빙하석 x5, 얼음 조각 x10</div>
-                            <button class="btn btn-success" onclick="game.craftSampleEquipment('enhancedSword')" style="font-size: 11px; padding: 5px; width: 100%;">
+                            <button class="btn btn-success" onclick="game.craftSampleEquipment('iceSword')" style="font-size: 11px; padding: 5px; width: 100%;">
+                                제작
+                            </button>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
+                            <div style="font-size: 12px; margin-bottom: 5px;"><strong>서리 갑옷</strong> (갑옷)</div>
+                            <div style="font-size: 10px; margin-bottom: 5px;">필요: 서리 결정 x8, 동토의 정수 x5</div>
+                            <button class="btn btn-success" onclick="game.craftSampleEquipment('frostArmor')" style="font-size: 11px; padding: 5px; width: 100%;">
+                                제작
+                            </button>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
+                            <div style="font-size: 12px; margin-bottom: 5px;"><strong>화염 검</strong> (왼손 무기)</div>
+                            <div style="font-size: 10px; margin-bottom: 5px;">필요: 용암석 x6, 화염 정수 x8</div>
+                            <button class="btn btn-success" onclick="game.craftSampleEquipment('flameSword')" style="font-size: 11px; padding: 5px; width: 100%;">
+                                제작
+                            </button>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
+                            <div style="font-size: 12px; margin-bottom: 5px;"><strong>마그마 갑옷</strong> (갑옷)</div>
+                            <div style="font-size: 10px; margin-bottom: 5px;">필요: 마그마 핵 x7, 작열석 x10</div>
+                            <button class="btn btn-success" onclick="game.craftSampleEquipment('magmaArmor')" style="font-size: 11px; padding: 5px; width: 100%;">
+                                제작
+                            </button>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
+                            <div style="font-size: 12px; margin-bottom: 5px;"><strong>자연의 활</strong> (왼손 무기)</div>
+                            <div style="font-size: 10px; margin-bottom: 5px;">필요: 나뭇가지 x10, 숲의 정수 x6</div>
+                            <button class="btn btn-success" onclick="game.craftSampleEquipment('natureBow')" style="font-size: 11px; padding: 5px; width: 100%;">
+                                제작
+                            </button>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
+                            <div style="font-size: 12px; margin-bottom: 5px;"><strong>대지의 투구</strong> (투구)</div>
+                            <div style="font-size: 10px; margin-bottom: 5px;">필요: 이끼 조각 x12, 나무 열매 x8</div>
+                            <button class="btn btn-success" onclick="game.craftSampleEquipment('earthHelmet')" style="font-size: 11px; padding: 5px; width: 100%;">
+                                제작
+                            </button>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
+                            <div style="font-size: 12px; margin-bottom: 5px;"><strong>파도의 지팡이</strong> (왼손 무기)</div>
+                            <div style="font-size: 10px; margin-bottom: 5px;">필요: 산호 조각 x8, 물의 정수 x10</div>
+                            <button class="btn btn-success" onclick="game.craftSampleEquipment('waveStaff')" style="font-size: 11px; padding: 5px; width: 100%;">
+                                제작
+                            </button>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
+                            <div style="font-size: 12px; margin-bottom: 5px;"><strong>심해의 신발</strong> (신발)</div>
+                            <div style="font-size: 10px; margin-bottom: 5px;">필요: 진주 x6, 조개껍질 x15</div>
+                            <button class="btn btn-success" onclick="game.craftSampleEquipment('deepBoots')" style="font-size: 11px; padding: 5px; width: 100%;">
+                                제작
+                            </button>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
+                            <div style="font-size: 12px; margin-bottom: 5px;"><strong>어둠의 단검</strong> (왼손 무기)</div>
+                            <div style="font-size: 10px; margin-bottom: 5px;">필요: 어둠의 파편 x9, 그림자 정수 x12</div>
+                            <button class="btn btn-success" onclick="game.craftSampleEquipment('darkDagger')" style="font-size: 11px; padding: 5px; width: 100%;">
+                                제작
+                            </button>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
+                            <div style="font-size: 12px; margin-bottom: 5px;"><strong>공허의 반지</strong> (왼쪽 반지)</div>
+                            <div style="font-size: 10px; margin-bottom: 5px;">필요: 공허석 x7, 어둠의 보석 x10</div>
+                            <button class="btn btn-success" onclick="game.craftSampleEquipment('voidRing')" style="font-size: 11px; padding: 5px; width: 100%;">
                                 제작
                             </button>
                         </div>
@@ -2958,11 +3047,65 @@
 
             craftSampleEquipment(type) {
                 const recipes = {
-                    enhancedSword: {
-                        name: '강화된 검',
+                    iceSword: {
+                        name: '얼음 검',
                         type: 'leftWeapon',
-                        stats: { str: 10, dex: 5 },
+                        stats: { str: 12, dex: 6 },
                         materials: { '빙하석': 5, '얼음 조각': 10 }
+                    },
+                    frostArmor: {
+                        name: '서리 갑옷',
+                        type: 'armor',
+                        stats: { hp: 18, def: 8 },
+                        materials: { '서리 결정': 8, '동토의 정수': 5 }
+                    },
+                    flameSword: {
+                        name: '화염 검',
+                        type: 'leftWeapon',
+                        stats: { str: 14, int: 7 },
+                        materials: { '용암석': 6, '화염 정수': 8 }
+                    },
+                    magmaArmor: {
+                        name: '마그마 갑옷',
+                        type: 'armor',
+                        stats: { hp: 20, int: 10 },
+                        materials: { '마그마 핵': 7, '작열석': 10 }
+                    },
+                    natureBow: {
+                        name: '자연의 활',
+                        type: 'leftWeapon',
+                        stats: { dex: 15, int: 8 },
+                        materials: { '나뭇가지': 10, '숲의 정수': 6 }
+                    },
+                    earthHelmet: {
+                        name: '대지의 투구',
+                        type: 'helmet',
+                        stats: { hp: 16, def: 10 },
+                        materials: { '이끼 조각': 12, '나무 열매': 8 }
+                    },
+                    waveStaff: {
+                        name: '파도의 지팡이',
+                        type: 'leftWeapon',
+                        stats: { int: 18, mp: 12 },
+                        materials: { '산호 조각': 8, '물의 정수': 10 }
+                    },
+                    deepBoots: {
+                        name: '심해의 신발',
+                        type: 'boots',
+                        stats: { dex: 14, hp: 12 },
+                        materials: { '진주': 6, '조개껍질': 15 }
+                    },
+                    darkDagger: {
+                        name: '어둠의 단검',
+                        type: 'leftWeapon',
+                        stats: { dex: 20, str: 10 },
+                        materials: { '어둠의 파편': 9, '그림자 정수': 12 }
+                    },
+                    voidRing: {
+                        name: '공허의 반지',
+                        type: 'leftRing',
+                        stats: { int: 16, mp: 16 },
+                        materials: { '공허석': 7, '어둠의 보석': 10 }
                     }
                 };
 
@@ -3101,7 +3244,7 @@
                     const classData = CLASSES[randomClass];
 
                     this.mercenaryGuild.availableMercenaries.push({
-                        id: Date.now() + i,
+                        id: globalCharacterId++,
                         class: randomClass,
                         grade: randomGrade,
                         name: `${classData.name}${Math.floor(Math.random() * 1000)}`
@@ -3193,7 +3336,7 @@
                 };
 
                 return {
-                    id: this.nextCharacterId++,
+                    id: globalCharacterId++,
                     name: name,
                     class: classId,
                     grade: grade,
@@ -3832,7 +3975,7 @@
                 user.marketplaceItems = this.marketplace.items;
                 user.gameSpeed = this.gameSpeed;
                 user.partyAssignments = this.partyAssignments;
-                user.nextCharacterId = this.nextCharacterId;
+                user.globalCharacterId = globalCharacterId;
 
                 users[auth.currentUser] = user;
                 localStorage.setItem('rpg_users', JSON.stringify(users));
