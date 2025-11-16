@@ -841,7 +841,8 @@
                     <input type="password" id="login-password" placeholder="비밀번호를 입력하세요">
                 </div>
                 <button class="btn btn-success" onclick="auth.login()" style="width: 100%; margin-bottom: 10px;">로그인</button>
-                <button class="btn btn-primary" onclick="auth.showSignup()" style="width: 100%;">회원가입</button>
+                <button class="btn btn-primary" onclick="auth.showSignup()" style="width: 100%; margin-bottom: 10px;">회원가입</button>
+                <button class="btn btn-danger" onclick="auth.resetAllAccounts()" style="width: 100%; font-size: 12px; padding: 8px;">⚠️ 모든 계정 초기화</button>
             </div>
 
             <div id="signup-form" style="display: none;">
@@ -888,10 +889,12 @@
 
             <!-- Center Panel: Battle Area -->
             <div class="center-panel">
-                <!-- Stage Selection -->
-                <div class="panel-title">스테이지 선택</div>
-                <div class="stage-select" id="zone-select"></div>
-                <div class="substage-select" id="substage-select"></div>
+                <!-- Current Floor Info -->
+                <div class="panel-title">현재 층수</div>
+                <div style="text-align: center; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 8px; margin-bottom: 15px;">
+                    <div id="floor-display" style="font-size: 24px; font-weight: bold; color: #ffeb3b; margin-bottom: 8px;">1층</div>
+                    <div id="zone-name-display" style="font-size: 14px; color: #aaa;">얼어붙은 빙하</div>
+                </div>
 
                 <!-- Battlefield -->
                 <div class="battlefield">
@@ -955,6 +958,9 @@
                     <button class="btn btn-primary" onclick="game.upgradeGuild()" style="width: 100%; margin-bottom: 10px;">
                         길드 확장 (<span id="guild-cost">5000</span> 골드)
                     </button>
+                    <div id="guild-refresh-timer" style="font-size: 11px; color: #aaa; text-align: center; margin-bottom: 10px; padding: 5px; background: rgba(0,0,0,0.3); border-radius: 5px;">
+                        다음 갱신까지: 계산 중...
+                    </div>
                     <div id="mercenary-list"></div>
                 </div>
 
@@ -982,11 +988,13 @@
 
                 <div id="encyclopedia-tab" class="tab-content">
                     <div class="panel-title">백과사전</div>
-                    <div class="tabs" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-bottom: 15px;">
+                    <div class="tabs" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 15px;">
                         <div class="tab active" onclick="game.switchEncyclopediaTab('monster')">몬스터</div>
+                        <div class="tab" onclick="game.switchEncyclopediaTab('mercenary')">용병</div>
                         <div class="tab" onclick="game.switchEncyclopediaTab('item')">아이템</div>
                         <div class="tab" onclick="game.switchEncyclopediaTab('equipment')">장비</div>
                         <div class="tab" onclick="game.switchEncyclopediaTab('zone')">구역</div>
+                        <div class="tab" onclick="game.switchEncyclopediaTab('material')">재료</div>
                     </div>
                     <div id="encyclopedia-content" style="max-height: 500px; overflow-y: auto; font-size: 12px;"></div>
                 </div>
@@ -1186,11 +1194,31 @@
                     document.getElementById('game-container').style.display = 'none';
                     this.showLogin();
                 }
+            },
+
+            resetAllAccounts() {
+                if (confirm('⚠️ 경고: 모든 계정 데이터가 영구적으로 삭제됩니다.\n정말 초기화하시겠습니까?')) {
+                    if (confirm('다시 한번 확인합니다. 모든 계정을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) {
+                        localStorage.removeItem('rpg_users');
+                        localStorage.removeItem('rpg_ip_key');
+                        const errorDiv = document.getElementById('login-error');
+                        errorDiv.style.color = '#e74c3c';
+                        errorDiv.textContent = '모든 계정이 삭제되었습니다.';
+
+                        setTimeout(() => {
+                            errorDiv.textContent = '';
+                            errorDiv.style.color = '#e74c3c';
+                        }, 3000);
+                    }
+                }
             }
         };
     </script>
 
     <script>
+        // Global character ID counter
+        let globalCharacterId = 1;
+
         // Game Data & Constants
         const CLASSES = {
             knight: {
@@ -1212,7 +1240,7 @@
                 ]
             },
             priest: {
-                name: '성직자',
+                name: '성기사',
                 icon: '✝️',
                 stats: { str: 8, dex: 4, int: 8, hp: 8, mp: 8 },
                 skills: [
@@ -1266,6 +1294,24 @@
             e: { name: '어둠의 성채', theme: 'dark', color: '#6a4c93' }
         };
 
+        // Floor-based zone system helpers
+        function getZoneFromFloor(floor) {
+            // a: 1-200, b: 201-400, c: 401-600, d: 601-800, e: 801-1000
+            // Pattern repeats every 1000 floors
+            const cyclePosition = ((floor - 1) % 1000) + 1;
+            if (cyclePosition <= 200) return 'a';
+            if (cyclePosition <= 400) return 'b';
+            if (cyclePosition <= 600) return 'c';
+            if (cyclePosition <= 800) return 'd';
+            return 'e';
+        }
+
+        function getFloorLabel(floor) {
+            const zone = getZoneFromFloor(floor);
+            const zoneName = ZONES[zone].name;
+            return `${floor}층 (${zoneName})`;
+        }
+
         const MATERIALS = {
             ice: ['얼음 조각', '서리 결정', '빙하석', '눈송이', '동토의 정수', '얼음 파편', '냉기석', '서리 가루', '빙설 조각', '동결 결정', '한기의 정수', '얼어붙은 물', '극한의 얼음', '북극석', '냉기 결정'],
             lava: ['용암석', '화염 정수', '마그마 핵', '불꽃 가루', '열기석', '화산재', '용암 파편', '불의 정수', '작열석', '화염 조각', '마그마 결정', '불타는 돌', '화염 핵', '용암 결정', '불의 핵'],
@@ -1282,7 +1328,7 @@
             legendary: { name: '레전드', statBonus: { str: 3, dex: 3, int: 3, hp: 3, mp: 3 } }
         };
 
-        const EQUIPMENT_SLOTS = ['leftWeapon', 'rightWeapon', 'helmet', 'armor', 'leggings', 'boots', 'leftEarring', 'rightEarring', 'leftRing', 'rightRing'];
+        const EQUIPMENT_SLOTS = ['leftWeapon', 'rightWeapon', 'helmet', 'armor', 'leggings', 'boots', 'earring1', 'earring2', 'ring1', 'ring2'];
 
         const BOSS_SKILLS = {
             ice: { name: '빙하의 숨결', power: 2.0, target: 'all', type: 'magic', description: '모든 적을 얼린다' },
@@ -1293,27 +1339,181 @@
         };
 
         const LEGENDARY_EQUIPMENT = {
+            // A구역 (1-200층): 기사, 궁수 전설 장비
             ice: [
-                { name: '빙하의 검', type: 'leftWeapon', stats: { str: 15, dex: 10 }, skill: '냉기 폭발', dropRate: 0.00001 },
-                { name: '서리의 방패', type: 'rightWeapon', stats: { hp: 20, def: 15 }, skill: '얼음 방어막', dropRate: 0.00001 }
+                { name: '얼음의 수호자', type: 'leftWeapon', class: 'knight', stats: { str: 18, hp: 24 }, skill: '빙하의 수호', dropRate: 0.0001 },
+                { name: '극북의 성벽', type: 'rightWeapon', class: 'knight', stats: { hp: 30, def: 18 }, skill: '절대방어', dropRate: 0.0001 },
+                { name: '서리바람의 장궁', type: 'leftWeapon', class: 'archer', stats: { dex: 24, int: 12 }, skill: '빙설의 화살', dropRate: 0.0001 },
+                { name: '동토의 신궁', type: 'leftWeapon', class: 'archer', stats: { dex: 27, hp: 15 }, skill: '관통빙탄', dropRate: 0.0001 },
+                { name: '빙하의 성벽', type: 'rightWeapon', class: 'knight', stats: { hp: 40, def: 25 }, skill: '얼음 요새', dropRate: 0.0001, isShield: true }
             ],
+            // B구역 (201-400층): 성기사, 치료사 전설 장비
             lava: [
-                { name: '용암의 대검', type: 'leftWeapon', stats: { str: 20, int: 10 }, skill: '화염 강타', dropRate: 0.00001 },
-                { name: '불꽃 갑옷', type: 'armor', stats: { hp: 25, int: 15 }, skill: '화염 보호막', dropRate: 0.00001 }
+                { name: '태양의 성배', type: 'leftWeapon', class: 'priest', stats: { int: 24, mp: 30 }, skill: '신성한 빛의 심판', dropRate: 0.0001 },
+                { name: '화염심장의 지팡이', type: 'leftWeapon', class: 'priest', stats: { int: 21, hp: 24 }, skill: '정화의 불꽃', dropRate: 0.0001 },
+                { name: '생명의 영약', type: 'leftWeapon', class: 'healer', stats: { int: 27, mp: 36 }, skill: '완전치유', dropRate: 0.0001 },
+                { name: '희망의 등불', type: 'leftWeapon', class: 'healer', stats: { int: 24, mp: 30 }, skill: '축복의 빛', dropRate: 0.0001 },
+                { name: '신성한 방패', type: 'rightWeapon', class: 'priest', stats: { hp: 38, mp: 28, def: 22 }, skill: '성스러운 가호', dropRate: 0.0001, isShield: true }
             ],
+            // C구역 (401-600층): 드루이드, 도적 전설 장비
             forest: [
-                { name: '자연의 활', type: 'leftWeapon', stats: { dex: 20, int: 10 }, skill: '관통 사격', dropRate: 0.00001 },
-                { name: '생명의 목걸이', type: 'leftEarring', stats: { hp: 30, mp: 20 }, skill: '생명 재생', dropRate: 0.00001 }
+                { name: '세계수의 가지', type: 'leftWeapon', class: 'druid', stats: { int: 21, hp: 27 }, skill: '자연의 분노', dropRate: 0.0001 },
+                { name: '대지의 권능', type: 'leftWeapon', class: 'druid', stats: { str: 18, int: 18, hp: 24 }, skill: '야수왕의 강림', dropRate: 0.0001 },
+                { name: '그림자 추적자', type: 'leftWeapon', class: 'rogue', stats: { dex: 30, str: 18 }, skill: '암살', dropRate: 0.0001 },
+                { name: '은밀의 단검', type: 'rightWeapon', class: 'rogue', stats: { dex: 27, int: 15 }, skill: '연쇄 급습', dropRate: 0.0001 },
+                { name: '타이탄의 대검', type: 'leftWeapon', class: 'knight', stats: { str: 45, hp: 35, def: 20 }, skill: '대지 분쇄', dropRate: 0.0001, isTwoHanded: true }
             ],
+            // D구역 (601-800층): 법사, 갑옷 전설 장비
             ocean: [
-                { name: '파도의 창', type: 'leftWeapon', stats: { str: 15, dex: 15 }, skill: '물결 강타', dropRate: 0.00001 },
-                { name: '심해의 투구', type: 'helmet', stats: { hp: 20, mp: 20 }, skill: '물의 축복', dropRate: 0.00001 }
+                { name: '심연의 마도서', type: 'leftWeapon', class: 'mage', stats: { int: 36, mp: 36 }, skill: '해일의 마법진', dropRate: 0.0001 },
+                { name: '파도를 삼킨 지팡이', type: 'leftWeapon', class: 'mage', stats: { int: 33, dex: 15 }, skill: '얼어붙은 파도', dropRate: 0.0001 },
+                { name: '심해용의 갑주', type: 'armor', stats: { hp: 42, def: 30 }, skill: '수호의 물결', dropRate: 0.0001 },
+                { name: '아틀란티스의 전갑', type: 'armor', stats: { hp: 45, mp: 30 }, skill: '물의 축복', dropRate: 0.0001 }
             ],
+            // E구역 (801-1000층): 투구, 신발, 귀걸이, 반지 전설 장비
             dark: [
-                { name: '어둠의 검', type: 'leftWeapon', stats: { str: 18, int: 15 }, skill: '암흑 베기', dropRate: 0.00001 },
-                { name: '저주받은 반지', type: 'leftRing', stats: { int: 25, mp: 25 }, skill: '생명 흡수', dropRate: 0.00001 }
+                { name: '지배자의 왕관', type: 'helmet', stats: { int: 30, hp: 30, mp: 30 }, skill: '암흑의 권능', dropRate: 0.0001 },
+                { name: '어둠의 제왕투구', type: 'helmet', stats: { str: 27, hp: 36 }, skill: '공포의 지배', dropRate: 0.0001 },
+                { name: '심연보행자의 신발', type: 'boots', stats: { dex: 33, hp: 27 }, skill: '차원이동', dropRate: 0.0001 },
+                { name: '밤그림자의 장화', type: 'boots', stats: { dex: 30, int: 24 }, skill: '은신술', dropRate: 0.0001 },
+                { name: '영혼의 귀걸이', type: 'earring1', stats: { int: 36, mp: 42 }, skill: '마나 폭발', dropRate: 0.0002 },
+                { name: '공허의 귀걸이', type: 'earring2', stats: { int: 36, mp: 42 }, skill: '마나 재생', dropRate: 0.0002 },
+                { name: '파멸의 반지', type: 'ring1', stats: { str: 30, int: 30 }, skill: '생명 흡수', dropRate: 0.0002 },
+                { name: '영원의 반지', type: 'ring2', stats: { hp: 36, mp: 36 }, skill: '불멸의 의지', dropRate: 0.0002 }
             ]
         };
+
+        // Zone-based crafting recipes (110-200% random stats)
+        const ZONE_CRAFTING_RECIPES = {
+            ice: {
+                weapons: [
+                    { name: '빙하의 검', type: 'leftWeapon', class: 'knight', baseStats: { str: 15, hp: 12 }, materials: { '빙하석': 6, '얼음 조각': 10 } },
+                    { name: '서리의 단검', type: 'leftWeapon', class: 'rogue', baseStats: { dex: 18, str: 8 }, materials: { '서리 결정': 8, '얼음 파편': 12 } },
+                    { name: '동토의 지팡이', type: 'leftWeapon', class: 'mage', baseStats: { int: 20, mp: 15 }, materials: { '동토의 정수': 6, '냉기석': 10 } },
+                    { name: '얼음 활', type: 'leftWeapon', class: 'archer', baseStats: { dex: 17, int: 10 }, materials: { '서리 가루': 10, '빙설 조각': 14 } },
+                    { name: '빙설의 완드', type: 'leftWeapon', class: 'healer', baseStats: { int: 16, mp: 18 }, materials: { '동결 결정': 8, '한기의 정수': 10 } },
+                    { name: '성빙의 메이스', type: 'leftWeapon', class: 'priest', baseStats: { str: 14, int: 14, hp: 10 }, materials: { '얼어붙은 물': 10, '극한의 얼음': 8 } },
+                    { name: '빙하 방패', type: 'rightWeapon', class: 'knight', baseStats: { hp: 25, def: 18 }, materials: { '빙하석': 8, '북극석': 6 }, isShield: true },
+                    { name: '성빙 방패', type: 'rightWeapon', class: 'priest', baseStats: { hp: 22, def: 16, int: 8 }, materials: { '동토의 정수': 8, '냉기 결정': 6 }, isShield: true },
+                    { name: '빙하 대검', type: 'leftWeapon', class: 'knight', baseStats: { str: 20, hp: 18, def: 10 }, materials: { '빙하석': 10, '얼음 조각': 14, '동토의 정수': 8 }, isTwoHanded: true }
+                ],
+                armor: [
+                    { name: '빙하 투구', type: 'helmet', baseStats: { hp: 20, def: 12 }, materials: { '북극석': 6, '냉기 결정': 8 } },
+                    { name: '서리 갑옷', type: 'armor', baseStats: { hp: 30, def: 18 }, materials: { '빙하석': 10, '동토의 정수': 12 } },
+                    { name: '동토 하의', type: 'leggings', baseStats: { hp: 25, def: 15 }, materials: { '얼음 조각': 16, '서리 결정': 10 } },
+                    { name: '빙설 장화', type: 'boots', baseStats: { hp: 18, dex: 12 }, materials: { '얼음 파편': 12, '냉기석': 8 } },
+                    { name: '얼음 귀걸이', type: 'earring1', baseStats: { int: 15, mp: 15 }, materials: { '서리 가루': 14, '빙설 조각': 10 } },
+                    { name: '극북 반지', type: 'ring1', baseStats: { str: 12, int: 12 }, materials: { '동결 결정': 10, '한기의 정수': 12 } }
+                ]
+            },
+            lava: {
+                weapons: [
+                    { name: '용암 대검', type: 'leftWeapon', class: 'knight', baseStats: { str: 18, hp: 10 }, materials: { '용암석': 8, '화염 정수': 10 } },
+                    { name: '화염 쌍검', type: 'leftWeapon', class: 'rogue', baseStats: { dex: 20, str: 10 }, materials: { '마그마 핵': 6, '불꽃 가루': 14 } },
+                    { name: '작열의 완드', type: 'leftWeapon', class: 'mage', baseStats: { int: 22, mp: 14 }, materials: { '열기석': 10, '화산재': 12 } },
+                    { name: '불화살 활', type: 'leftWeapon', class: 'archer', baseStats: { dex: 19, int: 11 }, materials: { '용암 파편': 12, '불의 정수': 10 } },
+                    { name: '성화의 완드', type: 'leftWeapon', class: 'healer', baseStats: { int: 18, mp: 20 }, materials: { '작열석': 8, '화염 조각': 12 } },
+                    { name: '신성한 화염검', type: 'leftWeapon', class: 'priest', baseStats: { str: 16, int: 16, hp: 12 }, materials: { '마그마 결정': 10, '불타는 돌': 10 } },
+                    { name: '용암 방패', type: 'rightWeapon', class: 'knight', baseStats: { hp: 28, def: 20 }, materials: { '용암석': 10, '화염 핵': 8 }, isShield: true },
+                    { name: '성화 방패', type: 'rightWeapon', class: 'priest', baseStats: { hp: 25, def: 18, int: 10 }, materials: { '마그마 핵': 8, '용암 결정': 8 }, isShield: true },
+                    { name: '마그마 대검', type: 'leftWeapon', class: 'knight', baseStats: { str: 24, hp: 20, def: 12 }, materials: { '용암석': 12, '화염 정수': 16, '불의 핵': 10 }, isTwoHanded: true }
+                ],
+                armor: [
+                    { name: '용암 투구', type: 'helmet', baseStats: { hp: 22, def: 14 }, materials: { '화염 핵': 8, '용암 결정': 10 } },
+                    { name: '마그마 갑옷', type: 'armor', baseStats: { hp: 35, def: 20 }, materials: { '용암석': 14, '불의 핵': 12 } },
+                    { name: '화염 하의', type: 'leggings', baseStats: { hp: 28, def: 16 }, materials: { '화염 정수': 16, '마그마 핵': 12 } },
+                    { name: '작열 장화', type: 'boots', baseStats: { hp: 20, dex: 14 }, materials: { '불꽃 가루': 18, '열기석': 10 } },
+                    { name: '화염 귀걸이', type: 'earring1', baseStats: { int: 18, mp: 18 }, materials: { '화산재': 16, '용암 파편': 12 } },
+                    { name: '용암 반지', type: 'ring1', baseStats: { str: 14, int: 14 }, materials: { '불의 정수': 14, '작열석': 12 } }
+                ]
+            },
+            forest: {
+                weapons: [
+                    { name: '대지의 검', type: 'leftWeapon', class: 'knight', baseStats: { str: 20, hp: 15 }, materials: { '목재': 16, '나뭇가지': 20 } },
+                    { name: '자연 단검', type: 'leftWeapon', class: 'rogue', baseStats: { dex: 22, str: 12 }, materials: { '신선한 과일': 12, '나뭇잎': 24 } },
+                    { name: '숲의 지팡이', type: 'leftWeapon', class: 'mage', baseStats: { int: 24, mp: 16 }, materials: { '덩굴': 14, '이끼': 16 } },
+                    { name: '생명의 활', type: 'leftWeapon', class: 'archer', baseStats: { dex: 21, int: 13 }, materials: { '버섯': 18, '꽃잎': 20 } },
+                    { name: '자연의 완드', type: 'leftWeapon', class: 'healer', baseStats: { int: 20, mp: 22 }, materials: { '나무껍질': 16, '뿌리': 14 } },
+                    { name: '성목의 장', type: 'leftWeapon', class: 'priest', baseStats: { str: 18, int: 18, hp: 14 }, materials: { '수액': 12, '씨앗': 18 } },
+                    { name: '대지 방패', type: 'rightWeapon', class: 'knight', baseStats: { hp: 30, def: 22 }, materials: { '목재': 20, '자연의 정수': 12 }, isShield: true },
+                    { name: '성목 방패', type: 'rightWeapon', class: 'priest', baseStats: { hp: 28, def: 20, int: 12 }, materials: { '생명의 가지': 12, '숲의 열매': 10 }, isShield: true },
+                    { name: '자연 대검', type: 'leftWeapon', class: 'knight', baseStats: { str: 26, hp: 22, def: 14 }, materials: { '목재': 24, '나뭇가지': 28, '덩굴': 16 }, isTwoHanded: true }
+                ],
+                armor: [
+                    { name: '자연 투구', type: 'helmet', baseStats: { hp: 25, def: 16 }, materials: { '자연의 정수': 10, '숲의 열매': 12 } },
+                    { name: '대지 갑옷', type: 'armor', baseStats: { hp: 40, def: 22 }, materials: { '생명의 가지': 12, '목재': 20 } },
+                    { name: '숲 하의', type: 'leggings', baseStats: { hp: 30, def: 18 }, materials: { '나뭇가지': 24, '덩굴': 16 } },
+                    { name: '자연 장화', type: 'boots', baseStats: { hp: 22, dex: 16 }, materials: { '이끼': 20, '버섯': 16 } },
+                    { name: '숲 귀걸이', type: 'earring1', baseStats: { int: 20, mp: 20 }, materials: { '꽃잎': 24, '나무껍질': 14 } },
+                    { name: '대지 반지', type: 'ring1', baseStats: { str: 16, int: 16 }, materials: { '뿌리': 18, '수액': 14 } }
+                ]
+            },
+            ocean: {
+                weapons: [
+                    { name: '심해의 검', type: 'leftWeapon', class: 'knight', baseStats: { str: 22, hp: 18 }, materials: { '진주': 8, '뱃조각': 12 } },
+                    { name: '파도 단검', type: 'leftWeapon', class: 'rogue', baseStats: { dex: 24, str: 14 }, materials: { '돗대': 10, '산호': 14 } },
+                    { name: '해양 지팡이', type: 'leftWeapon', class: 'mage', baseStats: { int: 26, mp: 18 }, materials: { '조개껍질': 16, '해초': 18 } },
+                    { name: '물결 활', type: 'leftWeapon', class: 'archer', baseStats: { dex: 23, int: 15 }, materials: { '파도 결정': 12, '심해석': 14 } },
+                    { name: '해류의 완드', type: 'leftWeapon', class: 'healer', baseStats: { int: 22, mp: 24 }, materials: { '물의 정수': 12, '물고기 비늘': 16 } },
+                    { name: '성해의 창', type: 'leftWeapon', class: 'priest', baseStats: { str: 20, int: 20, hp: 16 }, materials: { '해양 결정': 12, '조수 가루': 16 } },
+                    { name: '심해 방패', type: 'rightWeapon', class: 'knight', baseStats: { hp: 32, def: 24 }, materials: { '진주': 12, '바다의 정수': 14 }, isShield: true },
+                    { name: '성해 방패', type: 'rightWeapon', class: 'priest', baseStats: { hp: 30, def: 22, int: 14 }, materials: { '물결석': 14, '해저 광물': 12 }, isShield: true },
+                    { name: '파도 대검', type: 'leftWeapon', class: 'knight', baseStats: { str: 28, hp: 24, def: 16 }, materials: { '진주': 14, '뱃조각': 18, '산호': 20 }, isTwoHanded: true }
+                ],
+                armor: [
+                    { name: '해양 투구', type: 'helmet', baseStats: { hp: 28, def: 18 }, materials: { '바다의 정수': 12, '해저 광물': 14 } },
+                    { name: '심해 갑옷', type: 'armor', baseStats: { hp: 45, def: 24 }, materials: { '물결석': 14, '진주': 16 } },
+                    { name: '파도 하의', type: 'leggings', baseStats: { hp: 35, def: 20 }, materials: { '산호': 20, '조개껍질': 24 } },
+                    { name: '물결 장화', type: 'boots', baseStats: { hp: 25, dex: 18 }, materials: { '해초': 22, '파도 결정': 16 } },
+                    { name: '바다 귀걸이', type: 'earring1', baseStats: { int: 22, mp: 22 }, materials: { '심해석': 18, '물의 정수': 16 } },
+                    { name: '해양 반지', type: 'ring1', baseStats: { str: 18, int: 18 }, materials: { '물고기 비늘': 20, '해양 결정': 16 } }
+                ]
+            },
+            dark: {
+                weapons: [
+                    { name: '어둠의 검', type: 'leftWeapon', class: 'knight', baseStats: { str: 25, hp: 20 }, materials: { '어둠의 정수': 10, '망자의 뼈': 14 } },
+                    { name: '저주 단검', type: 'leftWeapon', class: 'rogue', baseStats: { dex: 26, str: 16 }, materials: { '저주받은 수정': 12, '어둠 조각': 16 } },
+                    { name: '암흑 지팡이', type: 'leftWeapon', class: 'mage', baseStats: { int: 28, mp: 20 }, materials: { '암흑석': 14, '사령의 정수': 16 } },
+                    { name: '망령 활', type: 'leftWeapon', class: 'archer', baseStats: { dex: 25, int: 17 }, materials: { '저주 가루': 16, '망령석': 18 } },
+                    { name: '사령의 완드', type: 'leftWeapon', class: 'healer', baseStats: { int: 24, mp: 26 }, materials: { '어둠 결정': 14, '사악한 정수': 18 } },
+                    { name: '성암의 검', type: 'leftWeapon', class: 'priest', baseStats: { str: 22, int: 22, hp: 18 }, materials: { '그림자 조각': 16, '악몽의 파편': 20 } },
+                    { name: '어둠 방패', type: 'rightWeapon', class: 'knight', baseStats: { hp: 35, def: 26 }, materials: { '어둠의 정수': 14, '어둠 핵': 16 }, isShield: true },
+                    { name: '성암 방패', type: 'rightWeapon', class: 'priest', baseStats: { hp: 32, def: 24, int: 16 }, materials: { '혼돈의 결정': 16, '저주석': 14 }, isShield: true },
+                    { name: '암흑 대검', type: 'leftWeapon', class: 'knight', baseStats: { str: 30, hp: 26, def: 18 }, materials: { '어둠의 정수': 16, '망자의 뼈': 20, '암흑석': 18 }, isTwoHanded: true }
+                ],
+                armor: [
+                    { name: '어둠 투구', type: 'helmet', baseStats: { hp: 30, def: 20 }, materials: { '어둠 핵': 14, '저주석': 16 } },
+                    { name: '암흑 갑옷', type: 'armor', baseStats: { hp: 50, def: 26 }, materials: { '혼돈의 결정': 16, '어둠의 정수': 20 } },
+                    { name: '저주 하의', type: 'leggings', baseStats: { hp: 40, def: 22 }, materials: { '망자의 뼈': 24, '암흑석': 18 } },
+                    { name: '망령 장화', type: 'boots', baseStats: { hp: 28, dex: 20 }, materials: { '사령의 정수': 22, '저주 가루': 20 } },
+                    { name: '암흑 귀걸이', type: 'earring1', baseStats: { int: 25, mp: 25 }, materials: { '망령석': 20, '어둠 결정': 18 } },
+                    { name: '어둠 반지', type: 'ring1', baseStats: { str: 20, int: 20 }, materials: { '사악한 정수': 22, '그림자 조각': 20 } }
+                ]
+            }
+        };
+
+        // Unique equipment recipes (uses materials from all 5 zones, 180% stats, +5% total stats bonus)
+        const UNIQUE_EQUIPMENT_RECIPES = [
+            // Weapons
+            { name: '타이탄의 대검', type: 'leftWeapon', class: 'knight', baseStats: { str: 30, hp: 25, def: 15 }, materials: { '빙하석': 4, '동토의 정수': 4, '용암석': 4, '마그마 핵': 4, '목재': 4, '자연의 정수': 4, '진주': 4, '바다의 정수': 4, '어둠의 정수': 4, '암흑석': 4 }, bonusEffect: '총 능력치 +5%' },
+            { name: '영혼 수확자', type: 'leftWeapon', class: 'rogue', baseStats: { dex: 35, str: 20, int: 15 }, materials: { '서리 결정': 4, '얼음 파편': 4, '화염 정수': 4, '열기석': 4, '덩굴': 4, '이끼': 4, '산호': 4, '물의 정수': 4, '저주받은 수정': 4, '사령의 정수': 4 }, bonusEffect: '총 능력치 +5%' },
+            { name: '시공의 지팡이', type: 'leftWeapon', class: 'mage', baseStats: { int: 40, mp: 30, str: 10 }, materials: { '냉기석': 4, '서리 가루': 4, '화산재': 4, '용암 파편': 4, '버섯': 4, '꽃잎': 4, '해초': 4, '심해석': 4, '망령석': 4, '어둠 결정': 4 }, bonusEffect: '총 능력치 +5%' },
+            { name: '천공의 활', type: 'leftWeapon', class: 'archer', baseStats: { dex: 38, int: 22, hp: 18 }, materials: { '빙설 조각': 4, '동결 결정': 4, '불의 정수': 4, '작열석': 4, '나무껍질': 4, '뿌리': 4, '파도 결정': 4, '물고기 비늘': 4, '저주 가루': 4, '사악한 정수': 4 }, bonusEffect: '총 능력치 +5%' },
+            { name: '생명의 성배', type: 'leftWeapon', class: 'healer', baseStats: { int: 35, mp: 35, hp: 20 }, materials: { '한기의 정수': 4, '얼어붙은 물': 4, '화염 조각': 4, '마그마 결정': 4, '수액': 4, '씨앗': 4, '해양 결정': 4, '조수 가루': 4, '그림자 조각': 4, '악몽의 파편': 4 }, bonusEffect: '총 능력치 +5%' },
+            { name: '성스러운 심판', type: 'leftWeapon', class: 'priest', baseStats: { str: 28, int: 28, hp: 25, def: 12 }, materials: { '극한의 얼음': 4, '북극석': 4, '불타는 돌': 4, '화염 핵': 4, '숲의 열매': 4, '생명의 가지': 4, '해저 광물': 4, '물결석': 4, '어둠 핵': 4, '저주석': 4 }, bonusEffect: '총 능력치 +5%' },
+
+            // Armor
+            { name: '불멸의 투구', type: 'helmet', baseStats: { hp: 40, def: 28, int: 15 }, materials: { '냉기 결정': 4, '빙하석': 4, '용암 결정': 4, '불의 핵': 4, '자연의 정수': 4, '목재': 4, '바다의 정수': 4, '진주': 4, '혼돈의 결정': 4, '어둠의 정수': 4 }, bonusEffect: '총 능력치 +5%' },
+            { name: '영원의 갑옷', type: 'armor', baseStats: { hp: 60, def: 35, str: 15 }, materials: { '동토의 정수': 4, '얼음 조각': 4, '용암석': 4, '화염 정수': 4, '나뭇가지': 4, '덩굴': 4, '산호': 4, '조개껍질': 4, '망자의 뼈': 4, '암흑석': 4 }, bonusEffect: '총 능력치 +5%' },
+            { name: '지배자의 하의', type: 'leggings', baseStats: { hp: 50, def: 30, dex: 15 }, materials: { '서리 결정': 4, '얼음 파편': 4, '마그마 핵': 4, '열기석': 4, '이끼': 4, '버섯': 4, '해초': 4, '파도 결정': 4, '사령의 정수': 4, '저주 가루': 4 }, bonusEffect: '총 능력치 +5%' },
+            { name: '신속의 장화', type: 'boots', baseStats: { hp: 35, dex: 30, str: 18 }, materials: { '냉기석': 4, '서리 가루': 4, '화산재': 4, '용암 파편': 4, '꽃잎': 4, '나무껍질': 4, '심해석': 4, '물의 정수': 4, '망령석': 4, '어둠 결정': 4 }, bonusEffect: '총 능력치 +5%' },
+
+            // Accessories
+            { name: '지혜의 귀걸이', type: 'earring1', baseStats: { int: 35, mp: 35, hp: 20 }, materials: { '빙설 조각': 4, '동결 결정': 4, '불의 정수': 4, '작열석': 4, '뿌리': 4, '수액': 4, '물고기 비늘': 4, '해양 결정': 4, '사악한 정수': 4, '그림자 조각': 4 }, bonusEffect: '총 능력치 +5%' },
+            { name: '빛의 귀걸이', type: 'earring2', baseStats: { int: 35, mp: 35, str: 15 }, materials: { '한기의 정수': 4, '얼어붙은 물': 4, '화염 조각': 4, '마그마 결정': 4, '씨앗': 4, '숲의 열매': 4, '조수 가루': 4, '바다의 정수': 4, '악몽의 파편': 4, '어둠 핵': 4 }, bonusEffect: '총 능력치 +5%' },
+            { name: '힘의 반지', type: 'ring1', baseStats: { str: 30, hp: 30, def: 18 }, materials: { '극한의 얼음': 4, '북극석': 4, '불타는 돌': 4, '화염 핵': 4, '생명의 가지': 4, '자연의 정수': 4, '해저 광물': 4, '물결석': 4, '저주석': 4, '혼돈의 결정': 4 }, bonusEffect: '총 능력치 +5%' },
+            { name: '마력의 반지', type: 'ring2', baseStats: { int: 32, mp: 32, dex: 18 }, materials: { '냉기 결정': 4, '빙하석': 4, '용암 결정': 4, '불의 핵': 4, '목재': 4, '덩굴': 4, '진주': 4, '산호': 4, '어둠의 정수': 4, '암흑석': 4 }, bonusEffect: '총 능력치 +5%' }
+        ];
 
         // Icon mapping functions
         function getItemIcon(itemName, itemType = null) {
@@ -1326,8 +1526,8 @@
             const equipmentIcons = {
                 leftWeapon: '⚔️', rightWeapon: '🛡️', helmet: '⛑️',
                 armor: '🎽', leggings: '👖', boots: '👢',
-                leftEarring: '💎', rightEarring: '💎',
-                leftRing: '💍', rightRing: '💍'
+                earring1: '💎', earring2: '💎',
+                ring1: '💍', ring2: '💍'
             };
 
             // Check for theme in item name
@@ -1357,8 +1557,10 @@
         const game = {
             parties: Array(10).fill(null).map(() => []), // 10 parties
             currentPartyIndex: 0,
+            currentFloor: 1, // Current floor number (replaces currentZone + currentStage)
             currentZone: 'a',
             currentStage: 1,
+            unlockedFloor: 1, // Highest unlocked floor
             unlockedZones: ['a'],
             unlockedStages: { a: 1, b: 1, c: 1, d: 1, e: 1 },
             materials: {},
@@ -1371,12 +1573,20 @@
             innUpgradeCost: 500,
             mercenaryGuild: { slots: 3, availableMercenaries: [] },
             guildUpgradeCost: 5000,
+            lastGuildRefresh: Date.now(), // Last time guild mercenaries were refreshed
             inventory: [],
             blacksmith: { purchasable: [], craftable: [] },
+            currentBlacksmithTab: 'ice', // Current blacksmith tab (ice, lava, forest, ocean, dark, unique)
             marketplace: { enabled: true, items: [] },
             isAdmin: false,
             gameSpeed: 1,
-            partyAssignments: Array(10).fill(null).map(() => ({ zone: 'a', stage: 1 })),
+            partyAssignments: Array(10).fill(null).map(() => ({ floor: 1 })),
+            nextCharacterId: 1, // Unique character ID counter
+
+            // Get current zone based on floor
+            get currentZoneFromFloor() {
+                return getZoneFromFloor(this.currentFloor);
+            },
 
             get party() {
                 return this.parties[this.currentPartyIndex];
@@ -1425,6 +1635,8 @@
 
                 this.currentPartyIndex = user.currentPartyIndex || 0;
                 this.gold = user.gold || 1000;
+                this.currentFloor = user.currentFloor || 1;
+                this.unlockedFloor = user.unlockedFloor || 1;
                 this.currentZone = user.currentZone || 'a';
                 this.currentStage = user.currentStage || 1;
                 this.unlockedZones = user.unlockedZones || ['a'];
@@ -1434,10 +1646,17 @@
                 this.inn.capacity = user.innCapacity || 6;
                 this.innUpgradeCost = user.innUpgradeCost || 500;
                 this.mercenaryGuild = user.mercenaryGuild || { slots: 3, availableMercenaries: [] };
+                this.lastGuildRefresh = user.lastGuildRefresh || Date.now();
                 this.marketplace.items = user.marketplaceItems || [];
                 this.isAdmin = user.isAdmin || false;
                 this.gameSpeed = user.gameSpeed || 1;
-                this.partyAssignments = user.partyAssignments || Array(10).fill(null).map(() => ({ zone: 'a', stage: 1 }));
+                // Convert old partyAssignments format to new floor-based format
+                this.partyAssignments = user.partyAssignments || Array(10).fill(null).map(() => ({ floor: 1 }));
+                // Ensure all assignments have floor property
+                this.partyAssignments = this.partyAssignments.map(a => a.floor ? a : { floor: 1 });
+
+                // Restore global character ID counter
+                globalCharacterId = user.globalCharacterId || 1000;
 
                 if (!this.mercenaryGuild.availableMercenaries || this.mercenaryGuild.availableMercenaries.length === 0) {
                     this.generateMercenaries();
@@ -1519,8 +1738,8 @@
                     skills: [...classData.skills],
                     equipment: {
                         leftWeapon: null, rightWeapon: null, helmet: null, armor: null,
-                        leggings: null, boots: null, leftEarring: null, rightEarring: null,
-                        leftRing: null, rightRing: null
+                        leggings: null, boots: null, earring1: null, earring2: null,
+                        ring1: null, ring2: null
                     },
                     availableStats: 0,
                     personality: this.generatePersonality(),
@@ -1577,34 +1796,30 @@
                 const container = document.getElementById('party-list');
                 container.innerHTML = '';
 
-                // Add party zone assignment
+                // Add party floor assignment
                 const assignment = this.partyAssignments[this.currentPartyIndex];
                 const assignmentDiv = document.createElement('div');
                 assignmentDiv.style.cssText = 'background: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; margin-bottom: 10px;';
+
+                const currentFloor = assignment.floor || 1;
+                const currentZone = getZoneFromFloor(currentFloor);
+                const currentZoneName = ZONES[currentZone].name;
+
                 assignmentDiv.innerHTML = `
                     <div style="font-size: 12px; margin-bottom: 5px; font-weight: bold;">파티 사냥 지역</div>
-                    <div style="display: flex; gap: 5px; margin-bottom: 5px;">
-                        ${Object.keys(ZONES).map(zoneKey => {
-                            const zone = ZONES[zoneKey];
-                            const isUnlocked = this.unlockedZones.includes(zoneKey);
-                            const isActive = assignment.zone === zoneKey;
-                            return `<button class="btn ${isActive ? 'btn-success' : 'btn-primary'}"
-                                style="flex: 1; padding: 5px; font-size: 10px; ${!isUnlocked ? 'opacity: 0.3; cursor: not-allowed;' : ''}"
-                                onclick="game.setPartyZone(${this.currentPartyIndex}, '${zoneKey}')"
-                                ${!isUnlocked ? 'disabled' : ''}>
-                                ${zone.name}
-                            </button>`;
-                        }).join('')}
+                    <div style="margin-bottom: 5px; display: flex; gap: 5px; align-items: center;">
+                        <input type="number" id="party-floor-input-${this.currentPartyIndex}"
+                            value="${currentFloor}" min="1" max="${this.unlockedFloor || 1000}"
+                            style="flex: 1; padding: 5px; background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 3px;"
+                            onchange="game.setPartyFloor(${this.currentPartyIndex}, parseInt(this.value))">
+                        <button class="btn btn-primary" style="padding: 5px 10px; font-size: 10px;"
+                            onclick="game.setPartyFloor(${this.currentPartyIndex}, parseInt(document.getElementById('party-floor-input-${this.currentPartyIndex}').value))">
+                            설정
+                        </button>
                     </div>
-                    <select onchange="game.setPartyStage(${this.currentPartyIndex}, parseInt(this.value))"
-                        style="width: 100%; padding: 5px; background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 3px;">
-                        ${Array.from({length: 10}, (_, i) => i + 1).map(stageNum => {
-                            const isUnlocked = stageNum <= this.unlockedStages[assignment.zone];
-                            return `<option value="${stageNum}" ${assignment.stage === stageNum ? 'selected' : ''} ${!isUnlocked ? 'disabled' : ''}>
-                                ${assignment.zone.toUpperCase()}-${stageNum}${!isUnlocked ? ' (잠김)' : ''}
-                            </option>`;
-                        }).join('')}
-                    </select>
+                    <div style="font-size: 11px; color: #aaa;">
+                        현재: ${currentFloor}층 (${currentZoneName}) | 최대: ${this.unlockedFloor || 1}층
+                    </div>
                 `;
                 container.appendChild(assignmentDiv);
 
@@ -1712,6 +1927,27 @@
             renderGuildList() {
                 const container = document.getElementById('mercenary-list');
                 if (!container) return;
+
+                // Check if guild needs refresh
+                this.checkGuildRefresh();
+
+                // Update refresh timer
+                const timerDiv = document.getElementById('guild-refresh-timer');
+                if (timerDiv) {
+                    const sixHours = 6 * 60 * 60 * 1000;
+                    const elapsed = Date.now() - this.lastGuildRefresh;
+                    const remaining = Math.max(0, sixHours - elapsed);
+
+                    const hours = Math.floor(remaining / (60 * 60 * 1000));
+                    const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+                    const seconds = Math.floor((remaining % (60 * 1000)) / 1000);
+
+                    if (remaining > 0) {
+                        timerDiv.textContent = `다음 갱신까지: ${hours}시간 ${minutes}분 ${seconds}초`;
+                    } else {
+                        timerDiv.textContent = `갱신 가능! (새로고침 시 적용)`;
+                    }
+                }
 
                 container.innerHTML = '';
                 document.getElementById('guild-slots').textContent = this.mercenaryGuild.slots;
@@ -2070,10 +2306,10 @@
                     armor: '갑옷',
                     leggings: '각반',
                     boots: '신발',
-                    leftEarring: '왼쪽 귀걸이',
-                    rightEarring: '오른쪽 귀걸이',
-                    leftRing: '왼쪽 반지',
-                    rightRing: '오른쪽 반지'
+                    earring1: '귀걸이 1',
+                    earring2: '귀걸이 2',
+                    ring1: '반지 1',
+                    ring2: '반지 2'
                 };
 
                 EQUIPMENT_SLOTS.forEach(slotType => {
@@ -2205,16 +2441,53 @@
                 // Reset stats to base
                 char.stats = { ...char.baseStats };
 
+                // Store base stats before equipment for legendary equipment calculation
+                const baseStatsBeforeEquip = { ...char.stats };
+
                 // Add equipment bonuses
+                let hasLegendaryEquipment = false;
+                let hasUniqueEquipment = false;
                 Object.values(char.equipment).forEach(item => {
                     if (item && item.stats) {
+                        // Check if this is a legendary equipment (has skill property)
+                        const isLegendary = item.skill !== undefined;
+                        if (isLegendary) hasLegendaryEquipment = true;
+
+                        // Check if this is unique equipment
+                        const isUnique = item.isUnique === true;
+                        if (isUnique) hasUniqueEquipment = true;
+
                         Object.entries(item.stats).forEach(([stat, value]) => {
                             if (char.stats[stat] !== undefined) {
-                                char.stats[stat] += value;
+                                // Legendary equipment: 200% stats (2x multiplier)
+                                const multiplier = isLegendary ? 2 : 1;
+                                char.stats[stat] += value * multiplier;
                             }
                         });
                     }
                 });
+
+                // Legendary equipment bonus: +20% of current stats (excluding equipment)
+                if (hasLegendaryEquipment) {
+                    Object.keys(baseStatsBeforeEquip).forEach(stat => {
+                        char.stats[stat] += Math.floor(baseStatsBeforeEquip[stat] * 0.2);
+                    });
+                }
+
+                // Unique equipment bonus: +5% of total stats (excluding equipment)
+                if (hasUniqueEquipment) {
+                    Object.keys(baseStatsBeforeEquip).forEach(stat => {
+                        char.stats[stat] += Math.floor(baseStatsBeforeEquip[stat] * 0.05);
+                    });
+                }
+
+                // Calculate critical chance: DEX * 10%
+                char.criticalChance = (char.stats.dex || 0) * 0.1;
+
+                // Legendary equipment bonus: +50% critical chance
+                if (hasLegendaryEquipment) {
+                    char.criticalChance += 50;
+                }
 
                 // Recalculate HP/MP
                 char.maxHp = char.stats.hp * 10;
@@ -2224,48 +2497,28 @@
             },
 
             renderZoneSelect() {
-                const container = document.getElementById('zone-select');
-                container.innerHTML = '';
-
-                Object.keys(ZONES).forEach(zoneId => {
-                    const zone = ZONES[zoneId];
-                    const isUnlocked = this.unlockedZones.includes(zoneId);
-                    const div = document.createElement('div');
-                    div.className = `stage-zone ${!isUnlocked ? 'locked' : ''} ${this.currentZone === zoneId ? 'active' : ''}`;
-                    div.innerHTML = `<strong>${zoneId.toUpperCase()}</strong><br>${zone.name}`;
-                    div.style.borderColor = zone.color;
-
-                    if (isUnlocked) {
-                        div.onclick = () => {
-                            this.currentZone = zoneId;
-                            this.renderZoneSelect();
-                            this.renderSubstageSelect();
-                        };
-                    }
-
-                    container.appendChild(div);
-                });
+                // Legacy function - now updates floor display
+                this.updateFloorDisplay();
             },
 
             renderSubstageSelect() {
-                const container = document.getElementById('substage-select');
-                container.innerHTML = '';
+                // Legacy function - now updates floor display
+                this.updateFloorDisplay();
+            },
 
-                for (let i = 1; i <= 10; i++) {
-                    const isUnlocked = i <= this.unlockedStages[this.currentZone];
-                    const btn = document.createElement('button');
-                    btn.className = `substage-btn ${!isUnlocked ? 'locked' : ''} ${this.currentStage === i ? 'active' : ''}`;
-                    btn.textContent = `${this.currentZone.toUpperCase()}-${i}`;
+            updateFloorDisplay() {
+                const floorDiv = document.getElementById('floor-display');
+                const zoneDiv = document.getElementById('zone-name-display');
 
-                    if (isUnlocked) {
-                        btn.onclick = () => {
-                            this.currentStage = i;
-                            this.renderSubstageSelect();
-                            this.updateDisplay();
-                        };
-                    }
+                if (floorDiv && zoneDiv) {
+                    const currentFloor = this.currentFloor || 1;
+                    const currentZone = getZoneFromFloor(currentFloor);
+                    const zoneName = ZONES[currentZone].name;
+                    const zoneColor = ZONES[currentZone].color;
 
-                    container.appendChild(btn);
+                    floorDiv.textContent = `${currentFloor}층`;
+                    floorDiv.style.color = zoneColor;
+                    zoneDiv.textContent = zoneName;
                 }
             },
 
@@ -2289,12 +2542,14 @@
 
             generateEnemies() {
                 this.enemies = [];
-                const zoneIndex = Object.keys(ZONES).indexOf(this.currentZone);
-                const stageMultiplier = 1 + ((zoneIndex * 10 + this.currentStage - 1) * 0.01);
-                const zoneBonus = zoneIndex * 0.03;
-                const totalMultiplier = stageMultiplier + zoneBonus;
-                const zone = ZONES[this.currentZone];
-                const isBossStage = this.currentStage === 10;
+
+                // Use floor-based calculation if available
+                const currentFloor = this.currentFloor || 1;
+                const currentZone = getZoneFromFloor(currentFloor);
+                const totalMultiplier = 1 + (currentFloor - 1) * 0.01; // 1% increase per floor
+
+                const zone = ZONES[currentZone];
+                const isBossStage = (currentFloor % 10 === 0); // Every 10th floor is a boss stage
 
                 // Boss Stage 2-Phase System
                 if (isBossStage) {
@@ -2466,7 +2721,19 @@
                     baseDamage = attacker.stats.int * 2 + attacker.stats.mp / 2;
                 }
 
-                const damage = Math.floor(baseDamage * skill.power * (0.9 + Math.random() * 0.2));
+                let damage = Math.floor(baseDamage * skill.power * (0.9 + Math.random() * 0.2));
+
+                // Critical hit system: DEX * 10% chance
+                const critChance = attacker.criticalChance || 0;
+                const isCritical = Math.random() * 100 < critChance;
+
+                if (isCritical) {
+                    // Critical damage: 200% (2x) base damage
+                    // Can be increased by equipment/skills in the future
+                    const critMultiplier = 2.0;
+                    damage = Math.floor(damage * critMultiplier);
+                }
+
                 return Math.max(1, damage);
             },
 
@@ -2503,29 +2770,55 @@
                         this.addLog('골드 상자를 발견했습니다! +1000골드!');
                     }
 
-                    // Materials
-                    const zone = ZONES[this.currentZone];
+                    // Materials (use floor-based zone)
+                    const currentFloor = this.currentFloor || 1;
+                    const currentZone = getZoneFromFloor(currentFloor);
+                    const zone = ZONES[currentZone];
                     const materials = MATERIALS[zone.theme];
                     const materialGain = materials[Math.floor(Math.random() * materials.length)];
                     const amount = 1 + Math.floor(Math.random() * 3);
                     this.materials[materialGain] = (this.materials[materialGain] || 0) + amount;
                     this.addLog(`${materialGain} ${amount}개를 획득했습니다!`);
 
-                    // Legendary Equipment (0.001% chance per item)
+                    // Legendary Equipment with floor-based increasing drop rate
+                    // Base drop rate: 0.01% (0.0001)
+                    // Increase: 1% per floor (multiplier: 1.01^floor)
+                    // For rings and earrings: 0.02% base (0.0002)
                     const legendaryItems = LEGENDARY_EQUIPMENT[zone.theme];
                     legendaryItems.forEach(item => {
-                        if (Math.random() < 0.00001) {
+                        const baseDropRate = (item.type.includes('Earring') || item.type.includes('Ring')) ? 0.0002 : 0.0001;
+                        // Drop rate increases by 1% per floor: dropRate * (1.01 ^ floor)
+                        const currentFloor = this.currentFloor || this.currentStage;
+                        const adjustedDropRate = baseDropRate * Math.pow(1.01, currentFloor - 1);
+
+                        if (Math.random() < adjustedDropRate) {
                             this.inventory.push({ ...item, enhancement: 0 });
-                            this.addLog(`전설의 장비 [${item.name}]을(를) 획득했습니다!!!`);
+                            this.addLog(`⭐ 전설의 장비 [${item.name}]을(를) 획득했습니다!!! ⭐`);
                         }
                     });
 
-                    // Unlock next stage (infinite progression) and auto-progress
+                    // Unlock next floor/stage (infinite progression) and auto-progress
+                    // Floor-based progression
+                    if (this.currentFloor >= this.unlockedFloor) {
+                        this.currentFloor++;
+                        this.unlockedFloor = this.currentFloor;
+                        const newZone = getZoneFromFloor(this.currentFloor);
+                        const zoneName = ZONES[newZone].name;
+                        this.addLog(`다음 층으로 이동합니다: ${this.currentFloor}층 (${zoneName})`);
+
+                        // Check if entering new zone
+                        const prevFloor = this.currentFloor - 1;
+                        const prevZone = getZoneFromFloor(prevFloor);
+                        if (newZone !== prevZone) {
+                            this.addLog(`🎉 새로운 구역 진입! ${zoneName}에 오신 것을 환영합니다!`);
+                        }
+                    }
+
+                    // Legacy zone/stage system (for compatibility)
                     if (this.currentStage >= this.unlockedStages[this.currentZone]) {
                         if (this.currentStage < 10) {
                             this.unlockedStages[this.currentZone] = this.currentStage + 1;
                             this.currentStage = this.currentStage + 1;
-                            this.addLog(`다음 스테이지로 이동합니다: ${this.currentZone.toUpperCase()}-${this.currentStage}`);
                         } else {
                             const zones = Object.keys(ZONES);
                             const currentZoneIndex = zones.indexOf(this.currentZone);
@@ -2534,12 +2827,9 @@
 
                             if (!this.unlockedZones.includes(nextZone)) {
                                 this.unlockedZones.push(nextZone);
-                                this.addLog(`새로운 구역 ${ZONES[nextZone].name}이(가) 해금되었습니다!`);
                             }
-                            // Move to next zone's first stage
                             this.currentZone = nextZone;
                             this.currentStage = 1;
-                            this.addLog(`${ZONES[nextZone].name} 구역으로 이동합니다!`);
                         }
                     }
 
@@ -2698,6 +2988,10 @@
 
                         // Add hover tooltip
                         slot.addEventListener('mouseenter', (e) => {
+                            // Remove any existing tooltip first
+                            const existingTooltip = document.getElementById('item-tooltip');
+                            if (existingTooltip) existingTooltip.remove();
+
                             const tooltip = document.createElement('div');
                             tooltip.className = 'item-tooltip';
                             tooltip.textContent = name;
@@ -2751,6 +3045,10 @@
 
                     // Add hover tooltip
                     slot.addEventListener('mouseenter', (e) => {
+                        // Remove any existing tooltip first
+                        const existingTooltip = document.getElementById('item-tooltip');
+                        if (existingTooltip) existingTooltip.remove();
+
                         const tooltip = document.createElement('div');
                         tooltip.className = 'item-tooltip';
                         tooltip.innerHTML = tooltipText.replace(/\n/g, '<br>');
@@ -2785,11 +3083,119 @@
                 const container = document.getElementById('blacksmith-content');
                 if (!container) return;
 
+                const zoneNames = {
+                    ice: 'A구역 (얼어붙은 빙하)',
+                    lava: 'B구역 (용암 지대)',
+                    forest: 'C구역 (생명의 숲)',
+                    ocean: 'D구역 (심해)',
+                    dark: 'E구역 (어둠의 땅)'
+                };
+
+                const slotNames = {
+                    leftWeapon: '왼손 무기',
+                    rightWeapon: '오른손 무기',
+                    helmet: '투구',
+                    armor: '갑옷',
+                    leggings: '하의',
+                    boots: '신발',
+                    earring1: '귀걸이 1',
+                    earring2: '귀걸이 2',
+                    ring1: '반지 1',
+                    ring2: '반지 2'
+                };
+
+                // Build content based on current tab
+                let craftingContent = '';
+
+                if (this.currentBlacksmithTab === 'unique') {
+                    // Unique equipment tab
+                    craftingContent = `
+                        <div style="font-size: 11px; color: #ffd700; margin-bottom: 10px; line-height: 1.4;">
+                            유니크 장비는 모든 구역의 재료(각 구역당 2개)가 필요하며,<br>
+                            180% 능력치와 총 능력치 +5% 효과를 제공합니다.
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            ${UNIQUE_EQUIPMENT_RECIPES.map((recipe, index) => {
+                                const canCraft = Object.entries(recipe.materials).every(([mat, amt]) => (this.materials[mat] || 0) >= amt);
+                                const materialsText = Object.entries(recipe.materials).map(([mat, amt]) => {
+                                    const has = this.materials[mat] || 0;
+                                    const color = has >= amt ? '#4caf50' : '#f44336';
+                                    return `<span style="color: ${color}">${mat} ${has}/${amt}</span>`;
+                                }).join(', ');
+
+                                return `
+                                    <div style="background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.3); padding: 8px; border-radius: 5px;">
+                                        <div style="font-size: 12px; color: #ffd700; margin-bottom: 3px;">
+                                            <strong>${recipe.name}</strong> (${slotNames[recipe.type]})
+                                            ${recipe.class ? ` - ${CLASSES[recipe.class].name} 전용` : ''}
+                                        </div>
+                                        <div style="font-size: 10px; margin-bottom: 3px;">
+                                            기본 스탯 (180%): ${Object.entries(recipe.baseStats).map(([k, v]) => `${k}:${Math.floor(v * 1.8)}`).join(', ')}
+                                        </div>
+                                        <div style="font-size: 10px; margin-bottom: 3px; color: #4caf50;">
+                                            특수 효과: ${recipe.bonusEffect}
+                                        </div>
+                                        <div style="font-size: 9px; margin-bottom: 5px; line-height: 1.3;">
+                                            ${materialsText}
+                                        </div>
+                                        <button class="btn ${canCraft ? 'btn-warning' : 'btn-secondary'}"
+                                                onclick="game.craftUniqueEquipment(${index})"
+                                                style="font-size: 11px; padding: 5px; width: 100%;"
+                                                ${!canCraft ? 'disabled' : ''}>
+                                            ${canCraft ? '제작' : '재료 부족'}
+                                        </button>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                } else {
+                    // Zone-based crafting tab
+                    const zone = this.currentBlacksmithTab;
+                    const recipes = ZONE_CRAFTING_RECIPES[zone];
+
+                    craftingContent = `
+                        <div style="font-size: 11px; color: #aaa; margin-bottom: 10px;">
+                            ${zoneNames[zone]} 장비는 110~200% 랜덤 능력치를 가지며,<br>
+                            능력치에 따라 등급이 분류됩니다.
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            ${[...recipes.weapons, ...recipes.armor].map((recipe, index) => {
+                                const canCraft = Object.entries(recipe.materials).every(([mat, amt]) => (this.materials[mat] || 0) >= amt);
+                                const materialsText = Object.entries(recipe.materials).map(([mat, amt]) => {
+                                    const has = this.materials[mat] || 0;
+                                    const color = has >= amt ? '#4caf50' : '#f44336';
+                                    return `<span style="color: ${color}">${mat} ${has}/${amt}</span>`;
+                                }).join(', ');
+
+                                return `
+                                    <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
+                                        <div style="font-size: 12px; margin-bottom: 3px;">
+                                            <strong>${recipe.name}</strong> (${slotNames[recipe.type]})
+                                            ${recipe.class ? ` - ${CLASSES[recipe.class].name} 전용` : ''}
+                                        </div>
+                                        <div style="font-size: 10px; margin-bottom: 3px;">
+                                            기본 스탯: ${Object.entries(recipe.baseStats).map(([k, v]) => `${k}:${v}`).join(', ')}
+                                        </div>
+                                        <div style="font-size: 10px; margin-bottom: 5px;">
+                                            ${materialsText}
+                                        </div>
+                                        <button class="btn ${canCraft ? 'btn-success' : 'btn-secondary'}"
+                                                onclick="game.craftZoneEquipment('${zone}', ${index})"
+                                                style="font-size: 11px; padding: 5px; width: 100%;"
+                                                ${!canCraft ? 'disabled' : ''}>
+                                            ${canCraft ? '제작' : '재료 부족'}
+                                        </button>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                }
+
                 container.innerHTML = `
                     <div class="panel-title">기본 장비 구매</div>
-                    <div style="font-size: 12px; margin-bottom: 10px;">
-                        각 100골드
-                    </div>
+                    <div style="font-size: 12px; margin-bottom: 10px;">각 100골드</div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 20px;">
                         <button class="btn btn-primary" onclick="game.buyEquipment('sword')" style="font-size: 11px; padding: 8px;">
                             기본 검 구매
@@ -2800,17 +3206,41 @@
                     </div>
 
                     <div class="panel-title">장비 제작</div>
-                    <div style="font-size: 12px; margin-bottom: 10px;">
-                        제작 장비는 구매 장비 대비 10~100% 좋은 능력치를 가집니다.
+                    <div style="display: flex; gap: 3px; margin-bottom: 10px; flex-wrap: wrap;">
+                        <button class="btn ${this.currentBlacksmithTab === 'ice' ? 'btn-info' : 'btn-secondary'}"
+                                onclick="game.switchBlacksmithTab('ice')"
+                                style="font-size: 10px; padding: 5px 8px; flex: 1; min-width: 80px;">
+                            A구역
+                        </button>
+                        <button class="btn ${this.currentBlacksmithTab === 'lava' ? 'btn-info' : 'btn-secondary'}"
+                                onclick="game.switchBlacksmithTab('lava')"
+                                style="font-size: 10px; padding: 5px 8px; flex: 1; min-width: 80px;">
+                            B구역
+                        </button>
+                        <button class="btn ${this.currentBlacksmithTab === 'forest' ? 'btn-info' : 'btn-secondary'}"
+                                onclick="game.switchBlacksmithTab('forest')"
+                                style="font-size: 10px; padding: 5px 8px; flex: 1; min-width: 80px;">
+                            C구역
+                        </button>
+                        <button class="btn ${this.currentBlacksmithTab === 'ocean' ? 'btn-info' : 'btn-secondary'}"
+                                onclick="game.switchBlacksmithTab('ocean')"
+                                style="font-size: 10px; padding: 5px 8px; flex: 1; min-width: 80px;">
+                            D구역
+                        </button>
+                        <button class="btn ${this.currentBlacksmithTab === 'dark' ? 'btn-info' : 'btn-secondary'}"
+                                onclick="game.switchBlacksmithTab('dark')"
+                                style="font-size: 10px; padding: 5px 8px; flex: 1; min-width: 80px;">
+                            E구역
+                        </button>
+                        <button class="btn ${this.currentBlacksmithTab === 'unique' ? 'btn-warning' : 'btn-secondary'}"
+                                onclick="game.switchBlacksmithTab('unique')"
+                                style="font-size: 10px; padding: 5px 8px; flex: 1; min-width: 80px;">
+                            유니크
+                        </button>
                     </div>
-                    <div id="craft-recipes" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
-                        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px;">
-                            <div style="font-size: 12px; margin-bottom: 5px;"><strong>강화된 검</strong></div>
-                            <div style="font-size: 10px; margin-bottom: 5px;">필요: 빙하석 x5, 얼음 조각 x10</div>
-                            <button class="btn btn-success" onclick="game.craftSampleEquipment('enhancedSword')" style="font-size: 11px; padding: 5px; width: 100%;">
-                                제작
-                            </button>
-                        </div>
+
+                    <div id="craft-recipes" style="margin-bottom: 20px; max-height: 400px; overflow-y: auto;">
+                        ${craftingContent}
                     </div>
 
                     <div class="panel-title">장비 강화</div>
@@ -2852,11 +3282,65 @@
 
             craftSampleEquipment(type) {
                 const recipes = {
-                    enhancedSword: {
-                        name: '강화된 검',
+                    iceSword: {
+                        name: '얼음 검',
                         type: 'leftWeapon',
-                        stats: { str: 10, dex: 5 },
+                        stats: { str: 12, dex: 6 },
                         materials: { '빙하석': 5, '얼음 조각': 10 }
+                    },
+                    frostArmor: {
+                        name: '서리 갑옷',
+                        type: 'armor',
+                        stats: { hp: 18, def: 8 },
+                        materials: { '서리 결정': 8, '동토의 정수': 5 }
+                    },
+                    flameSword: {
+                        name: '화염 검',
+                        type: 'leftWeapon',
+                        stats: { str: 14, int: 7 },
+                        materials: { '용암석': 6, '화염 정수': 8 }
+                    },
+                    magmaArmor: {
+                        name: '마그마 갑옷',
+                        type: 'armor',
+                        stats: { hp: 20, int: 10 },
+                        materials: { '마그마 핵': 7, '작열석': 10 }
+                    },
+                    natureBow: {
+                        name: '자연의 활',
+                        type: 'leftWeapon',
+                        stats: { dex: 15, int: 8 },
+                        materials: { '나뭇가지': 10, '숲의 정수': 6 }
+                    },
+                    earthHelmet: {
+                        name: '대지의 투구',
+                        type: 'helmet',
+                        stats: { hp: 16, def: 10 },
+                        materials: { '이끼 조각': 12, '나무 열매': 8 }
+                    },
+                    waveStaff: {
+                        name: '파도의 지팡이',
+                        type: 'leftWeapon',
+                        stats: { int: 18, mp: 12 },
+                        materials: { '산호 조각': 8, '물의 정수': 10 }
+                    },
+                    deepBoots: {
+                        name: '심해의 신발',
+                        type: 'boots',
+                        stats: { dex: 14, hp: 12 },
+                        materials: { '진주': 6, '조개껍질': 15 }
+                    },
+                    darkDagger: {
+                        name: '어둠의 단검',
+                        type: 'leftWeapon',
+                        stats: { dex: 20, str: 10 },
+                        materials: { '어둠의 파편': 9, '그림자 정수': 12 }
+                    },
+                    voidRing: {
+                        name: '공허의 반지',
+                        type: 'ring1',
+                        stats: { int: 16, mp: 16 },
+                        materials: { '공허석': 7, '어둠의 보석': 10 }
                     }
                 };
 
@@ -2865,6 +3349,116 @@
 
                 this.craftEquipment(recipe);
                 this.renderBlacksmith();
+            },
+
+            switchBlacksmithTab(tab) {
+                this.currentBlacksmithTab = tab;
+                this.renderBlacksmith();
+            },
+
+            craftZoneEquipment(zone, index) {
+                const recipes = ZONE_CRAFTING_RECIPES[zone];
+                const allRecipes = [...recipes.weapons, ...recipes.armor];
+                const recipe = allRecipes[index];
+
+                if (!recipe) return;
+
+                // Check materials
+                for (const [material, amount] of Object.entries(recipe.materials)) {
+                    if ((this.materials[material] || 0) < amount) {
+                        this.addLog(`재료가 부족합니다: ${material}`);
+                        return;
+                    }
+                }
+
+                // Deduct materials
+                for (const [material, amount] of Object.entries(recipe.materials)) {
+                    this.materials[material] -= amount;
+                }
+
+                // Generate random stats (110-200%)
+                const statMultiplier = 1.1 + Math.random() * 0.9; // 1.1 to 2.0
+                const stats = {};
+                for (const [stat, value] of Object.entries(recipe.baseStats)) {
+                    stats[stat] = Math.floor(value * statMultiplier);
+                }
+
+                // Determine grade based on multiplier
+                let grade = '';
+                let gradeColor = '';
+                if (statMultiplier >= 1.9) {
+                    grade = '전설';
+                    gradeColor = '#ff6b35';
+                } else if (statMultiplier >= 1.7) {
+                    grade = '영웅';
+                    gradeColor = '#9b59b6';
+                } else if (statMultiplier >= 1.5) {
+                    grade = '희귀';
+                    gradeColor = '#3498db';
+                } else if (statMultiplier >= 1.3) {
+                    grade = '고급';
+                    gradeColor = '#2ecc71';
+                } else {
+                    grade = '일반';
+                    gradeColor = '#95a5a6';
+                }
+
+                const item = {
+                    name: recipe.name,
+                    type: recipe.type,
+                    class: recipe.class,
+                    stats: stats,
+                    enhancement: 0,
+                    grade: grade,
+                    gradeColor: gradeColor,
+                    statMultiplier: Math.floor(statMultiplier * 100)
+                };
+
+                this.inventory.push(item);
+                this.addLog(`[${grade}] ${recipe.name}을(를) 제작했습니다! (능력치: ${Math.floor(statMultiplier * 100)}%)`);
+                this.renderMaterials();
+                this.renderBlacksmith();
+                this.updateDisplay();
+            },
+
+            craftUniqueEquipment(index) {
+                const recipe = UNIQUE_EQUIPMENT_RECIPES[index];
+                if (!recipe) return;
+
+                // Check materials
+                for (const [material, amount] of Object.entries(recipe.materials)) {
+                    if ((this.materials[material] || 0) < amount) {
+                        this.addLog(`재료가 부족합니다: ${material}`);
+                        return;
+                    }
+                }
+
+                // Deduct materials
+                for (const [material, amount] of Object.entries(recipe.materials)) {
+                    this.materials[material] -= amount;
+                }
+
+                // Apply 180% stats
+                const stats = {};
+                for (const [stat, value] of Object.entries(recipe.baseStats)) {
+                    stats[stat] = Math.floor(value * 1.8);
+                }
+
+                const item = {
+                    name: recipe.name,
+                    type: recipe.type,
+                    class: recipe.class,
+                    stats: stats,
+                    enhancement: 0,
+                    isUnique: true,
+                    bonusEffect: recipe.bonusEffect
+                };
+
+                this.inventory.push(item);
+                this.addLog(`⭐ [유니크] ${recipe.name}을(를) 제작했습니다! (${recipe.bonusEffect})`);
+                this.renderMaterials();
+                this.renderBlacksmith();
+                this.updateDisplay();
             },
 
             toggleAutoBattle() {
@@ -2879,6 +3473,14 @@
             setGameSpeed(speed) {
                 this.gameSpeed = speed;
                 document.getElementById('speed-display').textContent = `${speed}x`;
+            },
+
+            setPartyFloor(partyIndex, floor) {
+                if (floor < 1) floor = 1;
+                if (floor > this.unlockedFloor) floor = this.unlockedFloor;
+                this.partyAssignments[partyIndex].floor = floor;
+                this.renderPartyList();
+                this.addLog(`파티 ${partyIndex + 1}의 사냥 지역을 ${floor}층으로 설정했습니다.`);
             },
 
             setPartyZone(partyIndex, zone) {
@@ -2909,11 +3511,22 @@
             },
 
             updateDisplay() {
-                document.getElementById('current-stage').textContent =
-                    `구역: ${this.currentZone.toUpperCase()}-${this.currentStage} (${ZONES[this.currentZone].name})`;
+                // Use currentFloor if available, otherwise fall back to currentZone + currentStage
+                if (this.currentFloor) {
+                    const zone = getZoneFromFloor(this.currentFloor);
+                    const zoneName = ZONES[zone].name;
+                    document.getElementById('current-stage').textContent =
+                        `${this.currentFloor}층 (${zoneName})`;
+                } else {
+                    document.getElementById('current-stage').textContent =
+                        `구역: ${this.currentZone.toUpperCase()}-${this.currentStage} (${ZONES[this.currentZone].name})`;
+                }
                 document.getElementById('gold-display').textContent = `골드: ${this.gold}`;
                 document.getElementById('auto-battle-status').textContent =
                     `자동 전투: ${this.autoBattle ? 'ON' : 'OFF'}`;
+
+                // Update floor display
+                this.updateFloorDisplay();
             },
 
             // Inn System
@@ -2976,11 +3589,25 @@
                     const classData = CLASSES[randomClass];
 
                     this.mercenaryGuild.availableMercenaries.push({
-                        id: Date.now() + i,
+                        id: globalCharacterId++,
                         class: randomClass,
                         grade: randomGrade,
                         name: `${classData.name}${Math.floor(Math.random() * 1000)}`
                     });
+                }
+
+                // Update last refresh time
+                this.lastGuildRefresh = Date.now();
+            },
+
+            checkGuildRefresh() {
+                // Check if 6 hours (21600000 ms) have passed since last refresh
+                const sixHours = 6 * 60 * 60 * 1000;
+                const now = Date.now();
+                if (now - this.lastGuildRefresh >= sixHours) {
+                    this.generateMercenaries();
+                    this.renderGuildList();
+                    this.addLog('용병 길드의 용병 목록이 갱신되었습니다!');
                 }
             },
 
@@ -3054,7 +3681,7 @@
                 };
 
                 return {
-                    id: Date.now(),
+                    id: globalCharacterId++,
                     name: name,
                     class: classId,
                     grade: grade,
@@ -3071,8 +3698,8 @@
                     skills: [...classData.skills],
                     equipment: {
                         leftWeapon: null, rightWeapon: null, helmet: null, armor: null,
-                        leggings: null, boots: null, leftEarring: null, rightEarring: null,
-                        leftRing: null, rightRing: null
+                        leggings: null, boots: null, earring1: null, earring2: null,
+                        ring1: null, ring2: null
                     },
                     availableStats: 0,
                     personality: this.generatePersonality(),
@@ -3371,6 +3998,9 @@
                     case 'monster':
                         this.renderMonsterEncyclopedia(container);
                         break;
+                    case 'mercenary':
+                        this.renderMercenaryEncyclopedia(container);
+                        break;
                     case 'item':
                         this.renderItemEncyclopedia(container);
                         break;
@@ -3380,7 +4010,126 @@
                     case 'zone':
                         this.renderZoneEncyclopedia(container);
                         break;
+                    case 'material':
+                        this.renderMaterialEncyclopedia(container);
+                        break;
                 }
+            },
+
+            renderMercenaryEncyclopedia(container) {
+                container.innerHTML = '<div style="font-size: 14px; margin-bottom: 10px; font-weight: bold;">용병 직업 정보</div>';
+
+                Object.entries(CLASSES).forEach(([classId, classData]) => {
+                    const classDiv = document.createElement('div');
+                    classDiv.style.cssText = 'background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; padding: 10px; margin-bottom: 10px;';
+
+                    classDiv.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 8px; font-size: 15px;">
+                            <span style="font-size: 24px;">${classData.icon}</span> ${classData.name}
+                        </div>
+
+                        <div style="margin-bottom: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px; color: #4CAF50;">기본 스텟</div>
+                            <div style="padding-left: 10px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 3px; font-size: 11px;">
+                                <div>힘(STR): ${classData.stats.str}</div>
+                                <div>민첩(DEX): ${classData.stats.dex}</div>
+                                <div>지력(INT): ${classData.stats.int}</div>
+                                <div>체력(HP): ${classData.stats.hp}</div>
+                                <div>마나(MP): ${classData.stats.mp}</div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px; color: #ffeb3b;">등급별 추가 스텟</div>
+                            <div style="padding-left: 10px; font-size: 11px;">
+                                <div>• <span style="color: #aaa;">하급(일반)</span>: 추가 스텟 없음</div>
+                                <div>• <span style="color: #3498db;">중급</span>: 주 스텟 +2</div>
+                                <div>• <span style="color: #9b59b6;">상급</span>: 주 스텟 2개 각 +2</div>
+                                <div>• <span style="color: #e74c3c;">최상급</span>: 주 스텟 2개 각 +2, 나머지 +1</div>
+                                <div>• <span style="color: #f39c12;">레전드</span>: 모든 스텟 +3</div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px; color: #ff6b35;">레벨업 시 스텟 성장</div>
+                            <div style="padding-left: 10px; font-size: 11px;">
+                                <div>• 레벨업 시 자동으로 해당 직업의 기본 스텟 순서대로 상승</div>
+                                <div>• 추가로 스탯 포인트 1개 부여 (수동 배분 가능)</div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px; color: #52b788;">보유 스킬</div>
+                            <div style="padding-left: 10px; font-size: 11px;">
+                                ${classData.skills.map(skill => `
+                                    <div style="background: rgba(0,0,0,0.3); padding: 5px; border-radius: 3px; margin-bottom: 3px;">
+                                        <strong>${skill.name}</strong> (${skill.type === 'physical' ? '물리' : skill.type === 'magic' ? '마법' : skill.type === 'heal' ? '치유' : '버프'})
+                                        <div style="color: #aaa; font-size: 10px;">• 위력: ${skill.power}배, 대상: ${skill.target === 'single' ? '단일' : skill.target === 'all' ? '전체' : skill.target === 'ally' ? '아군' : '자신'}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="font-weight: bold; margin-bottom: 5px; color: #2a9d8f;">전직 시스템</div>
+                            <div style="padding-left: 10px; font-size: 11px;">
+                                <div>• 레벨 50 도달 시 전직 가능 (최대 4회)</div>
+                                <div>• 전직 시 모든 스텟 +2씩 영구 증가</div>
+                                <div>• 레벨은 1로 초기화되나 성장한 스텟은 유지</div>
+                                <div>• 환생 시스템: 초기 스텟으로 돌아가고 레벨 1부터 재시작</div>
+                            </div>
+                        </div>
+                    `;
+
+                    container.appendChild(classDiv);
+                });
+            },
+
+            renderMaterialEncyclopedia(container) {
+                container.innerHTML = '<div style="font-size: 14px; margin-bottom: 10px; font-weight: bold;">재료 도감 및 수급처</div>';
+
+                Object.entries(MATERIALS).forEach(([theme, materials]) => {
+                    const zone = Object.values(ZONES).find(z => z.theme === theme);
+                    const zoneKey = Object.keys(ZONES).find(k => ZONES[k].theme === theme);
+                    const themeDiv = document.createElement('div');
+                    themeDiv.style.cssText = 'background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; padding: 10px; margin-bottom: 10px;';
+
+                    themeDiv.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 8px; color: ${zone.color}; font-size: 15px;">${zone.name} 재료</div>
+
+                        <div style="margin-bottom: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px; color: #4CAF50;">수급처</div>
+                            <div style="padding-left: 10px; font-size: 11px;">
+                                <div>• 구역: ${zoneKey.toUpperCase()}</div>
+                                <div>• 스테이지: 1-10 (모든 스테이지)</div>
+                                <div>• 드롭 방식: 전투 승리 시 랜덤 획득</div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px; color: #ff6b35;">재료 목록 (총 ${materials.length}종)</div>
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px;">
+                                ${materials.map(material => {
+                                    const icon = getItemIcon(material);
+                                    return `<div style="background: rgba(0,0,0,0.3); padding: 5px; border-radius: 3px; font-size: 11px;">
+                                        <span style="font-size: 16px;">${icon}</span> ${material}
+                                    </div>`;
+                                }).join('')}
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="font-weight: bold; margin-bottom: 5px; color: #2a9d8f;">용도</div>
+                            <div style="padding-left: 10px; font-size: 11px;">
+                                <div>• 장비 제작 (대장간)</div>
+                                <div>• 장비 강화</div>
+                                <div>• 상점 판매</div>
+                            </div>
+                        </div>
+                    `;
+
+                    container.appendChild(themeDiv);
+                });
             },
 
             renderMonsterEncyclopedia(container) {
@@ -3435,20 +4184,49 @@
             renderEquipmentEncyclopedia(container) {
                 container.innerHTML = '<div style="font-size: 14px; margin-bottom: 10px; font-weight: bold;">장비 도감</div>';
 
+                // Equipment grade info
+                const gradeInfoDiv = document.createElement('div');
+                gradeInfoDiv.style.cssText = 'background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.3); border-radius: 5px; padding: 10px; margin-bottom: 10px;';
+                gradeInfoDiv.innerHTML = `
+                    <div style="font-weight: bold; margin-bottom: 8px; font-size: 13px; color: #ffeb3b;">장비 등급 정보</div>
+                    <div style="font-size: 11px; padding-left: 10px;">
+                        <div style="margin-bottom: 3px;">• <span style="color: #aaa;">일반 장비</span>: 기본 스텟 제공</div>
+                        <div style="margin-bottom: 3px;">• <span style="color: #f39c12;">전설 장비</span>: 기본 스텟 대비 120% 능력치 + 고유 스킬 보유</div>
+                        <div style="margin-bottom: 3px;">• 장비는 강화를 통해 성능 향상 가능</div>
+                        <div>• 장비 제작은 대장간에서 재료를 소모하여 제작</div>
+                    </div>
+                `;
+                container.appendChild(gradeInfoDiv);
+
                 Object.entries(LEGENDARY_EQUIPMENT).forEach(([theme, items]) => {
                     const zone = Object.values(ZONES).find(z => z.theme === theme);
+                    const zoneKey = Object.keys(ZONES).find(k => ZONES[k].theme === theme);
                     const themeDiv = document.createElement('div');
                     themeDiv.style.cssText = 'background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; padding: 10px; margin-bottom: 10px;';
 
+                    const materials = MATERIALS[theme];
                     themeDiv.innerHTML = `
-                        <div style="font-weight: bold; margin-bottom: 8px; color: ${zone.color};">${zone.name} 전설 장비</div>
+                        <div style="font-weight: bold; margin-bottom: 8px; color: ${zone.color}; font-size: 14px;">${zone.name} 전설 장비</div>
+
+                        <div style="margin-bottom: 8px; font-size: 11px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 3px;">
+                            <div style="font-weight: bold; margin-bottom: 5px; color: #4CAF50;">제작 재료 (${zone.name})</div>
+                            <div style="padding-left: 10px;">
+                                <div>• 수급 구역: ${zoneKey.toUpperCase()}</div>
+                                <div>• 주요 재료: ${materials.slice(0, 3).join(', ')} 등</div>
+                                <div>• 전체 ${materials.length}종의 재료 획득 가능</div>
+                            </div>
+                        </div>
+
                         ${items.map(item => {
                             const icon = getItemIcon(item.name, item.type);
                             const slotNames = {
                                 leftWeapon: '왼손 무기', rightWeapon: '오른손 무기', helmet: '투구',
                                 armor: '갑옷', leggings: '각반', boots: '신발',
-                                leftEarring: '왼쪽 귀걸이', rightEarring: '오른쪽 귀걸이',
-                                leftRing: '왼쪽 반지', rightRing: '오른쪽 반지'
+                                earring1: '귀걸이 1', earring2: '귀걸이 2',
+                                ring1: '반지 1', ring2: '반지 2'
+                            };
+                            const statNames = {
+                                str: '힘', dex: '민첩', int: '지력', hp: 'HP', mp: 'MP', def: '방어'
                             };
                             return `<div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 3px; margin-bottom: 5px; border: 1px solid #f39c12;">
                                 <div style="margin-bottom: 5px;">
@@ -3456,11 +4234,12 @@
                                     <strong style="color: #f39c12;">${item.name}</strong>
                                     <span style="color: #aaa; font-size: 11px;">(${slotNames[item.type]})</span>
                                 </div>
-                                <div style="font-size: 11px; color: #aaa;">
-                                    스탯: ${Object.entries(item.stats).map(([k, v]) => `${k}:${v}`).join(', ')}
+                                <div style="font-size: 11px; color: #aaa; margin-bottom: 3px;">
+                                    스탯: ${Object.entries(item.stats).map(([k, v]) => `${statNames[k] || k} +${v}`).join(', ')}
                                 </div>
-                                <div style="font-size: 11px; color: #4CAF50;">스킬: ${item.skill}</div>
-                                <div style="font-size: 10px; color: #888;">드롭률: ${(item.dropRate * 100).toFixed(3)}%</div>
+                                <div style="font-size: 11px; color: #4CAF50; margin-bottom: 3px;">고유 스킬: ${item.skill}</div>
+                                <div style="font-size: 10px; color: #888; margin-bottom: 3px;">기본 드롭률: ${(item.dropRate * 100).toFixed(3)}%</div>
+                                <div style="font-size: 10px; color: #ff6b35;">• 층수가 높을수록 드롭률 증가 (1층당 +0.01%)</div>
                             </div>`;
                         }).join('')}
                     `;
@@ -3526,6 +4305,8 @@
                 };
                 user.currentPartyIndex = this.currentPartyIndex;
                 user.gold = this.gold;
+                user.currentFloor = this.currentFloor;
+                user.unlockedFloor = this.unlockedFloor;
                 user.currentZone = this.currentZone;
                 user.currentStage = this.currentStage;
                 user.unlockedZones = this.unlockedZones;
@@ -3535,9 +4316,11 @@
                 user.innCapacity = this.inn.capacity;
                 user.innUpgradeCost = this.innUpgradeCost;
                 user.mercenaryGuild = this.mercenaryGuild;
+                user.lastGuildRefresh = this.lastGuildRefresh;
                 user.marketplaceItems = this.marketplace.items;
                 user.gameSpeed = this.gameSpeed;
                 user.partyAssignments = this.partyAssignments;
+                user.globalCharacterId = globalCharacterId;
 
                 users[auth.currentUser] = user;
                 localStorage.setItem('rpg_users', JSON.stringify(users));
