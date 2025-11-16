@@ -714,15 +714,61 @@
     </style>
 </head>
 <body>
-    <div class="game-container">
+    <!-- Login Screen -->
+    <div class="modal active" id="login-screen">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">⚔️ 방치형 RPG 게임 ⚔️</div>
+            <div style="margin: 20px 0;">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px;">캐릭터명</label>
+                    <input type="text" id="login-username" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #666; background: rgba(0,0,0,0.3); color: white;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px;">비밀번호</label>
+                    <input type="password" id="login-password" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #666; background: rgba(0,0,0,0.3); color: white;">
+                </div>
+                <button class="btn btn-success" onclick="auth.login()" style="width: 100%; margin-bottom: 10px;">로그인</button>
+                <button class="btn btn-primary" onclick="auth.showRegister()" style="width: 100%;">회원가입</button>
+                <div id="login-message" style="margin-top: 10px; color: #e74c3c; text-align: center;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Screen -->
+    <div class="modal" id="register-screen">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">회원가입</div>
+            <div style="margin: 20px 0;">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px;">캐릭터명</label>
+                    <input type="text" id="register-username" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #666; background: rgba(0,0,0,0.3); color: white;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px;">비밀번호</label>
+                    <input type="password" id="register-password" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #666; background: rgba(0,0,0,0.3); color: white;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px;">비밀번호 확인</label>
+                    <input type="password" id="register-password-confirm" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #666; background: rgba(0,0,0,0.3); color: white;">
+                </div>
+                <button class="btn btn-success" onclick="auth.register()" style="width: 100%; margin-bottom: 10px;">가입하기</button>
+                <button class="btn btn-danger" onclick="auth.showLogin()" style="width: 100%;">로그인으로 돌아가기</button>
+                <div id="register-message" style="margin-top: 10px; color: #e74c3c; text-align: center;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container" id="game-container" style="display: none;">
         <!-- Header -->
         <div class="game-header">
             <h1>⚔️ 방치형 RPG 게임 ⚔️</h1>
             <div class="stage-info">
+                <span id="current-username">플레이어</span> |
                 <span id="current-stage">구역: A-1</span> |
                 <span id="gold-display">골드: 0</span> |
                 <span id="auto-battle-status">자동 전투: OFF</span> |
-                <span id="battle-speed-status">전투 속도: 1x</span>
+                <span id="battle-speed-status">전투 속도: 1x</span> |
+                <button class="btn btn-danger" onclick="auth.logout()" style="padding: 5px 10px; font-size: 12px;">로그아웃</button>
             </div>
         </div>
 
@@ -732,8 +778,11 @@
             <div class="side-panel">
                 <div class="panel-title">파티 관리</div>
                 <div class="character-list" id="party-list"></div>
-                <button class="btn btn-primary" onclick="game.showCharacterCreation()" style="width: 100%; margin-top: 15px;">
-                    새 캐릭터 추가
+                <button class="btn btn-primary" onclick="game.showMercenaryGuild()" style="width: 100%; margin-top: 15px;">
+                    용병 길드
+                </button>
+                <button class="btn btn-primary" onclick="game.showMarketplace()" style="width: 100%; margin-top: 10px;">
+                    거래소
                 </button>
             </div>
 
@@ -804,7 +853,206 @@
         </div>
     </div>
 
+    <!-- Mercenary Guild Modal -->
+    <div class="modal" id="mercenary-guild-modal">
+        <div class="modal-content">
+            <div class="modal-header">용병 길드</div>
+            <div style="margin: 20px 0;">
+                <p style="margin-bottom: 15px; color: #ffeb3b;">골드: <span id="guild-gold-display">0</span></p>
+                <div id="mercenary-list" style="display: grid; gap: 15px;"></div>
+            </div>
+            <button class="btn btn-danger" onclick="game.closeModal('mercenary-guild-modal')" style="width: 100%; margin-top: 20px;">닫기</button>
+        </div>
+    </div>
+
+    <!-- Marketplace Modal -->
+    <div class="modal" id="marketplace-modal">
+        <div class="modal-content">
+            <div class="modal-header">거래소</div>
+            <div style="margin: 20px 0;">
+                <p style="margin-bottom: 15px; color: #ffeb3b;">골드: <span id="market-gold-display">0</span></p>
+                <div class="tabs">
+                    <div class="tab active" onclick="game.switchMarketTab('buy')">구매</div>
+                    <div class="tab" onclick="game.switchMarketTab('sell')">판매 등록</div>
+                </div>
+                <div id="market-buy-tab" class="tab-content active" style="margin-top: 15px;">
+                    <div id="market-items-list"></div>
+                </div>
+                <div id="market-sell-tab" class="tab-content" style="margin-top: 15px;">
+                    <p>거래소 시스템은 곧 업데이트됩니다.</p>
+                </div>
+            </div>
+            <button class="btn btn-danger" onclick="game.closeModal('marketplace-modal')" style="width: 100%; margin-top: 20px;">닫기</button>
+        </div>
+    </div>
+
     <script>
+        // Authentication System
+        const auth = {
+            currentUser: null,
+
+            init() {
+                // Check if user is logged in
+                const savedUser = localStorage.getItem('currentUser');
+                if (savedUser) {
+                    this.currentUser = JSON.parse(savedUser);
+                    this.showGame();
+                }
+            },
+
+            showLogin() {
+                document.getElementById('login-screen').classList.add('active');
+                document.getElementById('register-screen').classList.remove('active');
+                document.getElementById('login-message').textContent = '';
+            },
+
+            showRegister() {
+                document.getElementById('register-screen').classList.add('active');
+                document.getElementById('login-screen').classList.remove('active');
+                document.getElementById('register-message').textContent = '';
+            },
+
+            register() {
+                const username = document.getElementById('register-username').value.trim();
+                const password = document.getElementById('register-password').value;
+                const passwordConfirm = document.getElementById('register-password-confirm').value;
+                const messageEl = document.getElementById('register-message');
+
+                if (!username || !password) {
+                    messageEl.textContent = '캐릭터명과 비밀번호를 입력해주세요.';
+                    return;
+                }
+
+                if (password !== passwordConfirm) {
+                    messageEl.textContent = '비밀번호가 일치하지 않습니다.';
+                    return;
+                }
+
+                // Check if username exists
+                const users = JSON.parse(localStorage.getItem('gameUsers') || '{}');
+                if (users[username]) {
+                    messageEl.textContent = '이미 존재하는 캐릭터명입니다.';
+                    return;
+                }
+
+                // Create new user with starting resources
+                const newUser = {
+                    username: username,
+                    password: password,
+                    isAdmin: false,
+                    gold: 1000,
+                    party: this.createStartingParty(),
+                    currentZone: 'a',
+                    currentStage: 1,
+                    unlockedZones: ['a'],
+                    unlockedStages: { a: 1, b: 1, c: 1, d: 1, e: 1 },
+                    maxClearedStage: { a: 0, b: 0, c: 0, d: 0, e: 0 },
+                    materials: {},
+                    marketplaceEnabled: true,
+                    marketItems: [],
+                    createdAt: Date.now()
+                };
+
+                users[username] = newUser;
+                localStorage.setItem('gameUsers', JSON.stringify(users));
+
+                messageEl.style.color = '#2ecc71';
+                messageEl.textContent = '회원가입이 완료되었습니다! 로그인해주세요.';
+                setTimeout(() => this.showLogin(), 1500);
+            },
+
+            login() {
+                const username = document.getElementById('login-username').value.trim();
+                const password = document.getElementById('login-password').value;
+                const messageEl = document.getElementById('login-message');
+
+                // Admin account
+                if (username === 'philip4se' && password === '!Mn2251452') {
+                    this.currentUser = {
+                        username: 'philip4se',
+                        isAdmin: true,
+                        gold: 999999999,
+                        party: [],
+                        currentZone: 'a',
+                        currentStage: 1,
+                        unlockedZones: ['a', 'b', 'c', 'd', 'e'],
+                        unlockedStages: { a: 10, b: 10, c: 10, d: 10, e: 10 },
+                        maxClearedStage: { a: 10, b: 10, c: 10, d: 10, e: 10 },
+                        materials: {},
+                        marketplaceEnabled: true,
+                        marketItems: []
+                    };
+                    localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+                    this.showGame();
+                    return;
+                }
+
+                // Regular user
+                const users = JSON.parse(localStorage.getItem('gameUsers') || '{}');
+                const user = users[username];
+
+                if (!user || user.password !== password) {
+                    messageEl.textContent = '캐릭터명 또는 비밀번호가 일치하지 않습니다.';
+                    return;
+                }
+
+                this.currentUser = user;
+                localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+                this.showGame();
+            },
+
+            logout() {
+                // Save game before logout
+                game.saveGame();
+                localStorage.removeItem('currentUser');
+                this.currentUser = null;
+                document.getElementById('game-container').style.display = 'none';
+                this.showLogin();
+            },
+
+            showGame() {
+                document.getElementById('login-screen').classList.remove('active');
+                document.getElementById('register-screen').classList.remove('active');
+                document.getElementById('game-container').style.display = 'block';
+                document.getElementById('current-username').textContent = this.currentUser.username + (this.currentUser.isAdmin ? ' (관리자)' : '');
+                game.init();
+            },
+
+            createStartingParty() {
+                const startingClasses = ['knight', 'archer', 'rogue', 'paladin', 'mage', 'healer'];
+                const party = [];
+
+                startingClasses.forEach((classId, index) => {
+                    const classData = CLASSES[classId];
+                    const character = {
+                        id: Date.now() + index,
+                        name: `${classData.name}${index + 1}`,
+                        class: classId,
+                        level: 1,
+                        exp: 0,
+                        expToNext: 100,
+                        stats: { ...classData.stats },
+                        baseStats: { ...classData.stats },
+                        currentHp: classData.stats.hp * 10,
+                        maxHp: classData.stats.hp * 10,
+                        currentMp: classData.stats.mp * 10,
+                        maxMp: classData.stats.mp * 10,
+                        skills: [...classData.skills],
+                        equipment: {},
+                        availableStats: 0,
+                        personality: '평범한',
+                        statusEffects: [],
+                        promotionCount: 0,
+                        grade: '하급',
+                        trait: '무특성'
+                    };
+                    party.push(character);
+                });
+
+                return party;
+            }
+        };
+
         // Game Data & Constants
         const CLASSES = {
             knight: {
@@ -943,6 +1191,18 @@
             battleSpeed: 1, // 1x, 2x, 3x
 
             init() {
+                // Load user data
+                if (auth.currentUser) {
+                    this.party = auth.currentUser.party || [];
+                    this.currentZone = auth.currentUser.currentZone || 'a';
+                    this.currentStage = auth.currentUser.currentStage || 1;
+                    this.unlockedZones = auth.currentUser.unlockedZones || ['a'];
+                    this.unlockedStages = auth.currentUser.unlockedStages || { a: 1, b: 1, c: 1, d: 1, e: 1 };
+                    this.maxClearedStage = auth.currentUser.maxClearedStage || { a: 0, b: 0, c: 0, d: 0, e: 0 };
+                    this.gold = auth.currentUser.gold || 0;
+                    this.materials = auth.currentUser.materials || {};
+                }
+
                 this.renderZoneSelect();
                 this.renderSubstageSelect();
                 this.renderPartyList();
@@ -952,11 +1212,13 @@
 
                 // Initialize materials
                 Object.values(MATERIALS).flat().forEach(mat => {
-                    this.materials[mat] = 0;
+                    if (!this.materials[mat]) this.materials[mat] = 0;
                 });
 
-                // Create initial character
-                this.addCharacter('knight', '기본 기사');
+                // Show admin controls if admin
+                if (auth.currentUser && auth.currentUser.isAdmin) {
+                    this.showAdminControls();
+                }
             },
 
             addCharacter(classId, name) {
@@ -1446,10 +1708,18 @@
                         if (this.currentStage < 10) {
                             this.unlockedStages[this.currentZone] = this.currentStage + 1;
                         } else {
-                            const nextZone = Object.keys(ZONES)[Object.keys(ZONES).indexOf(this.currentZone) + 1];
+                            const zoneKeys = Object.keys(ZONES);
+                            const currentZoneIndex = zoneKeys.indexOf(this.currentZone);
+                            const nextZone = zoneKeys[currentZoneIndex + 1];
+
                             if (nextZone && !this.unlockedZones.includes(nextZone)) {
                                 this.unlockedZones.push(nextZone);
                                 this.addLog(`새로운 구역 ${ZONES[nextZone].name}이(가) 해금되었습니다!`);
+                            } else if (!nextZone && this.currentZone === 'e' && this.currentStage === 10) {
+                                // E-10 클리어 후 A-1로 무제한 순환
+                                this.addLog('모든 구역을 클리어했습니다! 다시 처음부터 시작합니다!');
+                                this.currentZone = 'a';
+                                this.currentStage = 1;
                             }
                         }
                     }
@@ -1703,53 +1973,201 @@
             },
 
             saveGame() {
-                const saveData = {
-                    party: this.party,
-                    currentZone: this.currentZone,
-                    currentStage: this.currentStage,
-                    unlockedZones: this.unlockedZones,
-                    unlockedStages: this.unlockedStages,
-                    materials: this.materials,
-                    gold: this.gold
-                };
+                if (!auth.currentUser) return;
 
-                localStorage.setItem('idleRpgSave', JSON.stringify(saveData));
+                // Update current user data
+                auth.currentUser.party = this.party;
+                auth.currentUser.currentZone = this.currentZone;
+                auth.currentUser.currentStage = this.currentStage;
+                auth.currentUser.unlockedZones = this.unlockedZones;
+                auth.currentUser.unlockedStages = this.unlockedStages;
+                auth.currentUser.maxClearedStage = this.maxClearedStage;
+                auth.currentUser.materials = this.materials;
+                auth.currentUser.gold = this.gold;
+
+                // Save to localStorage
+                localStorage.setItem('currentUser', JSON.stringify(auth.currentUser));
+
+                // If not admin, save to users database
+                if (!auth.currentUser.isAdmin) {
+                    const users = JSON.parse(localStorage.getItem('gameUsers') || '{}');
+                    users[auth.currentUser.username] = auth.currentUser;
+                    localStorage.setItem('gameUsers', JSON.stringify(users));
+                }
+
                 this.addLog('게임이 저장되었습니다!');
             },
 
             loadGame() {
-                const saveData = localStorage.getItem('idleRpgSave');
-                if (!saveData) {
-                    this.addLog('저장된 데이터가 없습니다.');
+                if (!auth.currentUser) {
+                    this.addLog('로그인이 필요합니다.');
                     return;
                 }
 
-                try {
-                    const data = JSON.parse(saveData);
-                    this.party = data.party;
-                    this.currentZone = data.currentZone;
-                    this.currentStage = data.currentStage;
-                    this.unlockedZones = data.unlockedZones;
-                    this.unlockedStages = data.unlockedStages;
-                    this.materials = data.materials;
-                    this.gold = data.gold;
+                // Reload from database
+                if (!auth.currentUser.isAdmin) {
+                    const users = JSON.parse(localStorage.getItem('gameUsers') || '{}');
+                    const userData = users[auth.currentUser.username];
+                    if (userData) {
+                        auth.currentUser = userData;
+                        localStorage.setItem('currentUser', JSON.stringify(auth.currentUser));
+                    }
+                }
 
-                    this.renderPartyList();
-                    this.renderZoneSelect();
-                    this.renderSubstageSelect();
-                    this.renderMaterials();
-                    this.updateDisplay();
+                // Reload game state
+                this.party = auth.currentUser.party || [];
+                this.currentZone = auth.currentUser.currentZone || 'a';
+                this.currentStage = auth.currentUser.currentStage || 1;
+                this.unlockedZones = auth.currentUser.unlockedZones || ['a'];
+                this.unlockedStages = auth.currentUser.unlockedStages || { a: 1, b: 1, c: 1, d: 1, e: 1 };
+                this.maxClearedStage = auth.currentUser.maxClearedStage || { a: 0, b: 0, c: 0, d: 0, e: 0 };
+                this.materials = auth.currentUser.materials || {};
+                this.gold = auth.currentUser.gold || 0;
 
-                    this.addLog('게임이 로드되었습니다!');
-                } catch (e) {
-                    this.addLog('저장 데이터를 불러오는데 실패했습니다.');
+                this.renderPartyList();
+                this.renderZoneSelect();
+                this.renderSubstageSelect();
+                this.renderMaterials();
+                this.updateDisplay();
+
+                this.addLog('게임이 로드되었습니다!');
+            },
+
+            showAdminControls() {
+                // Add admin-only battle speeds
+                const speedBtn = document.querySelector('[onclick="game.cycleBattleSpeed()"]');
+                if (speedBtn) {
+                    speedBtn.setAttribute('onclick', 'game.cycleAdminBattleSpeed()');
+                }
+            },
+
+            cycleAdminBattleSpeed() {
+                const speeds = [1, 2, 3, 10, 50, 100];
+                const currentIndex = speeds.indexOf(this.battleSpeed);
+                this.battleSpeed = speeds[(currentIndex + 1) % speeds.length];
+                this.updateDisplay();
+            },
+
+            showMercenaryGuild() {
+                const modal = document.getElementById('mercenary-guild-modal');
+                const mercenaryList = document.getElementById('mercenary-list');
+                document.getElementById('guild-gold-display').textContent = this.gold;
+
+                const grades = [
+                    { name: '하급', price: 100, statMultiplier: 1 },
+                    { name: '중급', price: 500, statMultiplier: 1.5 },
+                    { name: '상급', price: 1000, statMultiplier: 2 },
+                    { name: '최상급', price: 3000, statMultiplier: 2.5 },
+                    { name: '레전드', price: 5000, statMultiplier: 3 }
+                ];
+
+                mercenaryList.innerHTML = '';
+                Object.keys(CLASSES).forEach(classId => {
+                    grades.forEach(grade => {
+                        const classData = CLASSES[classId];
+                        const card = document.createElement('div');
+                        card.className = 'character-card';
+                        card.innerHTML = `
+                            <div class="character-info">
+                                <div>
+                                    <span style="font-size: 20px;">${classData.icon}</span>
+                                    <strong>${grade.name} ${classData.name}</strong>
+                                </div>
+                                <div style="color: #ffeb3b;">${grade.price} 골드</div>
+                            </div>
+                            <div class="character-stats">
+                                <div class="stat-item">힘: ${Math.floor(classData.stats.str * grade.statMultiplier)}</div>
+                                <div class="stat-item">민첩: ${Math.floor(classData.stats.dex * grade.statMultiplier)}</div>
+                                <div class="stat-item">지력: ${Math.floor(classData.stats.int * grade.statMultiplier)}</div>
+                                <div class="stat-item">HP: ${Math.floor(classData.stats.hp * grade.statMultiplier)}</div>
+                            </div>
+                            <button class="btn btn-success" onclick="game.hireMercenary('${classId}', '${grade.name}', ${grade.price}, ${grade.statMultiplier})" style="width: 100%; margin-top: 10px;">
+                                고용하기
+                            </button>
+                        `;
+                        mercenaryList.appendChild(card);
+                    });
+                });
+
+                modal.classList.add('active');
+            },
+
+            hireMercenary(classId, grade, price, statMultiplier) {
+                if (this.gold < price) {
+                    this.addLog('골드가 부족합니다!');
+                    return;
+                }
+
+                if (this.party.length >= 30) {
+                    this.addLog('용병은 최대 30명까지만 보유할 수 있습니다!');
+                    return;
+                }
+
+                this.gold -= price;
+
+                const classData = CLASSES[classId];
+                const character = {
+                    id: Date.now(),
+                    name: `${grade} ${classData.name}`,
+                    class: classId,
+                    level: 1,
+                    exp: 0,
+                    expToNext: 100,
+                    stats: {
+                        str: Math.floor(classData.stats.str * statMultiplier),
+                        dex: Math.floor(classData.stats.dex * statMultiplier),
+                        int: Math.floor(classData.stats.int * statMultiplier),
+                        hp: Math.floor(classData.stats.hp * statMultiplier),
+                        mp: Math.floor(classData.stats.mp * statMultiplier)
+                    },
+                    baseStats: {
+                        str: Math.floor(classData.stats.str * statMultiplier),
+                        dex: Math.floor(classData.stats.dex * statMultiplier),
+                        int: Math.floor(classData.stats.int * statMultiplier),
+                        hp: Math.floor(classData.stats.hp * statMultiplier),
+                        mp: Math.floor(classData.stats.mp * statMultiplier)
+                    },
+                    currentHp: Math.floor(classData.stats.hp * statMultiplier * 10),
+                    maxHp: Math.floor(classData.stats.hp * statMultiplier * 10),
+                    currentMp: Math.floor(classData.stats.mp * statMultiplier * 10),
+                    maxMp: Math.floor(classData.stats.mp * statMultiplier * 10),
+                    skills: [...classData.skills],
+                    equipment: {},
+                    availableStats: 0,
+                    personality: this.generatePersonality(),
+                    statusEffects: [],
+                    promotionCount: 0,
+                    grade: grade,
+                    trait: '무특성'
+                };
+
+                this.party.push(character);
+                this.renderPartyList();
+                this.updateDisplay();
+                this.addLog(`${character.name}을(를) 고용했습니다!`);
+                this.showMercenaryGuild(); // Refresh the guild display
+            },
+
+            showMarketplace() {
+                const modal = document.getElementById('marketplace-modal');
+                document.getElementById('market-gold-display').textContent = this.gold;
+                modal.classList.add('active');
+            },
+
+            switchMarketTab(tabName) {
+                if (tabName === 'buy') {
+                    document.getElementById('market-buy-tab').classList.add('active');
+                    document.getElementById('market-sell-tab').classList.remove('active');
+                } else {
+                    document.getElementById('market-buy-tab').classList.remove('active');
+                    document.getElementById('market-sell-tab').classList.add('active');
                 }
             }
         };
 
         // Initialize game on page load
         window.onload = () => {
-            game.init();
+            auth.init();
         };
     </script>
 </body>
