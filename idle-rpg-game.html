@@ -150,6 +150,15 @@
             color: #ffeb3b;
         }
 
+        .status-effects {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            display: flex;
+            gap: 2px;
+            font-size: 12px;
+        }
+
         .enemy-container {
             display: flex;
             justify-content: space-around;
@@ -712,7 +721,8 @@
             <div class="stage-info">
                 <span id="current-stage">구역: A-1</span> |
                 <span id="gold-display">골드: 0</span> |
-                <span id="auto-battle-status">자동 전투: OFF</span>
+                <span id="auto-battle-status">자동 전투: OFF</span> |
+                <span id="battle-speed-status">전투 속도: 1x</span>
             </div>
         </div>
 
@@ -748,6 +758,9 @@
                 <div class="battle-controls">
                     <button class="btn btn-success" onclick="game.startBattle()" id="battle-btn">전투 시작</button>
                     <button class="btn btn-primary" onclick="game.toggleAutoBattle()" id="auto-battle-btn">자동 전투</button>
+                    <button class="btn btn-primary" onclick="game.toggleAutoProgress()" id="auto-progress-btn">자동 진행: OFF</button>
+                    <button class="btn btn-primary" onclick="game.toggleRepeatStage()" id="repeat-stage-btn">반복: OFF</button>
+                    <button class="btn btn-primary" onclick="game.cycleBattleSpeed()">배속: <span id="speed-btn-text">1x</span></button>
                     <button class="btn btn-danger" onclick="game.saveGame()">저장</button>
                     <button class="btn btn-primary" onclick="game.loadGame()">불러오기</button>
                 </div>
@@ -856,7 +869,26 @@
                     { name: '대치유', power: 2.0, target: 'ally', type: 'heal' },
                     { name: '축복', power: 0, target: 'ally', type: 'buff', effect: 'bless' }
                 ]
+            },
+            paladin: {
+                name: '성기사',
+                icon: '⚔️',
+                stats: { str: 10, dex: 4, int: 4, hp: 10, mp: 4 },
+                skills: [
+                    { name: '신성한 일격', power: 1.4, target: 'single', type: 'physical' },
+                    { name: '신의 가호', power: 1.0, target: 'self', type: 'heal' }
+                ]
             }
+        };
+
+        // 레벨업 시 스탯 증가 패턴
+        const LEVEL_UP_PATTERNS = {
+            knight: ['str', 'hp', 'str', 'hp', 'dex', 'int'],
+            archer: ['dex', 'str', 'dex', 'str', 'hp', 'int'],
+            rogue: ['dex', 'str', 'dex', 'str', 'hp', 'int'],
+            paladin: ['str', 'hp', 'str', 'hp', 'dex', 'int'],
+            mage: ['int', 'hp', 'int', 'hp', 'dex', 'dex'],
+            healer: ['int', 'hp', 'int', 'hp', 'dex', 'hp']
         };
 
         const ZONES = {
@@ -875,6 +907,24 @@
             dark: ['어둠의 정수', '망자의 뼈', '저주받은 수정']
         };
 
+        const MATERIAL_ICONS = {
+            '얼음 조각': '❄️',
+            '서리 결정': '💎',
+            '빙하석': '🧊',
+            '용암석': '🔥',
+            '화염 정수': '💥',
+            '마그마 핵': '🌋',
+            '목재': '🪵',
+            '나뭇가지': '🌿',
+            '신선한 과일': '🍎',
+            '진주': '💍',
+            '뱃조각': '⚓',
+            '돗대': '🎣',
+            '어둠의 정수': '🌑',
+            '망자의 뼈': '💀',
+            '저주받은 수정': '🔮'
+        };
+
         // Main Game Object
         const game = {
             party: [],
@@ -882,11 +932,15 @@
             currentStage: 1,
             unlockedZones: ['a'],
             unlockedStages: { a: 1, b: 1, c: 1, d: 1, e: 1 },
+            maxClearedStage: { a: 0, b: 0, c: 0, d: 0, e: 0 },
             materials: {},
             gold: 0,
             autoBattle: false,
+            autoProgress: false,
+            repeatStage: false,
             inBattle: false,
             enemies: [],
+            battleSpeed: 1, // 1x, 2x, 3x
 
             init() {
                 this.renderZoneSelect();
@@ -928,7 +982,9 @@
                     skills: [...classData.skills],
                     equipment: {},
                     availableStats: 0,
-                    personality: this.generatePersonality()
+                    personality: this.generatePersonality(),
+                    statusEffects: [],
+                    promotionCount: 0
                 };
 
                 this.party.push(character);
@@ -1048,10 +1104,16 @@
                     </div>
                 `;
 
-                if (char.level >= 30) {
+                if (char.level >= 30 && char.promotionCount < 4) {
                     html += `
                         <button class="btn btn-primary" style="width: 100%; margin-top: 20px;" onclick="game.promoteCharacter(${char.id})">
-                            전직하기 (Lv.1로 초기화, 스탯 유지)
+                            전직하기 ${char.promotionCount + 1}/4 (추가 스탯 +5, 전체 스탯 +2)
+                        </button>
+                    `;
+                } else if (char.level >= 30 && char.promotionCount >= 4) {
+                    html += `
+                        <button class="btn btn-success" style="width: 100%; margin-top: 20px;" onclick="game.reincarnateCharacter(${char.id})">
+                            환생하기 (초기 스탯 2배로 재시작)
                         </button>
                     `;
                 }
@@ -1097,14 +1159,52 @@
 
             promoteCharacter(charId) {
                 const char = this.party.find(c => c.id === charId);
-                if (!char || char.level < 30) return;
+                if (!char || char.level < 30 || char.promotionCount >= 4) return;
+
+                // Add 5 stat points and increase all stats by 2
+                char.availableStats += 5;
+                ['str', 'dex', 'int', 'hp', 'mp'].forEach(stat => {
+                    char.stats[stat] += 2;
+                    if (stat === 'hp') char.maxHp += 20;
+                    if (stat === 'mp') char.maxMp += 20;
+                });
 
                 char.level = 1;
                 char.exp = 0;
                 char.expToNext = 100;
                 char.baseStats = { ...char.stats };
+                char.promotionCount++;
 
-                this.addLog(`${char.name}이(가) 전직했습니다! 레벨 1로 초기화되었지만 모든 스탯이 유지됩니다.`);
+                this.addLog(`${char.name}이(가) ${char.promotionCount}차 전직했습니다! 전체 스탯 +2, 추가 스탯 포인트 +5`);
+                this.closeModal('character-detail-modal');
+                this.renderPartyList();
+            },
+
+            reincarnateCharacter(charId) {
+                const char = this.party.find(c => c.id === charId);
+                if (!char || char.level < 30 || char.promotionCount < 4) return;
+
+                // Get original base stats and double them
+                const originalClass = CLASSES[char.class];
+                const doubledStats = {};
+                Object.keys(originalClass.stats).forEach(stat => {
+                    doubledStats[stat] = originalClass.stats[stat] * 2;
+                });
+
+                // Reset to level 1 with doubled base stats
+                char.level = 1;
+                char.exp = 0;
+                char.expToNext = 100;
+                char.stats = { ...doubledStats };
+                char.baseStats = { ...doubledStats };
+                char.maxHp = doubledStats.hp * 10;
+                char.currentHp = char.maxHp;
+                char.maxMp = doubledStats.mp * 10;
+                char.currentMp = char.maxMp;
+                char.promotionCount = 0;
+                char.availableStats = 0;
+
+                this.addLog(`${char.name}이(가) 환생했습니다! 모든 기본 스탯이 2배가 되었습니다!`);
                 this.closeModal('character-detail-modal');
                 this.renderPartyList();
             },
@@ -1177,7 +1277,7 @@
                 const zoneIndex = Object.keys(ZONES).indexOf(this.currentZone);
                 const stageMultiplier = 1 + ((zoneIndex * 10 + this.currentStage - 1) * 0.01);
                 const zoneBonus = zoneIndex * 0.03;
-                const totalMultiplier = stageMultiplier + zoneBonus;
+                const totalMultiplier = (stageMultiplier + zoneBonus) * 1.5; // 50% 능력치 상승
 
                 for (let i = 0; i < 5; i++) {
                     const baseHp = 50 + Math.random() * 30;
@@ -1189,7 +1289,8 @@
                         currentHp: baseHp * totalMultiplier,
                         maxHp: baseHp * totalMultiplier,
                         attack: baseAtk * totalMultiplier,
-                        alive: true
+                        alive: true,
+                        statusEffects: []
                     });
                 }
             },
@@ -1211,11 +1312,13 @@
                     return;
                 }
 
+                const speedMultiplier = 1 / this.battleSpeed;
+
                 // Player turn
                 aliveParty.forEach((char, index) => {
                     setTimeout(() => {
                         this.performAction(char, true);
-                    }, index * 800);
+                    }, index * 800 * speedMultiplier);
                 });
 
                 // Enemy turn
@@ -1223,11 +1326,11 @@
                     aliveEnemies.forEach((enemy, index) => {
                         setTimeout(() => {
                             this.performAction(enemy, false);
-                        }, index * 600);
+                        }, index * 600 * speedMultiplier);
                     });
 
-                    setTimeout(() => this.battleLoop(), aliveEnemies.length * 600 + 500);
-                }, aliveParty.length * 800 + 500);
+                    setTimeout(() => this.battleLoop(), aliveEnemies.length * 600 * speedMultiplier + 500 * speedMultiplier);
+                }, aliveParty.length * 800 * speedMultiplier + 500 * speedMultiplier);
             },
 
             performAction(unit, isPlayer) {
@@ -1252,6 +1355,13 @@
                                 target.currentHp = 0;
                                 target.alive = false;
                             }
+                            // Apply status effect
+                            if (skill.effect === 'dot' && Math.random() > 0.5) {
+                                if (!target.statusEffects) target.statusEffects = [];
+                                if (!target.statusEffects.includes('dot')) {
+                                    target.statusEffects.push('dot');
+                                }
+                            }
                             this.addLog(`${unit.name}의 ${skill.name}! ${target.name}에게 ${damage} 데미지!`, 'damage');
                         });
                     } else {
@@ -1261,6 +1371,13 @@
                         if (target.currentHp <= 0) {
                             target.currentHp = 0;
                             target.alive = false;
+                        }
+                        // Apply status effect
+                        if (skill.effect && Math.random() > 0.5) {
+                            if (!target.statusEffects) target.statusEffects = [];
+                            if (!target.statusEffects.includes(skill.effect)) {
+                                target.statusEffects.push(skill.effect);
+                            }
                         }
                         this.addLog(`${unit.name}의 ${skill.name}! ${target.name}에게 ${damage} 데미지!`, 'damage');
                     }
@@ -1297,8 +1414,13 @@
                 if (victory) {
                     this.addLog('--- 승리! ---');
 
-                    // Exp and level up
-                    const expGain = 50 + this.currentStage * 10;
+                    // Update cleared stage
+                    if (this.currentStage > this.maxClearedStage[this.currentZone]) {
+                        this.maxClearedStage[this.currentZone] = this.currentStage;
+                    }
+
+                    // Exp and level up (1/5로 감소)
+                    const expGain = Math.floor((50 + this.currentStage * 10) / 5);
                     this.party.forEach(char => {
                         if (char.currentHp > 0) {
                             char.exp += expGain;
@@ -1306,8 +1428,8 @@
                         }
                     });
 
-                    // Gold
-                    const goldGain = 30 + this.currentStage * 5;
+                    // Gold (2배 증가)
+                    const goldGain = (30 + this.currentStage * 5) * 2;
                     this.gold += goldGain;
                     this.addLog(`골드 ${goldGain}을 획득했습니다!`);
 
@@ -1342,16 +1464,53 @@
                     this.renderSubstageSelect();
                     this.renderMaterials();
 
+                    // Auto progress logic
                     if (this.autoBattle) {
+                        let nextStage = this.currentStage;
+                        let nextZone = this.currentZone;
+
+                        if (!this.repeatStage && this.autoProgress) {
+                            // Move to next stage
+                            if (this.currentStage < 10 && this.currentStage < this.unlockedStages[this.currentZone]) {
+                                nextStage = this.currentStage + 1;
+                            } else if (this.currentStage >= 10) {
+                                const zoneIndex = Object.keys(ZONES).indexOf(this.currentZone);
+                                const nextZoneKey = Object.keys(ZONES)[zoneIndex + 1];
+                                if (nextZoneKey && this.unlockedZones.includes(nextZoneKey)) {
+                                    nextZone = nextZoneKey;
+                                    nextStage = 1;
+                                }
+                            }
+                        }
+
+                        this.currentZone = nextZone;
+                        this.currentStage = nextStage;
+                        this.renderZoneSelect();
+                        this.renderSubstageSelect();
+                        this.updateDisplay();
+
                         setTimeout(() => this.startBattle(), 2000);
                     }
                 } else {
                     this.addLog('--- 패배... ---');
+
+                    // Move back to last cleared stage on failure
+                    if (this.autoBattle && this.maxClearedStage[this.currentZone] > 0) {
+                        this.currentStage = this.maxClearedStage[this.currentZone];
+                        this.addLog(`스테이지 ${this.currentZone.toUpperCase()}-${this.currentStage}로 이동합니다.`);
+                        this.renderSubstageSelect();
+                        this.updateDisplay();
+                    }
+
                     // Heal party after defeat
                     this.party.forEach(char => {
                         char.currentHp = char.maxHp;
                         char.currentMp = char.maxMp;
                     });
+
+                    if (this.autoBattle) {
+                        setTimeout(() => this.startBattle(), 2000);
+                    }
                 }
 
                 this.renderPartyList();
@@ -1364,8 +1523,22 @@
                     char.level++;
                     char.expToNext = Math.floor(char.expToNext * 1.2);
 
-                    // Regular stat point
-                    char.availableStats++;
+                    // Auto stat increase based on class pattern
+                    const pattern = LEVEL_UP_PATTERNS[char.class] || ['str', 'hp', 'dex', 'int', 'mp'];
+                    const patternIndex = (char.level - 2) % pattern.length;
+                    const statToIncrease = pattern[patternIndex];
+
+                    if (statToIncrease === 'hp') {
+                        char.stats.hp += 1;
+                        char.maxHp += 3;
+                        char.currentHp = char.maxHp;
+                    } else if (statToIncrease === 'mp') {
+                        char.stats.mp += 1;
+                        char.maxMp += 3;
+                        char.currentMp = char.maxMp;
+                    } else {
+                        char.stats[statToIncrease] = (char.stats[statToIncrease] || 0) + 1;
+                    }
 
                     // Bonus stats at milestones
                     if (char.level % 10 === 0) {
@@ -1373,12 +1546,12 @@
                         char.availableStats += bonus;
                         this.addLog(`${char.name}이(가) 레벨 ${char.level}에 도달! 보너스 스탯 ${bonus}개 획득!`);
                     } else {
-                        this.addLog(`${char.name}이(가) 레벨 ${char.level}에 도달!`);
+                        this.addLog(`${char.name}이(가) 레벨 ${char.level}에 도달! ${statToIncrease.toUpperCase()} +1`);
                     }
 
-                    char.maxHp += 5;
+                    char.maxHp += 2;
                     char.currentHp = char.maxHp;
-                    char.maxMp += 3;
+                    char.maxMp += 2;
                     char.currentMp = char.maxMp;
                 }
             },
@@ -1392,7 +1565,11 @@
                     const classData = CLASSES[char.class];
                     const slot = document.createElement('div');
                     slot.className = `character-slot ${char.currentHp > 0 ? 'active' : ''}`;
+
+                    const statusIcons = this.getStatusIcons(char.statusEffects || []);
+
                     slot.innerHTML = `
+                        ${statusIcons ? `<div class="status-effects">${statusIcons}</div>` : ''}
                         <div class="character-sprite">${classData.icon}</div>
                         <div class="character-name">${char.name}</div>
                         <div class="character-level">Lv.${char.level}</div>
@@ -1410,7 +1587,11 @@
                 this.enemies.forEach(enemy => {
                     const slot = document.createElement('div');
                     slot.className = 'enemy-slot';
+
+                    const statusIcons = this.getStatusIcons(enemy.statusEffects || []);
+
                     slot.innerHTML = `
+                        ${statusIcons ? `<div class="status-effects">${statusIcons}</div>` : ''}
                         <div class="enemy-sprite">👹</div>
                         <div class="character-name">${enemy.name}</div>
                         <div class="character-hp-bar">
@@ -1422,6 +1603,21 @@
                 });
             },
 
+            getStatusIcons(statusEffects) {
+                const icons = {
+                    'dot': '🔥',
+                    'poison': '☠️',
+                    'stun': '💫',
+                    'freeze': '❄️',
+                    'slow': '🐌',
+                    'buff': '✨',
+                    'defense': '🛡️',
+                    'bless': '🌟'
+                };
+
+                return statusEffects.map(effect => icons[effect] || '❓').join('');
+            },
+
             renderMaterials() {
                 const grid = document.getElementById('materials-grid');
                 grid.innerHTML = '';
@@ -1430,8 +1626,9 @@
                     if (count > 0) {
                         const slot = document.createElement('div');
                         slot.className = 'item-slot';
+                        const icon = MATERIAL_ICONS[name] || '📦';
                         slot.innerHTML = `
-                            <div style="font-size: 20px;">📦</div>
+                            <div style="font-size: 20px;">${icon}</div>
                             <div class="item-count">${count}</div>
                         `;
                         slot.title = name;
@@ -1454,6 +1651,23 @@
                 }
             },
 
+            cycleBattleSpeed() {
+                this.battleSpeed = this.battleSpeed === 1 ? 2 : (this.battleSpeed === 2 ? 3 : 1);
+                this.updateDisplay();
+            },
+
+            toggleAutoProgress() {
+                this.autoProgress = !this.autoProgress;
+                if (this.autoProgress) this.repeatStage = false;
+                this.updateDisplay();
+            },
+
+            toggleRepeatStage() {
+                this.repeatStage = !this.repeatStage;
+                if (this.repeatStage) this.autoProgress = false;
+                this.updateDisplay();
+            },
+
             addLog(message, type = 'normal') {
                 const log = document.getElementById('battle-log');
                 const entry = document.createElement('div');
@@ -1474,6 +1688,10 @@
                 document.getElementById('gold-display').textContent = `골드: ${this.gold}`;
                 document.getElementById('auto-battle-status').textContent =
                     `자동 전투: ${this.autoBattle ? 'ON' : 'OFF'}`;
+                document.getElementById('battle-speed-status').textContent = `전투 속도: ${this.battleSpeed}x`;
+                document.getElementById('speed-btn-text').textContent = `${this.battleSpeed}x`;
+                document.getElementById('auto-progress-btn').textContent = `자동 진행: ${this.autoProgress ? 'ON' : 'OFF'}`;
+                document.getElementById('repeat-stage-btn').textContent = `반복: ${this.repeatStage ? 'ON' : 'OFF'}`;
             },
 
             switchTab(tabName) {
