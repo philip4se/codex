@@ -888,10 +888,12 @@
 
             <!-- Center Panel: Battle Area -->
             <div class="center-panel">
-                <!-- Stage Selection -->
-                <div class="panel-title">스테이지 선택</div>
-                <div class="stage-select" id="zone-select"></div>
-                <div class="substage-select" id="substage-select"></div>
+                <!-- Current Floor Info -->
+                <div class="panel-title">현재 층수</div>
+                <div style="text-align: center; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 8px; margin-bottom: 15px;">
+                    <div id="floor-display" style="font-size: 24px; font-weight: bold; color: #ffeb3b; margin-bottom: 8px;">1층</div>
+                    <div id="zone-name-display" style="font-size: 14px; color: #aaa;">얼어붙은 빙하</div>
+                </div>
 
                 <!-- Battlefield -->
                 <div class="battlefield">
@@ -1412,6 +1414,7 @@
             innUpgradeCost: 500,
             mercenaryGuild: { slots: 3, availableMercenaries: [] },
             guildUpgradeCost: 5000,
+            lastGuildRefresh: Date.now(), // Last time guild mercenaries were refreshed
             inventory: [],
             blacksmith: { purchasable: [], craftable: [] },
             marketplace: { enabled: true, items: [] },
@@ -1483,6 +1486,7 @@
                 this.inn.capacity = user.innCapacity || 6;
                 this.innUpgradeCost = user.innUpgradeCost || 500;
                 this.mercenaryGuild = user.mercenaryGuild || { slots: 3, availableMercenaries: [] };
+                this.lastGuildRefresh = user.lastGuildRefresh || Date.now();
                 this.marketplace.items = user.marketplaceItems || [];
                 this.isAdmin = user.isAdmin || false;
                 this.gameSpeed = user.gameSpeed || 1;
@@ -1761,6 +1765,9 @@
             renderGuildList() {
                 const container = document.getElementById('mercenary-list');
                 if (!container) return;
+
+                // Check if guild needs refresh
+                this.checkGuildRefresh();
 
                 container.innerHTML = '';
                 document.getElementById('guild-slots').textContent = this.mercenaryGuild.slots;
@@ -2254,16 +2261,41 @@
                 // Reset stats to base
                 char.stats = { ...char.baseStats };
 
+                // Store base stats before equipment for legendary equipment calculation
+                const baseStatsBeforeEquip = { ...char.stats };
+
                 // Add equipment bonuses
+                let hasLegendaryEquipment = false;
                 Object.values(char.equipment).forEach(item => {
                     if (item && item.stats) {
+                        // Check if this is a legendary equipment (has skill property)
+                        const isLegendary = item.skill !== undefined;
+                        if (isLegendary) hasLegendaryEquipment = true;
+
                         Object.entries(item.stats).forEach(([stat, value]) => {
                             if (char.stats[stat] !== undefined) {
-                                char.stats[stat] += value;
+                                // Legendary equipment: 200% stats (2x multiplier)
+                                const multiplier = isLegendary ? 2 : 1;
+                                char.stats[stat] += value * multiplier;
                             }
                         });
                     }
                 });
+
+                // Legendary equipment bonus: +20% of current stats (excluding equipment)
+                if (hasLegendaryEquipment) {
+                    Object.keys(baseStatsBeforeEquip).forEach(stat => {
+                        char.stats[stat] += Math.floor(baseStatsBeforeEquip[stat] * 0.2);
+                    });
+                }
+
+                // Calculate critical chance: DEX * 10%
+                char.criticalChance = (char.stats.dex || 0) * 0.1;
+
+                // Legendary equipment bonus: +50% critical chance
+                if (hasLegendaryEquipment) {
+                    char.criticalChance += 50;
+                }
 
                 // Recalculate HP/MP
                 char.maxHp = char.stats.hp * 10;
@@ -2273,48 +2305,28 @@
             },
 
             renderZoneSelect() {
-                const container = document.getElementById('zone-select');
-                container.innerHTML = '';
-
-                Object.keys(ZONES).forEach(zoneId => {
-                    const zone = ZONES[zoneId];
-                    const isUnlocked = this.unlockedZones.includes(zoneId);
-                    const div = document.createElement('div');
-                    div.className = `stage-zone ${!isUnlocked ? 'locked' : ''} ${this.currentZone === zoneId ? 'active' : ''}`;
-                    div.innerHTML = `<strong>${zoneId.toUpperCase()}</strong><br>${zone.name}`;
-                    div.style.borderColor = zone.color;
-
-                    if (isUnlocked) {
-                        div.onclick = () => {
-                            this.currentZone = zoneId;
-                            this.renderZoneSelect();
-                            this.renderSubstageSelect();
-                        };
-                    }
-
-                    container.appendChild(div);
-                });
+                // Legacy function - now updates floor display
+                this.updateFloorDisplay();
             },
 
             renderSubstageSelect() {
-                const container = document.getElementById('substage-select');
-                container.innerHTML = '';
+                // Legacy function - now updates floor display
+                this.updateFloorDisplay();
+            },
 
-                for (let i = 1; i <= 10; i++) {
-                    const isUnlocked = i <= this.unlockedStages[this.currentZone];
-                    const btn = document.createElement('button');
-                    btn.className = `substage-btn ${!isUnlocked ? 'locked' : ''} ${this.currentStage === i ? 'active' : ''}`;
-                    btn.textContent = `${this.currentZone.toUpperCase()}-${i}`;
+            updateFloorDisplay() {
+                const floorDiv = document.getElementById('floor-display');
+                const zoneDiv = document.getElementById('zone-name-display');
 
-                    if (isUnlocked) {
-                        btn.onclick = () => {
-                            this.currentStage = i;
-                            this.renderSubstageSelect();
-                            this.updateDisplay();
-                        };
-                    }
+                if (floorDiv && zoneDiv) {
+                    const currentFloor = this.currentFloor || 1;
+                    const currentZone = getZoneFromFloor(currentFloor);
+                    const zoneName = ZONES[currentZone].name;
+                    const zoneColor = ZONES[currentZone].color;
 
-                    container.appendChild(btn);
+                    floorDiv.textContent = `${currentFloor}층`;
+                    floorDiv.style.color = zoneColor;
+                    zoneDiv.textContent = zoneName;
                 }
             },
 
@@ -2517,7 +2529,19 @@
                     baseDamage = attacker.stats.int * 2 + attacker.stats.mp / 2;
                 }
 
-                const damage = Math.floor(baseDamage * skill.power * (0.9 + Math.random() * 0.2));
+                let damage = Math.floor(baseDamage * skill.power * (0.9 + Math.random() * 0.2));
+
+                // Critical hit system: DEX * 10% chance
+                const critChance = attacker.criticalChance || 0;
+                const isCritical = Math.random() * 100 < critChance;
+
+                if (isCritical) {
+                    // Critical damage: 200% (2x) base damage
+                    // Can be increased by equipment/skills in the future
+                    const critMultiplier = 2.0;
+                    damage = Math.floor(damage * critMultiplier);
+                }
+
                 return Math.max(1, damage);
             },
 
@@ -2772,6 +2796,10 @@
 
                         // Add hover tooltip
                         slot.addEventListener('mouseenter', (e) => {
+                            // Remove any existing tooltip first
+                            const existingTooltip = document.getElementById('item-tooltip');
+                            if (existingTooltip) existingTooltip.remove();
+
                             const tooltip = document.createElement('div');
                             tooltip.className = 'item-tooltip';
                             tooltip.textContent = name;
@@ -2825,6 +2853,10 @@
 
                     // Add hover tooltip
                     slot.addEventListener('mouseenter', (e) => {
+                        // Remove any existing tooltip first
+                        const existingTooltip = document.getElementById('item-tooltip');
+                        if (existingTooltip) existingTooltip.remove();
+
                         const tooltip = document.createElement('div');
                         tooltip.className = 'item-tooltip';
                         tooltip.innerHTML = tooltipText.replace(/\n/g, '<br>');
@@ -3004,6 +3036,9 @@
                 document.getElementById('gold-display').textContent = `골드: ${this.gold}`;
                 document.getElementById('auto-battle-status').textContent =
                     `자동 전투: ${this.autoBattle ? 'ON' : 'OFF'}`;
+
+                // Update floor display
+                this.updateFloorDisplay();
             },
 
             // Inn System
@@ -3071,6 +3106,20 @@
                         grade: randomGrade,
                         name: `${classData.name}${Math.floor(Math.random() * 1000)}`
                     });
+                }
+
+                // Update last refresh time
+                this.lastGuildRefresh = Date.now();
+            },
+
+            checkGuildRefresh() {
+                // Check if 6 hours (21600000 ms) have passed since last refresh
+                const sixHours = 6 * 60 * 60 * 1000;
+                const now = Date.now();
+                if (now - this.lastGuildRefresh >= sixHours) {
+                    this.generateMercenaries();
+                    this.renderGuildList();
+                    this.addLog('용병 길드의 용병 목록이 갱신되었습니다!');
                 }
             },
 
@@ -3779,6 +3828,7 @@
                 user.innCapacity = this.inn.capacity;
                 user.innUpgradeCost = this.innUpgradeCost;
                 user.mercenaryGuild = this.mercenaryGuild;
+                user.lastGuildRefresh = this.lastGuildRefresh;
                 user.marketplaceItems = this.marketplace.items;
                 user.gameSpeed = this.gameSpeed;
                 user.partyAssignments = this.partyAssignments;
