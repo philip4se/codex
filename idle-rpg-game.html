@@ -346,6 +346,26 @@
             border-radius: 3px;
         }
 
+        .item-tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.95);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+            pointer-events: none;
+            border: 2px solid #4CAF50;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .item-icon {
+            font-size: 24px;
+            display: block;
+            margin-bottom: 2px;
+        }
+
         .stage-select {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -890,6 +910,18 @@
                     <button class="btn btn-danger" onclick="game.saveGame()">저장</button>
                     <button class="btn btn-primary" onclick="game.loadGame()">불러오기</button>
                 </div>
+
+                <!-- Speed Controls -->
+                <div style="text-align: center; margin-top: 15px;">
+                    <div style="margin-bottom: 10px; font-size: 14px;">전투 속도: <span id="speed-display">1x</span></div>
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <button class="btn btn-primary" onclick="game.setGameSpeed(1)" style="padding: 8px 16px;">1x</button>
+                        <button class="btn btn-primary" onclick="game.setGameSpeed(2)" style="padding: 8px 16px;">2x</button>
+                        <button class="btn btn-primary" onclick="game.setGameSpeed(3)" style="padding: 8px 16px;">3x</button>
+                        <button class="btn btn-primary" onclick="game.setGameSpeed(5)" style="padding: 8px 16px;">5x</button>
+                        <button class="btn btn-primary" onclick="game.setGameSpeed(100)" style="padding: 8px 16px;">100x</button>
+                    </div>
+                </div>
             </div>
 
             <!-- Right Panel: Multiple Systems -->
@@ -900,6 +932,7 @@
                     <div class="tab" onclick="game.switchTab('guild')">용병길드</div>
                     <div class="tab" onclick="game.switchTab('blacksmith')">대장간</div>
                     <div class="tab" onclick="game.switchTab('marketplace')">거래소</div>
+                    <div class="tab" onclick="game.switchTab('encyclopedia')">백과사전</div>
                 </div>
 
                 <div id="inventory-tab" class="tab-content active">
@@ -946,6 +979,17 @@
                     <div class="panel-title" style="margin-top: 15px;">판매 중인 아이템</div>
                     <div id="marketplace-list" style="max-height: 400px; overflow-y: auto;"></div>
                 </div>
+
+                <div id="encyclopedia-tab" class="tab-content">
+                    <div class="panel-title">백과사전</div>
+                    <div class="tabs" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-bottom: 15px;">
+                        <div class="tab active" onclick="game.switchEncyclopediaTab('monster')">몬스터</div>
+                        <div class="tab" onclick="game.switchEncyclopediaTab('item')">아이템</div>
+                        <div class="tab" onclick="game.switchEncyclopediaTab('equipment')">장비</div>
+                        <div class="tab" onclick="game.switchEncyclopediaTab('zone')">구역</div>
+                    </div>
+                    <div id="encyclopedia-content" style="max-height: 500px; overflow-y: auto; font-size: 12px;"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -956,6 +1000,7 @@
             <div class="modal-header">새 캐릭터 생성</div>
             <label>이름: <input type="text" id="char-name-input" style="padding: 5px; margin-left: 10px;"></label>
             <div class="class-select-grid" id="class-select"></div>
+            <button class="btn btn-danger" onclick="game.closeModal('character-creation-modal')" style="width: 100%; margin-top: 20px;">취소</button>
         </div>
     </div>
 
@@ -965,6 +1010,28 @@
             <div class="modal-header" id="char-detail-header">캐릭터 상세</div>
             <div id="char-detail-content"></div>
             <button class="btn btn-danger" onclick="game.closeModal('character-detail-modal')" style="width: 100%; margin-top: 20px;">닫기</button>
+        </div>
+    </div>
+
+    <!-- Mercenary Equipment Modal -->
+    <div class="modal" id="mercenary-equipment-modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header" id="merc-equip-header">용병 장비</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <!-- Equipment Slots -->
+                <div>
+                    <div style="font-size: 14px; margin-bottom: 10px; font-weight: bold;">장비 슬롯</div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;" id="equipment-slots-grid"></div>
+                </div>
+                <!-- Inventory -->
+                <div>
+                    <div style="font-size: 14px; margin-bottom: 10px; font-weight: bold;">인벤토리 (클릭하여 장착)</div>
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;" id="equip-inventory-grid"></div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-danger" onclick="game.closeModal('mercenary-equipment-modal')" style="width: 100%; margin-top: 20px;">닫기</button>
         </div>
     </div>
 
@@ -1248,6 +1315,44 @@
             ]
         };
 
+        // Icon mapping functions
+        function getItemIcon(itemName, itemType = null) {
+            // Material icons
+            const materialIcons = {
+                ice: '❄️', lava: '🔥', forest: '🌿', ocean: '🌊', dark: '🌑'
+            };
+
+            // Equipment type icons
+            const equipmentIcons = {
+                leftWeapon: '⚔️', rightWeapon: '🛡️', helmet: '⛑️',
+                armor: '🎽', leggings: '👖', boots: '👢',
+                leftEarring: '💎', rightEarring: '💎',
+                leftRing: '💍', rightRing: '💍'
+            };
+
+            // Check for theme in item name
+            for (const [theme, icon] of Object.entries(materialIcons)) {
+                const themeMaterials = MATERIALS[theme] || [];
+                if (themeMaterials.includes(itemName)) {
+                    return icon;
+                }
+            }
+
+            // Check equipment type
+            if (itemType && equipmentIcons[itemType]) {
+                return equipmentIcons[itemType];
+            }
+
+            // Default icons based on name keywords
+            if (itemName.includes('얼음') || itemName.includes('빙') || itemName.includes('서리')) return '❄️';
+            if (itemName.includes('용암') || itemName.includes('화염') || itemName.includes('불')) return '🔥';
+            if (itemName.includes('나무') || itemName.includes('숲') || itemName.includes('자연')) return '🌿';
+            if (itemName.includes('바다') || itemName.includes('물') || itemName.includes('파도')) return '🌊';
+            if (itemName.includes('어둠') || itemName.includes('저주') || itemName.includes('망')) return '🌑';
+
+            return '📦'; // Default icon
+        }
+
         // Main Game Object
         const game = {
             parties: Array(10).fill(null).map(() => []), // 10 parties
@@ -1261,6 +1366,7 @@
             autoBattle: false,
             inBattle: false,
             enemies: [],
+            bossPhase: 1,
             inn: { capacity: 6, mercenaries: [] },
             innUpgradeCost: 500,
             mercenaryGuild: { slots: 3, availableMercenaries: [] },
@@ -1269,6 +1375,8 @@
             blacksmith: { purchasable: [], craftable: [] },
             marketplace: { enabled: true, items: [] },
             isAdmin: false,
+            gameSpeed: 1,
+            partyAssignments: Array(10).fill(null).map(() => ({ zone: 'a', stage: 1 })),
 
             get party() {
                 return this.parties[this.currentPartyIndex];
@@ -1328,6 +1436,8 @@
                 this.mercenaryGuild = user.mercenaryGuild || { slots: 3, availableMercenaries: [] };
                 this.marketplace.items = user.marketplaceItems || [];
                 this.isAdmin = user.isAdmin || false;
+                this.gameSpeed = user.gameSpeed || 1;
+                this.partyAssignments = user.partyAssignments || Array(10).fill(null).map(() => ({ zone: 'a', stage: 1 }));
 
                 if (!this.mercenaryGuild.availableMercenaries || this.mercenaryGuild.availableMercenaries.length === 0) {
                     this.generateMercenaries();
@@ -1463,6 +1573,37 @@
                 const container = document.getElementById('party-list');
                 container.innerHTML = '';
 
+                // Add party zone assignment
+                const assignment = this.partyAssignments[this.currentPartyIndex];
+                const assignmentDiv = document.createElement('div');
+                assignmentDiv.style.cssText = 'background: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; margin-bottom: 10px;';
+                assignmentDiv.innerHTML = `
+                    <div style="font-size: 12px; margin-bottom: 5px; font-weight: bold;">파티 사냥 지역</div>
+                    <div style="display: flex; gap: 5px; margin-bottom: 5px;">
+                        ${Object.keys(ZONES).map(zoneKey => {
+                            const zone = ZONES[zoneKey];
+                            const isUnlocked = this.unlockedZones.includes(zoneKey);
+                            const isActive = assignment.zone === zoneKey;
+                            return `<button class="btn ${isActive ? 'btn-success' : 'btn-primary'}"
+                                style="flex: 1; padding: 5px; font-size: 10px; ${!isUnlocked ? 'opacity: 0.3; cursor: not-allowed;' : ''}"
+                                onclick="game.setPartyZone(${this.currentPartyIndex}, '${zoneKey}')"
+                                ${!isUnlocked ? 'disabled' : ''}>
+                                ${zone.name}
+                            </button>`;
+                        }).join('')}
+                    </div>
+                    <select onchange="game.setPartyStage(${this.currentPartyIndex}, parseInt(this.value))"
+                        style="width: 100%; padding: 5px; background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 3px;">
+                        ${Array.from({length: 10}, (_, i) => i + 1).map(stageNum => {
+                            const isUnlocked = stageNum <= this.unlockedStages[assignment.zone];
+                            return `<option value="${stageNum}" ${assignment.stage === stageNum ? 'selected' : ''} ${!isUnlocked ? 'disabled' : ''}>
+                                ${assignment.zone.toUpperCase()}-${stageNum}${!isUnlocked ? ' (잠김)' : ''}
+                            </option>`;
+                        }).join('')}
+                    </select>
+                `;
+                container.appendChild(assignmentDiv);
+
                 this.party.forEach(char => {
                     const classData = CLASSES[char.class];
                     const gradeData = MERCENARY_GRADES[char.grade || 'common'];
@@ -1492,8 +1633,11 @@
                             <div class="stat-item">EXP: ${char.exp}/${char.expToNext}</div>
                         </div>
                         ${char.availableStats > 0 ? `<div style="color: #ffeb3b; margin-top: 5px; font-size: 11px;">스탯 포인트: ${char.availableStats}</div>` : ''}
+                        <div style="display: flex; gap: 5px; margin-top: 8px;">
+                            <button class="btn btn-primary" onclick="event.stopPropagation(); game.showMercenaryEquipment(${char.id})" style="flex: 1; padding: 5px; font-size: 10px;">장비</button>
+                            <button class="btn btn-success" onclick="event.stopPropagation(); game.showCharacterDetail(this.party.find(c => c.id === ${char.id}))" style="flex: 1; padding: 5px; font-size: 10px;">상세</button>
+                        </div>
                     `;
-                    card.onclick = () => this.showCharacterDetail(char);
                     container.appendChild(card);
                 });
 
@@ -1507,10 +1651,28 @@
                 if (!container) return;
 
                 container.innerHTML = '';
-                document.getElementById('inn-capacity').textContent = `${this.inn.mercenaries.length}/${this.inn.capacity}`;
+
+                // Count total mercenaries
+                const totalMercs = this.inn.mercenaries.length + this.parties.reduce((sum, party) => sum + party.length, 0);
+                document.getElementById('inn-capacity').textContent = `${this.inn.mercenaries.length}/${this.inn.capacity} (전체: ${totalMercs})`;
                 document.getElementById('inn-cost').textContent = this.innUpgradeCost;
 
+                // Show all mercenaries with party badges
+                const allMercenaries = [];
+
+                // Add inn mercenaries
                 this.inn.mercenaries.forEach(char => {
+                    allMercenaries.push({ char, location: '여관', partyIndex: -1 });
+                });
+
+                // Add party mercenaries
+                this.parties.forEach((party, partyIndex) => {
+                    party.forEach(char => {
+                        allMercenaries.push({ char, location: `파티${partyIndex + 1}`, partyIndex });
+                    });
+                });
+
+                allMercenaries.forEach(({ char, location, partyIndex }) => {
                     const classData = CLASSES[char.class];
                     const gradeData = MERCENARY_GRADES[char.grade || 'common'];
                     const gradeColors = {
@@ -1522,17 +1684,22 @@
                     };
                     const card = document.createElement('div');
                     card.className = 'character-card';
+                    const locationBadge = location === '여관'
+                        ? '<span style="background: rgba(0,123,255,0.3); padding: 2px 6px; border-radius: 3px; font-size: 10px; margin-left: 5px;">여관</span>'
+                        : `<span style="background: rgba(76,175,80,0.3); padding: 2px 6px; border-radius: 3px; font-size: 10px; margin-left: 5px;">${location}</span>`;
+
                     card.innerHTML = `
                         <div class="character-info">
                             <div>
                                 <span style="font-size: 20px;">${classData.icon}</span>
                                 <strong>${char.name}</strong> (Lv.${char.level})
+                                ${locationBadge}
                             </div>
                             <div style="font-size: 11px; color: ${gradeColors[char.grade || 'common']};">${gradeData.name}</div>
                         </div>
-                        <button class="btn btn-success" onclick="game.moveToParty(${char.id})" style="width: 100%; margin-top: 5px; padding: 5px; font-size: 11px;">
+                        ${location === '여관' ? `<button class="btn btn-success" onclick="game.moveToParty(${char.id})" style="width: 100%; margin-top: 5px; padding: 5px; font-size: 11px;">
                             파티로 이동
-                        </button>
+                        </button>` : ''}
                     `;
                     container.appendChild(card);
                 });
@@ -1689,6 +1856,171 @@
                 this.renderPartyList();
             },
 
+            showMercenaryEquipment(charId) {
+                const char = this.party.find(c => c.id === charId);
+                if (!char) return;
+
+                const modal = document.getElementById('mercenary-equipment-modal');
+                const header = document.getElementById('merc-equip-header');
+                const classData = CLASSES[char.class];
+
+                header.innerHTML = `${classData.icon} ${char.name} - 장비 관리`;
+
+                // Render equipment slots
+                this.renderEquipmentSlots(char);
+
+                // Render inventory
+                this.renderEquipInventory(char);
+
+                modal.classList.add('active');
+            },
+
+            renderEquipmentSlots(char) {
+                const container = document.getElementById('equipment-slots-grid');
+                if (!container) return;
+
+                container.innerHTML = '';
+
+                const slotNames = {
+                    leftWeapon: '왼손 무기',
+                    rightWeapon: '오른손 무기',
+                    helmet: '투구',
+                    armor: '갑옷',
+                    leggings: '각반',
+                    boots: '신발',
+                    leftEarring: '왼쪽 귀걸이',
+                    rightEarring: '오른쪽 귀걸이',
+                    leftRing: '왼쪽 반지',
+                    rightRing: '오른쪽 반지'
+                };
+
+                EQUIPMENT_SLOTS.forEach(slotType => {
+                    const item = char.equipment[slotType];
+                    const slotDiv = document.createElement('div');
+                    slotDiv.style.cssText = 'background: rgba(0,0,0,0.5); border: 2px solid #666; border-radius: 5px; padding: 10px; min-height: 80px; cursor: pointer;';
+
+                    if (item) {
+                        const icon = getItemIcon(item.name, item.type);
+                        slotDiv.style.borderColor = item.skill ? '#f39c12' : '#4CAF50';
+                        slotDiv.innerHTML = `
+                            <div style="font-size: 10px; color: #aaa; margin-bottom: 5px;">${slotNames[slotType]}</div>
+                            <div style="font-size: 20px; text-align: center;">${icon}</div>
+                            <div style="font-size: 11px; text-align: center; margin-top: 5px;">${item.name}</div>
+                            ${item.enhancement > 0 ? `<div style="font-size: 10px; color: #4CAF50; text-align: center;">+${item.enhancement}</div>` : ''}
+                        `;
+                        slotDiv.onclick = () => this.unequipItem(char.id, slotType);
+                    } else {
+                        slotDiv.innerHTML = `
+                            <div style="font-size: 10px; color: #aaa; margin-bottom: 5px;">${slotNames[slotType]}</div>
+                            <div style="text-align: center; color: #666; margin-top: 10px; font-size: 24px;">⬚</div>
+                            <div style="font-size: 10px; text-align: center; color: #666; margin-top: 5px;">비어있음</div>
+                        `;
+                    }
+
+                    container.appendChild(slotDiv);
+                });
+            },
+
+            renderEquipInventory(char) {
+                const container = document.getElementById('equip-inventory-grid');
+                if (!container) return;
+
+                container.innerHTML = '';
+
+                this.inventory.forEach((item, index) => {
+                    const itemDiv = document.createElement('div');
+                    const icon = getItemIcon(item.name, item.type);
+                    itemDiv.style.cssText = 'background: rgba(0,0,0,0.5); border: 2px solid #666; border-radius: 5px; padding: 8px; cursor: pointer; transition: all 0.2s;';
+                    itemDiv.style.borderColor = item.skill ? '#f39c12' : '#666';
+
+                    itemDiv.innerHTML = `
+                        <div style="font-size: 24px; text-align: center;">${icon}</div>
+                        <div style="font-size: 10px; text-align: center; margin-top: 5px;">${item.name}</div>
+                        ${item.enhancement > 0 ? `<div style="font-size: 9px; color: #4CAF50; text-align: center;">+${item.enhancement}</div>` : ''}
+                    `;
+
+                    itemDiv.onmouseenter = () => {
+                        itemDiv.style.borderColor = '#4CAF50';
+                        itemDiv.style.transform = 'scale(1.05)';
+                    };
+
+                    itemDiv.onmouseleave = () => {
+                        itemDiv.style.borderColor = item.skill ? '#f39c12' : '#666';
+                        itemDiv.style.transform = 'scale(1)';
+                    };
+
+                    itemDiv.onclick = () => this.equipItem(char.id, index);
+
+                    container.appendChild(itemDiv);
+                });
+            },
+
+            equipItem(charId, itemIndex) {
+                const char = this.party.find(c => c.id === charId);
+                if (!char) return;
+
+                const item = this.inventory[itemIndex];
+                if (!item) return;
+
+                // Unequip existing item in that slot
+                if (char.equipment[item.type]) {
+                    this.inventory.push(char.equipment[item.type]);
+                }
+
+                // Equip new item
+                char.equipment[item.type] = item;
+                this.inventory.splice(itemIndex, 1);
+
+                // Update character stats
+                this.updateCharacterStats(char);
+
+                // Re-render
+                this.renderEquipmentSlots(char);
+                this.renderEquipInventory(char);
+                this.renderPartyList();
+                this.renderMaterials();
+            },
+
+            unequipItem(charId, slotType) {
+                const char = this.party.find(c => c.id === charId);
+                if (!char || !char.equipment[slotType]) return;
+
+                // Add to inventory
+                this.inventory.push(char.equipment[slotType]);
+                char.equipment[slotType] = null;
+
+                // Update character stats
+                this.updateCharacterStats(char);
+
+                // Re-render
+                this.renderEquipmentSlots(char);
+                this.renderEquipInventory(char);
+                this.renderPartyList();
+                this.renderMaterials();
+            },
+
+            updateCharacterStats(char) {
+                // Reset stats to base
+                char.stats = { ...char.baseStats };
+
+                // Add equipment bonuses
+                Object.values(char.equipment).forEach(item => {
+                    if (item && item.stats) {
+                        Object.entries(item.stats).forEach(([stat, value]) => {
+                            if (char.stats[stat] !== undefined) {
+                                char.stats[stat] += value;
+                            }
+                        });
+                    }
+                });
+
+                // Recalculate HP/MP
+                char.maxHp = char.stats.hp * 10;
+                char.maxMp = char.stats.mp * 10;
+                char.currentHp = Math.min(char.currentHp, char.maxHp);
+                char.currentMp = Math.min(char.currentMp, char.maxMp);
+            },
+
             renderZoneSelect() {
                 const container = document.getElementById('zone-select');
                 container.innerHTML = '';
@@ -1744,12 +2076,13 @@
 
                 this.inBattle = true;
                 document.getElementById('battle-btn').disabled = true;
+                this.bossPhase = 1; // Reset boss phase
 
                 this.generateEnemies();
                 this.renderBattlefield();
                 this.addLog('--- 전투 시작! ---');
 
-                setTimeout(() => this.battleLoop(), 1000);
+                setTimeout(() => this.battleLoop(), 1000 / this.gameSpeed);
             },
 
             generateEnemies() {
@@ -1761,21 +2094,61 @@
                 const zone = ZONES[this.currentZone];
                 const isBossStage = this.currentStage === 10;
 
-                for (let i = 0; i < 5; i++) {
-                    const isBoss = isBossStage && i === 0;
-                    const baseHp = 50 + Math.random() * 30;
-                    const baseAtk = 5 + Math.random() * 10;
+                // Boss Stage 2-Phase System
+                if (isBossStage) {
+                    if (this.bossPhase === 1) {
+                        // Phase 1: 5 normal monsters
+                        for (let i = 0; i < 5; i++) {
+                            const baseHp = 50 + Math.random() * 30;
+                            const baseAtk = 5 + Math.random() * 10;
 
-                    this.enemies.push({
-                        id: `enemy-${i}`,
-                        name: isBoss ? `${zone.name} 보스` : `몬스터 ${i + 1}`,
-                        currentHp: baseHp * totalMultiplier * (isBoss ? 2 : 1),
-                        maxHp: baseHp * totalMultiplier * (isBoss ? 2 : 1),
-                        attack: baseAtk * totalMultiplier * (isBoss ? 2 : 1),
-                        isBoss: isBoss,
-                        bossSkill: isBoss ? BOSS_SKILLS[zone.theme] : null,
-                        alive: true
-                    });
+                            this.enemies.push({
+                                id: `enemy-${i}`,
+                                name: `${zone.name} 몬스터 ${i + 1}`,
+                                currentHp: baseHp * totalMultiplier,
+                                maxHp: baseHp * totalMultiplier,
+                                attack: baseAtk * totalMultiplier,
+                                isBoss: false,
+                                bossSkill: null,
+                                alive: true
+                            });
+                        }
+                    } else {
+                        // Phase 2: 1 boss + 4 normal monsters
+                        for (let i = 0; i < 5; i++) {
+                            const isBoss = i === 0;
+                            const baseHp = 50 + Math.random() * 30;
+                            const baseAtk = 5 + Math.random() * 10;
+
+                            this.enemies.push({
+                                id: `enemy-${i}`,
+                                name: isBoss ? `${zone.name} 보스` : `${zone.name} 몬스터 ${i + 1}`,
+                                currentHp: baseHp * totalMultiplier * (isBoss ? 3 : 1),
+                                maxHp: baseHp * totalMultiplier * (isBoss ? 3 : 1),
+                                attack: baseAtk * totalMultiplier * (isBoss ? 2 : 1),
+                                isBoss: isBoss,
+                                bossSkill: isBoss ? BOSS_SKILLS[zone.theme] : null,
+                                alive: true
+                            });
+                        }
+                    }
+                } else {
+                    // Normal stage
+                    for (let i = 0; i < 5; i++) {
+                        const baseHp = 50 + Math.random() * 30;
+                        const baseAtk = 5 + Math.random() * 10;
+
+                        this.enemies.push({
+                            id: `enemy-${i}`,
+                            name: `몬스터 ${i + 1}`,
+                            currentHp: baseHp * totalMultiplier,
+                            maxHp: baseHp * totalMultiplier,
+                            attack: baseAtk * totalMultiplier,
+                            isBoss: false,
+                            bossSkill: null,
+                            alive: true
+                        });
+                    }
                 }
             },
 
@@ -1792,6 +2165,16 @@
                 }
 
                 if (aliveEnemies.length === 0) {
+                    // Check for boss phase transition
+                    const isBossStage = this.currentStage === 10;
+                    if (isBossStage && this.bossPhase === 1) {
+                        this.bossPhase = 2;
+                        this.addLog('--- 페이즈 2 시작! 보스 등장! ---');
+                        this.generateEnemies();
+                        this.renderBattlefield();
+                        setTimeout(() => this.battleLoop(), 1000 / this.gameSpeed);
+                        return;
+                    }
                     this.endBattle(true);
                     return;
                 }
@@ -1800,7 +2183,7 @@
                 aliveParty.forEach((char, index) => {
                     setTimeout(() => {
                         this.performAction(char, true);
-                    }, index * 800);
+                    }, index * (800 / this.gameSpeed));
                 });
 
                 // Enemy turn
@@ -1808,11 +2191,11 @@
                     aliveEnemies.forEach((enemy, index) => {
                         setTimeout(() => {
                             this.performAction(enemy, false);
-                        }, index * 600);
+                        }, index * (600 / this.gameSpeed));
                     });
 
-                    setTimeout(() => this.battleLoop(), aliveEnemies.length * 600 + 500);
-                }, aliveParty.length * 800 + 500);
+                    setTimeout(() => this.battleLoop(), (aliveEnemies.length * 600 + 500) / this.gameSpeed);
+                }, (aliveParty.length * 800 + 500) / this.gameSpeed);
             },
 
             performAction(unit, isPlayer) {
@@ -1935,10 +2318,12 @@
                         }
                     });
 
-                    // Unlock next stage (infinite progression)
+                    // Unlock next stage (infinite progression) and auto-progress
                     if (this.currentStage >= this.unlockedStages[this.currentZone]) {
                         if (this.currentStage < 10) {
                             this.unlockedStages[this.currentZone] = this.currentStage + 1;
+                            this.currentStage = this.currentStage + 1;
+                            this.addLog(`다음 스테이지로 이동합니다: ${this.currentZone.toUpperCase()}-${this.currentStage}`);
                         } else {
                             const zones = Object.keys(ZONES);
                             const currentZoneIndex = zones.indexOf(this.currentZone);
@@ -1948,12 +2333,11 @@
                             if (!this.unlockedZones.includes(nextZone)) {
                                 this.unlockedZones.push(nextZone);
                                 this.addLog(`새로운 구역 ${ZONES[nextZone].name}이(가) 해금되었습니다!`);
-                            } else {
-                                // Already completed all zones, loop back
-                                this.currentZone = nextZone;
-                                this.currentStage = 1;
-                                this.addLog(`모든 구역을 클리어했습니다! ${ZONES[nextZone].name}부터 다시 시작합니다.`);
                             }
+                            // Move to next zone's first stage
+                            this.currentZone = nextZone;
+                            this.currentStage = 1;
+                            this.addLog(`${ZONES[nextZone].name} 구역으로 이동합니다!`);
                         }
                     }
 
@@ -1968,7 +2352,7 @@
                     this.renderMaterials();
 
                     if (this.autoBattle) {
-                        setTimeout(() => this.startBattle(), 2000);
+                        setTimeout(() => this.startBattle(), 2000 / this.gameSpeed);
                     }
                 } else {
                     this.addLog('--- 패배... ---');
@@ -2056,11 +2440,37 @@
                     if (count > 0) {
                         const slot = document.createElement('div');
                         slot.className = 'item-slot';
+                        const icon = getItemIcon(name);
                         slot.innerHTML = `
-                            <div style="font-size: 20px;">📦</div>
+                            <div class="item-icon">${icon}</div>
                             <div class="item-count">${count}</div>
                         `;
                         slot.title = name;
+
+                        // Add hover tooltip
+                        slot.addEventListener('mouseenter', (e) => {
+                            const tooltip = document.createElement('div');
+                            tooltip.className = 'item-tooltip';
+                            tooltip.textContent = name;
+                            tooltip.style.left = e.pageX + 10 + 'px';
+                            tooltip.style.top = e.pageY + 10 + 'px';
+                            tooltip.id = 'item-tooltip';
+                            document.body.appendChild(tooltip);
+                        });
+
+                        slot.addEventListener('mousemove', (e) => {
+                            const tooltip = document.getElementById('item-tooltip');
+                            if (tooltip) {
+                                tooltip.style.left = e.pageX + 10 + 'px';
+                                tooltip.style.top = e.pageY + 10 + 'px';
+                            }
+                        });
+
+                        slot.addEventListener('mouseleave', () => {
+                            const tooltip = document.getElementById('item-tooltip');
+                            if (tooltip) tooltip.remove();
+                        });
+
                         grid.appendChild(slot);
                     }
                 });
@@ -2073,6 +2483,7 @@
                 this.inventory.forEach((item, index) => {
                     const slot = document.createElement('div');
                     slot.className = 'item-slot';
+                    const icon = getItemIcon(item.name, item.type);
                     const rarityColors = {
                         common: '#aaa',
                         uncommon: '#3498db',
@@ -2082,10 +2493,37 @@
                     };
                     slot.style.borderColor = item.skill ? '#f39c12' : '#666';
                     slot.innerHTML = `
-                        <div style="font-size: 16px;">⚔️</div>
+                        <div class="item-icon">${icon}</div>
                         ${item.enhancement > 0 ? `<div style="position: absolute; top: 2px; left: 4px; font-size: 10px; color: #4CAF50;">+${item.enhancement}</div>` : ''}
                     `;
-                    slot.title = `${item.name}${item.enhancement > 0 ? ' +' + item.enhancement : ''}\n${Object.entries(item.stats).map(([k, v]) => `${k}: ${v}`).join(', ')}`;
+
+                    const tooltipText = `${item.name}${item.enhancement > 0 ? ' +' + item.enhancement : ''}\n${Object.entries(item.stats).map(([k, v]) => `${k}: ${v}`).join(', ')}${item.skill ? '\n스킬: ' + item.skill : ''}`;
+                    slot.title = tooltipText;
+
+                    // Add hover tooltip
+                    slot.addEventListener('mouseenter', (e) => {
+                        const tooltip = document.createElement('div');
+                        tooltip.className = 'item-tooltip';
+                        tooltip.innerHTML = tooltipText.replace(/\n/g, '<br>');
+                        tooltip.style.left = e.pageX + 10 + 'px';
+                        tooltip.style.top = e.pageY + 10 + 'px';
+                        tooltip.id = 'item-tooltip';
+                        document.body.appendChild(tooltip);
+                    });
+
+                    slot.addEventListener('mousemove', (e) => {
+                        const tooltip = document.getElementById('item-tooltip');
+                        if (tooltip) {
+                            tooltip.style.left = e.pageX + 10 + 'px';
+                            tooltip.style.top = e.pageY + 10 + 'px';
+                        }
+                    });
+
+                    slot.addEventListener('mouseleave', () => {
+                        const tooltip = document.getElementById('item-tooltip');
+                        if (tooltip) tooltip.remove();
+                    });
+
                     equipGrid.appendChild(slot);
                 });
             },
@@ -2187,6 +2625,24 @@
                 if (this.autoBattle && !this.inBattle) {
                     this.startBattle();
                 }
+            },
+
+            setGameSpeed(speed) {
+                this.gameSpeed = speed;
+                document.getElementById('speed-display').textContent = `${speed}x`;
+            },
+
+            setPartyZone(partyIndex, zone) {
+                if (!this.unlockedZones.includes(zone)) return;
+                this.partyAssignments[partyIndex].zone = zone;
+                this.partyAssignments[partyIndex].stage = 1; // Reset to stage 1 when changing zones
+                this.renderPartyList();
+            },
+
+            setPartyStage(partyIndex, stage) {
+                const zone = this.partyAssignments[partyIndex].zone;
+                if (stage > this.unlockedStages[zone]) return;
+                this.partyAssignments[partyIndex].stage = stage;
             },
 
             addLog(message, type = 'normal') {
@@ -2471,6 +2927,10 @@
                     this.renderGuildList();
                 } else if (tabName === 'marketplace') {
                     this.renderMarketplace();
+                } else if (tabName === 'encyclopedia') {
+                    // Render default monster encyclopedia
+                    const container = document.getElementById('encyclopedia-content');
+                    this.renderMonsterEncyclopedia(container);
                 }
             },
 
@@ -2644,6 +3104,154 @@
                 });
             },
 
+            switchEncyclopediaTab(tabName) {
+                // Switch active tab button
+                const encyclopediaTabs = document.querySelectorAll('#encyclopedia-tab .tab');
+                encyclopediaTabs.forEach(tab => tab.classList.remove('active'));
+                event.target.classList.add('active');
+
+                // Render content based on tab
+                const container = document.getElementById('encyclopedia-content');
+                container.innerHTML = '';
+
+                switch(tabName) {
+                    case 'monster':
+                        this.renderMonsterEncyclopedia(container);
+                        break;
+                    case 'item':
+                        this.renderItemEncyclopedia(container);
+                        break;
+                    case 'equipment':
+                        this.renderEquipmentEncyclopedia(container);
+                        break;
+                    case 'zone':
+                        this.renderZoneEncyclopedia(container);
+                        break;
+                }
+            },
+
+            renderMonsterEncyclopedia(container) {
+                container.innerHTML = '<div style="font-size: 14px; margin-bottom: 10px; font-weight: bold;">몬스터 도감</div>';
+
+                Object.entries(ZONES).forEach(([zoneKey, zone]) => {
+                    const zoneDiv = document.createElement('div');
+                    zoneDiv.style.cssText = 'background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; padding: 10px; margin-bottom: 10px;';
+
+                    zoneDiv.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 8px; color: ${zone.color};">${zone.name}</div>
+                        <div style="margin-bottom: 5px;"><strong>일반 몬스터:</strong></div>
+                        <div style="padding-left: 10px; margin-bottom: 5px;">• 기본 공격력: 5-15 (스테이지별 증가)</div>
+                        <div style="padding-left: 10px; margin-bottom: 5px;">• 기본 체력: 50-80 (스테이지별 증가)</div>
+                        <div style="margin-top: 8px;"><strong>보스 몬스터 (스테이지 10):</strong></div>
+                        <div style="padding-left: 10px; margin-bottom: 5px;">• ${zone.name} 보스</div>
+                        <div style="padding-left: 10px; margin-bottom: 5px;">• 스킬: ${BOSS_SKILLS[zone.theme].name} - ${BOSS_SKILLS[zone.theme].description}</div>
+                        <div style="padding-left: 10px; margin-bottom: 5px;">• 체력: 일반 몬스터의 3배</div>
+                        <div style="padding-left: 10px; margin-bottom: 5px;">• 공격력: 일반 몬스터의 2배</div>
+                        <div style="margin-top: 8px;"><strong>드롭 재료:</strong></div>
+                        <div style="padding-left: 10px;">${MATERIALS[zone.theme].slice(0, 5).join(', ')}...</div>
+                    `;
+
+                    container.appendChild(zoneDiv);
+                });
+            },
+
+            renderItemEncyclopedia(container) {
+                container.innerHTML = '<div style="font-size: 14px; margin-bottom: 10px; font-weight: bold;">아이템 도감</div>';
+
+                Object.entries(MATERIALS).forEach(([theme, materials]) => {
+                    const zone = Object.values(ZONES).find(z => z.theme === theme);
+                    const themeDiv = document.createElement('div');
+                    themeDiv.style.cssText = 'background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; padding: 10px; margin-bottom: 10px;';
+
+                    themeDiv.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 8px; color: ${zone.color};">${zone.name} 재료</div>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px;">
+                            ${materials.map(material => {
+                                const icon = getItemIcon(material);
+                                return `<div style="background: rgba(0,0,0,0.3); padding: 5px; border-radius: 3px;">
+                                    <span style="font-size: 16px;">${icon}</span> ${material}
+                                </div>`;
+                            }).join('')}
+                        </div>
+                    `;
+
+                    container.appendChild(themeDiv);
+                });
+            },
+
+            renderEquipmentEncyclopedia(container) {
+                container.innerHTML = '<div style="font-size: 14px; margin-bottom: 10px; font-weight: bold;">장비 도감</div>';
+
+                Object.entries(LEGENDARY_EQUIPMENT).forEach(([theme, items]) => {
+                    const zone = Object.values(ZONES).find(z => z.theme === theme);
+                    const themeDiv = document.createElement('div');
+                    themeDiv.style.cssText = 'background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; padding: 10px; margin-bottom: 10px;';
+
+                    themeDiv.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 8px; color: ${zone.color};">${zone.name} 전설 장비</div>
+                        ${items.map(item => {
+                            const icon = getItemIcon(item.name, item.type);
+                            const slotNames = {
+                                leftWeapon: '왼손 무기', rightWeapon: '오른손 무기', helmet: '투구',
+                                armor: '갑옷', leggings: '각반', boots: '신발',
+                                leftEarring: '왼쪽 귀걸이', rightEarring: '오른쪽 귀걸이',
+                                leftRing: '왼쪽 반지', rightRing: '오른쪽 반지'
+                            };
+                            return `<div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 3px; margin-bottom: 5px; border: 1px solid #f39c12;">
+                                <div style="margin-bottom: 5px;">
+                                    <span style="font-size: 20px;">${icon}</span>
+                                    <strong style="color: #f39c12;">${item.name}</strong>
+                                    <span style="color: #aaa; font-size: 11px;">(${slotNames[item.type]})</span>
+                                </div>
+                                <div style="font-size: 11px; color: #aaa;">
+                                    스탯: ${Object.entries(item.stats).map(([k, v]) => `${k}:${v}`).join(', ')}
+                                </div>
+                                <div style="font-size: 11px; color: #4CAF50;">스킬: ${item.skill}</div>
+                                <div style="font-size: 10px; color: #888;">드롭률: ${(item.dropRate * 100).toFixed(3)}%</div>
+                            </div>`;
+                        }).join('')}
+                    `;
+
+                    container.appendChild(themeDiv);
+                });
+            },
+
+            renderZoneEncyclopedia(container) {
+                container.innerHTML = '<div style="font-size: 14px; margin-bottom: 10px; font-weight: bold;">구역 정보</div>';
+
+                Object.entries(ZONES).forEach(([zoneKey, zone]) => {
+                    const zoneDiv = document.createElement('div');
+                    zoneDiv.style.cssText = 'background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; padding: 10px; margin-bottom: 10px;';
+
+                    const legendaryItems = LEGENDARY_EQUIPMENT[zone.theme] || [];
+                    const materials = MATERIALS[zone.theme] || [];
+
+                    zoneDiv.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 8px; color: ${zone.color}; font-size: 16px;">${zone.name} (구역 ${zoneKey.toUpperCase()})</div>
+
+                        <div style="margin-bottom: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">몬스터:</div>
+                            <div style="padding-left: 10px;">• 일반 몬스터 (스테이지 1-10)</div>
+                            <div style="padding-left: 10px;">• ${zone.name} 보스 (스테이지 10 페이즈 2)</div>
+                        </div>
+
+                        <div style="margin-bottom: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">수집 가능 재료 (${materials.length}종):</div>
+                            <div style="padding-left: 10px; font-size: 11px;">${materials.slice(0, 10).join(', ')}${materials.length > 10 ? '...' : ''}</div>
+                        </div>
+
+                        <div>
+                            <div style="font-weight: bold; margin-bottom: 5px;">전설 장비 (${legendaryItems.length}종):</div>
+                            <div style="padding-left: 10px; font-size: 11px;">
+                                ${legendaryItems.map(item => item.name).join(', ')}
+                            </div>
+                        </div>
+                    `;
+
+                    container.appendChild(zoneDiv);
+                });
+            },
+
             saveGame() {
                 if (!auth.currentUser) {
                     this.addLog('로그인이 필요합니다.');
@@ -2675,6 +3283,8 @@
                 user.innUpgradeCost = this.innUpgradeCost;
                 user.mercenaryGuild = this.mercenaryGuild;
                 user.marketplaceItems = this.marketplace.items;
+                user.gameSpeed = this.gameSpeed;
+                user.partyAssignments = this.partyAssignments;
 
                 users[auth.currentUser] = user;
                 localStorage.setItem('rpg_users', JSON.stringify(users));
