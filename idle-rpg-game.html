@@ -753,21 +753,23 @@
                 </div>
             </div>
 
-            <!-- Right Panel: Inventory & Crafting -->
+            <!-- Right Panel: Inventory & Town -->
             <div class="side-panel">
                 <div class="tabs">
                     <div class="tab active" onclick="game.switchTab('inventory')">인벤토리</div>
-                    <div class="tab" onclick="game.switchTab('crafting')">제작</div>
+                    <div class="tab" onclick="game.switchTab('town')">마을</div>
                 </div>
 
                 <div id="inventory-tab" class="tab-content active">
                     <div class="panel-title">수집한 재료</div>
                     <div class="inventory-grid" id="materials-grid"></div>
+                    <div class="panel-title" style="margin-top: 20px;">장비</div>
+                    <div id="equipment-inventory" style="font-size: 11px; max-height: 200px; overflow-y: auto;"></div>
                 </div>
 
-                <div id="crafting-tab" class="tab-content">
-                    <div class="panel-title">아이템 제작</div>
-                    <div id="crafting-recipes"></div>
+                <div id="town-tab" class="tab-content">
+                    <div class="panel-title">마을</div>
+                    <div id="town-buildings"></div>
                 </div>
             </div>
         </div>
@@ -791,6 +793,15 @@
         </div>
     </div>
 
+    <!-- Town Building Modal -->
+    <div class="modal" id="town-building-modal">
+        <div class="modal-content">
+            <div class="modal-header" id="building-header">건물</div>
+            <div id="building-content"></div>
+            <button class="btn btn-danger" onclick="game.closeModal('town-building-modal')" style="width: 100%; margin-top: 20px;">닫기</button>
+        </div>
+    </div>
+
     <script>
         // Game Data & Constants
         const CLASSES = {
@@ -799,8 +810,8 @@
                 icon: '🛡️',
                 stats: { str: 10, dex: 4, int: 4, hp: 10, mp: 4 },
                 skills: [
-                    { name: '강타', power: 1.5, target: 'single', type: 'physical' },
-                    { name: '방어 태세', power: 0.5, target: 'self', type: 'buff', effect: 'defense' }
+                    { name: '강타', power: 1.5, target: 'single', type: 'physical', mpCost: 8 },
+                    { name: '방어 태세', power: 0.5, target: 'self', type: 'buff', effect: 'defense', mpCost: 12 }
                 ]
             },
             archer: {
@@ -808,8 +819,8 @@
                 icon: '🏹',
                 stats: { str: 6, dex: 10, int: 6, hp: 6, mp: 6 },
                 skills: [
-                    { name: '정밀 사격', power: 2.0, target: 'single', type: 'physical' },
-                    { name: '다중 사격', power: 0.8, target: 'all', type: 'physical' }
+                    { name: '정밀 사격', power: 2.0, target: 'single', type: 'physical', mpCost: 10 },
+                    { name: '다중 사격', power: 0.8, target: 'all', type: 'physical', mpCost: 15 }
                 ]
             },
             priest: {
@@ -817,8 +828,8 @@
                 icon: '✝️',
                 stats: { str: 8, dex: 4, int: 8, hp: 8, mp: 8 },
                 skills: [
-                    { name: '신성한 빛', power: 1.2, target: 'single', type: 'magic' },
-                    { name: '치유', power: 1.5, target: 'ally', type: 'heal' }
+                    { name: '신성한 빛', power: 1.2, target: 'single', type: 'magic', mpCost: 10 },
+                    { name: '치유', power: 1.5, target: 'ally', type: 'heal', mpCost: 12 }
                 ]
             },
             rogue: {
@@ -826,8 +837,8 @@
                 icon: '🗡️',
                 stats: { str: 8, dex: 8, int: 6, hp: 6, mp: 6 },
                 skills: [
-                    { name: '급소 공격', power: 1.8, target: 'single', type: 'physical' },
-                    { name: '회피', power: 0, target: 'self', type: 'buff', effect: 'evasion' }
+                    { name: '급소 공격', power: 1.8, target: 'single', type: 'physical', mpCost: 9 },
+                    { name: '회피', power: 0, target: 'self', type: 'buff', effect: 'evasion', mpCost: 7 }
                 ]
             },
             druid: {
@@ -835,8 +846,8 @@
                 icon: '🌿',
                 stats: { str: 8, dex: 6, int: 6, hp: 8, mp: 4 },
                 skills: [
-                    { name: '야수 변신', power: 0, target: 'self', type: 'buff', effect: 'transform' },
-                    { name: '자연의 분노', power: 1.3, target: 'all', type: 'magic' }
+                    { name: '야수 변신', power: 0, target: 'self', type: 'buff', effect: 'transform', mpCost: 13 },
+                    { name: '자연의 분노', power: 1.3, target: 'all', type: 'magic', mpCost: 11 }
                 ]
             },
             mage: {
@@ -844,8 +855,8 @@
                 icon: '🔮',
                 stats: { str: 4, dex: 4, int: 10, hp: 6, mp: 10 },
                 skills: [
-                    { name: '화염구', power: 1.6, target: 'all', type: 'magic' },
-                    { name: '독구름', power: 0.5, target: 'all', type: 'magic', effect: 'dot' }
+                    { name: '화염구', power: 1.6, target: 'all', type: 'magic', mpCost: 10 },
+                    { name: '독구름', power: 0.5, target: 'all', type: 'magic', effect: 'dot', mpCost: 8 }
                 ]
             },
             healer: {
@@ -853,8 +864,8 @@
                 icon: '💊',
                 stats: { str: 4, dex: 4, int: 10, hp: 6, mp: 10 },
                 skills: [
-                    { name: '대치유', power: 2.0, target: 'ally', type: 'heal' },
-                    { name: '축복', power: 0, target: 'ally', type: 'buff', effect: 'bless' }
+                    { name: '대치유', power: 2.0, target: 'ally', type: 'heal', mpCost: 15 },
+                    { name: '축복', power: 0, target: 'ally', type: 'buff', effect: 'bless', mpCost: 10 }
                 ]
             }
         };
@@ -875,6 +886,44 @@
             dark: ['어둠의 정수', '망자의 뼈', '저주받은 수정']
         };
 
+        const EQUIPMENT_SLOTS = {
+            weapon: '무기',
+            helmet: '투구',
+            armor: '갑옷',
+            boots: '신발',
+            accessory: '장신구'
+        };
+
+        const ITEM_RARITIES = {
+            common: { name: '일반', color: '#999', statBonus: 1 },
+            rare: { name: '희귀', color: '#3498db', statBonus: 2 },
+            epic: { name: '영웅', color: '#9b59b6', statBonus: 3 },
+            legendary: { name: '전설', color: '#f39c12', statBonus: 5 }
+        };
+
+        const TOWN_BUILDINGS = {
+            blacksmith: {
+                name: '대장간',
+                icon: '⚒️',
+                description: '장비를 강화하고 수리합니다.'
+            },
+            inn: {
+                name: '여관',
+                icon: '🏨',
+                description: '파티원들이 휴식을 취하고 HP/MP를 회복합니다.'
+            },
+            shop: {
+                name: '상점',
+                icon: '🏪',
+                description: '아이템을 사고 팔 수 있습니다.'
+            },
+            guild: {
+                name: '길드',
+                icon: '🏛️',
+                description: '퀘스트를 받고 용병을 고용할 수 있습니다.'
+            }
+        };
+
         // Main Game Object
         const game = {
             party: [],
@@ -887,13 +936,14 @@
             autoBattle: false,
             inBattle: false,
             enemies: [],
+            equipmentInventory: [],
 
             init() {
                 this.renderZoneSelect();
                 this.renderSubstageSelect();
                 this.renderPartyList();
                 this.renderMaterials();
-                this.renderCrafting();
+                this.renderTown();
                 this.updateDisplay();
 
                 // Initialize materials
@@ -926,7 +976,13 @@
                     currentMp: classData.stats.mp * 10,
                     maxMp: classData.stats.mp * 10,
                     skills: [...classData.skills],
-                    equipment: {},
+                    equipment: {
+                        weapon: null,
+                        helmet: null,
+                        armor: null,
+                        boots: null,
+                        accessory: null
+                    },
                     availableStats: 0,
                     personality: this.generatePersonality()
                 };
@@ -1034,8 +1090,21 @@
 
                 html += `
                     <div style="margin-top: 20px;">
+                        <strong>장비:</strong>
+                        <div class="equipment-slots">
+                            ${Object.keys(EQUIPMENT_SLOTS).map(slot => `
+                                <div class="equipment-slot" onclick="game.showEquipmentSelect(${char.id}, '${slot}')">
+                                    <div style="font-size: 24px;">${char.equipment[slot] ? '✓' : '○'}</div>
+                                    <div class="equipment-label">${EQUIPMENT_SLOTS[slot]}</div>
+                                    ${char.equipment[slot] ? `<div style="font-size: 10px; margin-top: 3px;">${char.equipment[slot].name}</div>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 20px;">
                         <strong>스킬:</strong><br>
-                        ${char.skills.map(skill => `• ${skill.name} (${skill.type})`).join('<br>')}
+                        ${char.skills.map(skill => `• ${skill.name} (${skill.type}, MP: ${skill.mpCost})`).join('<br>')}
                     </div>
 
                     <div style="margin-top: 20px;">
@@ -1107,6 +1176,100 @@
                 this.addLog(`${char.name}이(가) 전직했습니다! 레벨 1로 초기화되었지만 모든 스탯이 유지됩니다.`);
                 this.closeModal('character-detail-modal');
                 this.renderPartyList();
+            },
+
+            showEquipmentSelect(charId, slot) {
+                const char = this.party.find(c => c.id === charId);
+                if (!char) return;
+
+                const availableItems = this.equipmentInventory.filter(item => item.slot === slot);
+
+                if (availableItems.length === 0) {
+                    this.addLog(`${EQUIPMENT_SLOTS[slot]} 슬롯에 착용할 수 있는 아이템이 없습니다.`);
+                    return;
+                }
+
+                // Simple selection: equip the first available item
+                const item = availableItems[0];
+
+                // Unequip current item if exists
+                if (char.equipment[slot]) {
+                    this.equipmentInventory.push(char.equipment[slot]);
+                }
+
+                // Equip new item
+                char.equipment[slot] = item;
+                this.equipmentInventory = this.equipmentInventory.filter(i => i.id !== item.id);
+
+                this.applyEquipmentStats(char);
+                this.addLog(`${char.name}이(가) ${item.name}을(를) 착용했습니다!`);
+                this.showCharacterDetail(char);
+            },
+
+            unequipItem(charId, slot) {
+                const char = this.party.find(c => c.id === charId);
+                if (!char || !char.equipment[slot]) return;
+
+                const item = char.equipment[slot];
+                char.equipment[slot] = null;
+                this.equipmentInventory.push(item);
+
+                this.applyEquipmentStats(char);
+                this.addLog(`${char.name}이(가) ${item.name}을(를) 해제했습니다.`);
+                this.showCharacterDetail(char);
+            },
+
+            applyEquipmentStats(char) {
+                // Reset stats to base + allocated stats
+                char.stats = { ...char.baseStats };
+
+                // Apply equipment bonuses
+                Object.values(char.equipment).forEach(item => {
+                    if (item && item.stats) {
+                        Object.keys(item.stats).forEach(stat => {
+                            char.stats[stat] = (char.stats[stat] || 0) + item.stats[stat];
+                        });
+                    }
+                });
+
+                // Recalculate HP/MP
+                char.maxHp = char.stats.hp * 10;
+                char.maxMp = char.stats.mp * 10;
+                char.currentHp = Math.min(char.currentHp, char.maxHp);
+                char.currentMp = Math.min(char.currentMp, char.maxMp);
+            },
+
+            generateEquipmentDrop() {
+                const rarityRoll = Math.random();
+                let rarity;
+
+                if (rarityRoll < 0.6) rarity = 'common';
+                else if (rarityRoll < 0.85) rarity = 'rare';
+                else if (rarityRoll < 0.97) rarity = 'epic';
+                else rarity = 'legendary';
+
+                const slots = Object.keys(EQUIPMENT_SLOTS);
+                const slot = slots[Math.floor(Math.random() * slots.length)];
+
+                const rarityData = ITEM_RARITIES[rarity];
+                const baseStats = rarityData.statBonus;
+
+                const stats = {};
+                const statTypes = ['str', 'dex', 'int', 'hp', 'mp'];
+                const numStats = 1 + Math.floor(Math.random() * 2);
+
+                for (let i = 0; i < numStats; i++) {
+                    const statType = statTypes[Math.floor(Math.random() * statTypes.length)];
+                    stats[statType] = (stats[statType] || 0) + baseStats;
+                }
+
+                return {
+                    id: Date.now() + Math.random(),
+                    name: `${rarityData.name} ${EQUIPMENT_SLOTS[slot]}`,
+                    slot: slot,
+                    rarity: rarity,
+                    stats: stats
+                };
             },
 
             renderZoneSelect() {
@@ -1236,13 +1399,23 @@
                     if (targets.length === 0) return;
 
                     const skill = unit.skills[Math.floor(Math.random() * unit.skills.length)];
+                    const mpCost = skill.mpCost || 10;
+
+                    // Check if unit has enough MP
+                    if (unit.currentMp < mpCost) {
+                        this.addLog(`${unit.name}의 MP가 부족합니다! (필요: ${mpCost}, 현재: ${unit.currentMp})`);
+                        return;
+                    }
+
+                    // Consume MP
+                    unit.currentMp = Math.max(0, unit.currentMp - mpCost);
 
                     if (skill.type === 'heal') {
                         const healTarget = this.party.filter(c => c.currentHp > 0 && c.currentHp < c.maxHp)[0];
                         if (healTarget) {
                             const healAmount = Math.floor(unit.stats.int * skill.power * 5);
                             healTarget.currentHp = Math.min(healTarget.currentHp + healAmount, healTarget.maxHp);
-                            this.addLog(`${unit.name}의 ${skill.name}! ${healTarget.name}이(가) ${healAmount} 회복!`, 'heal');
+                            this.addLog(`${unit.name}의 ${skill.name}! ${healTarget.name}이(가) ${healAmount} 회복! (MP -${mpCost})`, 'heal');
                         }
                     } else if (skill.target === 'all') {
                         targets.forEach(target => {
@@ -1252,7 +1425,7 @@
                                 target.currentHp = 0;
                                 target.alive = false;
                             }
-                            this.addLog(`${unit.name}의 ${skill.name}! ${target.name}에게 ${damage} 데미지!`, 'damage');
+                            this.addLog(`${unit.name}의 ${skill.name}! ${target.name}에게 ${damage} 데미지! (MP -${mpCost})`, 'damage');
                         });
                     } else {
                         const target = targets[Math.floor(Math.random() * targets.length)];
@@ -1262,7 +1435,7 @@
                             target.currentHp = 0;
                             target.alive = false;
                         }
-                        this.addLog(`${unit.name}의 ${skill.name}! ${target.name}에게 ${damage} 데미지!`, 'damage');
+                        this.addLog(`${unit.name}의 ${skill.name}! ${target.name}에게 ${damage} 데미지! (MP -${mpCost})`, 'damage');
                     }
                 } else {
                     const targets = this.party.filter(c => c.currentHp > 0);
@@ -1306,8 +1479,8 @@
                         }
                     });
 
-                    // Gold
-                    const goldGain = 30 + this.currentStage * 5;
+                    // Gold (reduced to 1/5 of original)
+                    const goldGain = Math.floor((30 + this.currentStage * 5) / 5);
                     this.gold += goldGain;
                     this.addLog(`골드 ${goldGain}을 획득했습니다!`);
 
@@ -1317,7 +1490,15 @@
                     const materialGain = materials[Math.floor(Math.random() * materials.length)];
                     const amount = 1 + Math.floor(Math.random() * 3);
                     this.materials[materialGain] = (this.materials[materialGain] || 0) + amount;
-                    this.addLog(`${materialGain} ${amount}개를 획득했습니다!`);
+                    this.addLog(`[${materialGain}] ${amount}개를 획득했습니다!`);
+
+                    // Equipment drop (30% chance)
+                    if (Math.random() < 0.3) {
+                        const equipment = this.generateEquipmentDrop();
+                        this.equipmentInventory.push(equipment);
+                        const rarityColor = ITEM_RARITIES[equipment.rarity].color;
+                        this.addLog(`<span style="color: ${rarityColor};">[${equipment.name}]</span>을(를) 획득했습니다!`);
+                    }
 
                     // Unlock next stage
                     if (this.currentStage >= this.unlockedStages[this.currentZone]) {
@@ -1438,11 +1619,120 @@
                         grid.appendChild(slot);
                     }
                 });
+
+                // Render equipment inventory
+                const equipInv = document.getElementById('equipment-inventory');
+                equipInv.innerHTML = '';
+
+                if (this.equipmentInventory.length === 0) {
+                    equipInv.innerHTML = '<div style="color: #aaa; padding: 10px; text-align: center;">장비 없음</div>';
+                } else {
+                    this.equipmentInventory.forEach(item => {
+                        const rarityColor = ITEM_RARITIES[item.rarity].color;
+                        const div = document.createElement('div');
+                        div.style.cssText = `padding: 5px; margin: 3px 0; border-left: 3px solid ${rarityColor}; background: rgba(255,255,255,0.05);`;
+                        div.innerHTML = `
+                            <span style="color: ${rarityColor};">${item.name}</span><br>
+                            <span style="font-size: 10px; color: #aaa;">
+                                ${Object.entries(item.stats).map(([stat, val]) => `${stat.toUpperCase()}+${val}`).join(', ')}
+                            </span>
+                        `;
+                        equipInv.appendChild(div);
+                    });
+                }
             },
 
-            renderCrafting() {
-                const container = document.getElementById('crafting-recipes');
-                container.innerHTML = '<div style="font-size: 14px; color: #aaa; text-align: center;">제작 시스템은 추후 업데이트 예정입니다.</div>';
+            renderTown() {
+                const container = document.getElementById('town-buildings');
+                container.innerHTML = '';
+
+                Object.keys(TOWN_BUILDINGS).forEach(buildingId => {
+                    const building = TOWN_BUILDINGS[buildingId];
+                    const card = document.createElement('div');
+                    card.className = 'class-card';
+                    card.style.cssText = 'margin-bottom: 15px; cursor: pointer;';
+                    card.innerHTML = `
+                        <div class="class-icon">${building.icon}</div>
+                        <div class="class-name">${building.name}</div>
+                        <div style="font-size: 11px; color: #aaa;">${building.description}</div>
+                    `;
+                    card.onclick = () => this.openBuilding(buildingId);
+                    container.appendChild(card);
+                });
+            },
+
+            openBuilding(buildingId) {
+                const building = TOWN_BUILDINGS[buildingId];
+                const modal = document.getElementById('town-building-modal');
+                const header = document.getElementById('building-header');
+                const content = document.getElementById('building-content');
+
+                header.innerHTML = `${building.icon} ${building.name}`;
+
+                let html = `<div style="margin-bottom: 20px; color: #aaa;">${building.description}</div>`;
+
+                if (buildingId === 'inn') {
+                    html += `
+                        <div style="text-align: center;">
+                            <button class="btn btn-success" onclick="game.restAtInn()" style="width: 100%;">
+                                휴식하기 (골드 10)
+                            </button>
+                        </div>
+                    `;
+                } else if (buildingId === 'blacksmith') {
+                    html += `<div style="color: #aaa; text-align: center;">장비 강화 기능은 추후 업데이트 예정입니다.</div>`;
+                } else if (buildingId === 'shop') {
+                    html += `
+                        <div style="margin-bottom: 15px;">
+                            <strong>재료 판매:</strong><br>
+                            ${Object.entries(this.materials).filter(([_, count]) => count > 0).map(([name, count]) => `
+                                <div style="display: flex; justify-content: space-between; padding: 8px; margin: 5px 0; background: rgba(255,255,255,0.05);">
+                                    <span>${name} (${count}개)</span>
+                                    <button class="btn btn-primary" style="padding: 5px 10px; font-size: 11px;" onclick="game.sellMaterial('${name}')">
+                                        5골드에 판매
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else if (buildingId === 'guild') {
+                    html += `<div style="color: #aaa; text-align: center;">길드 퀘스트 시스템은 추후 업데이트 예정입니다.</div>`;
+                }
+
+                content.innerHTML = html;
+                modal.classList.add('active');
+            },
+
+            restAtInn() {
+                if (this.gold < 10) {
+                    this.addLog('골드가 부족합니다! (필요: 10골드)');
+                    return;
+                }
+
+                this.gold -= 10;
+                this.party.forEach(char => {
+                    char.currentHp = char.maxHp;
+                    char.currentMp = char.maxMp;
+                });
+
+                this.addLog('여관에서 휴식을 취했습니다. 모든 파티원의 HP/MP가 회복되었습니다!');
+                this.renderPartyList();
+                this.updateDisplay();
+                this.closeModal('town-building-modal');
+            },
+
+            sellMaterial(materialName) {
+                if (!this.materials[materialName] || this.materials[materialName] <= 0) {
+                    this.addLog('판매할 재료가 없습니다.');
+                    return;
+                }
+
+                this.materials[materialName]--;
+                this.gold += 5;
+                this.addLog(`${materialName}을(를) 5골드에 판매했습니다.`);
+                this.renderMaterials();
+                this.updateDisplay();
+                this.openBuilding('shop'); // Refresh shop display
             },
 
             toggleAutoBattle() {
@@ -1492,7 +1782,8 @@
                     unlockedZones: this.unlockedZones,
                     unlockedStages: this.unlockedStages,
                     materials: this.materials,
-                    gold: this.gold
+                    gold: this.gold,
+                    equipmentInventory: this.equipmentInventory
                 };
 
                 localStorage.setItem('idleRpgSave', JSON.stringify(saveData));
@@ -1515,11 +1806,13 @@
                     this.unlockedStages = data.unlockedStages;
                     this.materials = data.materials;
                     this.gold = data.gold;
+                    this.equipmentInventory = data.equipmentInventory || [];
 
                     this.renderPartyList();
                     this.renderZoneSelect();
                     this.renderSubstageSelect();
                     this.renderMaterials();
+                    this.renderTown();
                     this.updateDisplay();
 
                     this.addLog('게임이 로드되었습니다!');
