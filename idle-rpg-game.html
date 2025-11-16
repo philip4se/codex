@@ -982,11 +982,13 @@
 
                 <div id="encyclopedia-tab" class="tab-content">
                     <div class="panel-title">백과사전</div>
-                    <div class="tabs" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-bottom: 15px;">
+                    <div class="tabs" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 15px;">
                         <div class="tab active" onclick="game.switchEncyclopediaTab('monster')">몬스터</div>
+                        <div class="tab" onclick="game.switchEncyclopediaTab('mercenary')">용병</div>
                         <div class="tab" onclick="game.switchEncyclopediaTab('item')">아이템</div>
                         <div class="tab" onclick="game.switchEncyclopediaTab('equipment')">장비</div>
                         <div class="tab" onclick="game.switchEncyclopediaTab('zone')">구역</div>
+                        <div class="tab" onclick="game.switchEncyclopediaTab('material')">재료</div>
                     </div>
                     <div id="encyclopedia-content" style="max-height: 500px; overflow-y: auto; font-size: 12px;"></div>
                 </div>
@@ -1266,6 +1268,24 @@
             e: { name: '어둠의 성채', theme: 'dark', color: '#6a4c93' }
         };
 
+        // Floor-based zone system helpers
+        function getZoneFromFloor(floor) {
+            // a: 1-200, b: 201-400, c: 401-600, d: 601-800, e: 801-1000
+            // Pattern repeats every 1000 floors
+            const cyclePosition = ((floor - 1) % 1000) + 1;
+            if (cyclePosition <= 200) return 'a';
+            if (cyclePosition <= 400) return 'b';
+            if (cyclePosition <= 600) return 'c';
+            if (cyclePosition <= 800) return 'd';
+            return 'e';
+        }
+
+        function getFloorLabel(floor) {
+            const zone = getZoneFromFloor(floor);
+            const zoneName = ZONES[zone].name;
+            return `${floor}층 (${zoneName})`;
+        }
+
         const MATERIALS = {
             ice: ['얼음 조각', '서리 결정', '빙하석', '눈송이', '동토의 정수', '얼음 파편', '냉기석', '서리 가루', '빙설 조각', '동결 결정', '한기의 정수', '얼어붙은 물', '극한의 얼음', '북극석', '냉기 결정'],
             lava: ['용암석', '화염 정수', '마그마 핵', '불꽃 가루', '열기석', '화산재', '용암 파편', '불의 정수', '작열석', '화염 조각', '마그마 결정', '불타는 돌', '화염 핵', '용암 결정', '불의 핵'],
@@ -1293,25 +1313,44 @@
         };
 
         const LEGENDARY_EQUIPMENT = {
+            // A구역 (1-200층): 기사, 궁수 전설 장비
             ice: [
-                { name: '빙하의 검', type: 'leftWeapon', stats: { str: 15, dex: 10 }, skill: '냉기 폭발', dropRate: 0.00001 },
-                { name: '서리의 방패', type: 'rightWeapon', stats: { hp: 20, def: 15 }, skill: '얼음 방어막', dropRate: 0.00001 }
+                { name: '얼음의 수호자', type: 'leftWeapon', class: 'knight', stats: { str: 18, hp: 24 }, skill: '빙하의 수호', dropRate: 0.00001 },
+                { name: '극북의 성벽', type: 'rightWeapon', class: 'knight', stats: { hp: 30, def: 18 }, skill: '절대방어', dropRate: 0.00001 },
+                { name: '서리바람의 장궁', type: 'leftWeapon', class: 'archer', stats: { dex: 24, int: 12 }, skill: '빙설의 화살', dropRate: 0.00001 },
+                { name: '동토의 신궁', type: 'leftWeapon', class: 'archer', stats: { dex: 27, hp: 15 }, skill: '관통빙탄', dropRate: 0.00001 }
             ],
+            // B구역 (201-400층): 성직자, 치료사 전설 장비
             lava: [
-                { name: '용암의 대검', type: 'leftWeapon', stats: { str: 20, int: 10 }, skill: '화염 강타', dropRate: 0.00001 },
-                { name: '불꽃 갑옷', type: 'armor', stats: { hp: 25, int: 15 }, skill: '화염 보호막', dropRate: 0.00001 }
+                { name: '태양의 성배', type: 'leftWeapon', class: 'priest', stats: { int: 24, mp: 30 }, skill: '신성한 빛의 심판', dropRate: 0.00001 },
+                { name: '화염심장의 지팡이', type: 'leftWeapon', class: 'priest', stats: { int: 21, hp: 24 }, skill: '정화의 불꽃', dropRate: 0.00001 },
+                { name: '생명의 영약', type: 'leftWeapon', class: 'healer', stats: { int: 27, mp: 36 }, skill: '완전치유', dropRate: 0.00001 },
+                { name: '희망의 등불', type: 'leftWeapon', class: 'healer', stats: { int: 24, mp: 30 }, skill: '축복의 빛', dropRate: 0.00001 }
             ],
+            // C구역 (401-600층): 드루이드, 도적 전설 장비
             forest: [
-                { name: '자연의 활', type: 'leftWeapon', stats: { dex: 20, int: 10 }, skill: '관통 사격', dropRate: 0.00001 },
-                { name: '생명의 목걸이', type: 'leftEarring', stats: { hp: 30, mp: 20 }, skill: '생명 재생', dropRate: 0.00001 }
+                { name: '세계수의 가지', type: 'leftWeapon', class: 'druid', stats: { int: 21, hp: 27 }, skill: '자연의 분노', dropRate: 0.00001 },
+                { name: '대지의 권능', type: 'leftWeapon', class: 'druid', stats: { str: 18, int: 18, hp: 24 }, skill: '야수왕의 강림', dropRate: 0.00001 },
+                { name: '그림자 추적자', type: 'leftWeapon', class: 'rogue', stats: { dex: 30, str: 18 }, skill: '암살', dropRate: 0.00001 },
+                { name: '은밀의 단검', type: 'rightWeapon', class: 'rogue', stats: { dex: 27, int: 15 }, skill: '연쇄 급습', dropRate: 0.00001 }
             ],
+            // D구역 (601-800층): 법사, 갑옷 전설 장비
             ocean: [
-                { name: '파도의 창', type: 'leftWeapon', stats: { str: 15, dex: 15 }, skill: '물결 강타', dropRate: 0.00001 },
-                { name: '심해의 투구', type: 'helmet', stats: { hp: 20, mp: 20 }, skill: '물의 축복', dropRate: 0.00001 }
+                { name: '심연의 마도서', type: 'leftWeapon', class: 'mage', stats: { int: 36, mp: 36 }, skill: '해일의 마법진', dropRate: 0.00001 },
+                { name: '파도를 삼킨 지팡이', type: 'leftWeapon', class: 'mage', stats: { int: 33, dex: 15 }, skill: '얼어붙은 파도', dropRate: 0.00001 },
+                { name: '심해용의 갑주', type: 'armor', stats: { hp: 42, def: 30 }, skill: '수호의 물결', dropRate: 0.00001 },
+                { name: '아틀란티스의 전갑', type: 'armor', stats: { hp: 45, mp: 30 }, skill: '물의 축복', dropRate: 0.00001 }
             ],
+            // E구역 (801-1000층): 투구, 신발, 귀걸이, 반지 전설 장비
             dark: [
-                { name: '어둠의 검', type: 'leftWeapon', stats: { str: 18, int: 15 }, skill: '암흑 베기', dropRate: 0.00001 },
-                { name: '저주받은 반지', type: 'leftRing', stats: { int: 25, mp: 25 }, skill: '생명 흡수', dropRate: 0.00001 }
+                { name: '지배자의 왕관', type: 'helmet', stats: { int: 30, hp: 30, mp: 30 }, skill: '암흑의 권능', dropRate: 0.00001 },
+                { name: '어둠의 제왕투구', type: 'helmet', stats: { str: 27, hp: 36 }, skill: '공포의 지배', dropRate: 0.00001 },
+                { name: '심연보행자의 신발', type: 'boots', stats: { dex: 33, hp: 27 }, skill: '차원이동', dropRate: 0.00001 },
+                { name: '밤그림자의 장화', type: 'boots', stats: { dex: 30, int: 24 }, skill: '은신술', dropRate: 0.00001 },
+                { name: '영혼의 귀걸이', type: 'leftEarring', stats: { int: 36, mp: 42 }, skill: '마나 폭발', dropRate: 0.00002 },
+                { name: '공허의 귀걸이', type: 'rightEarring', stats: { int: 36, mp: 42 }, skill: '마나 재생', dropRate: 0.00002 },
+                { name: '파멸의 반지', type: 'leftRing', stats: { str: 30, int: 30 }, skill: '생명 흡수', dropRate: 0.00002 },
+                { name: '영원의 반지', type: 'rightRing', stats: { hp: 36, mp: 36 }, skill: '불멸의 의지', dropRate: 0.00002 }
             ]
         };
 
@@ -1357,8 +1396,10 @@
         const game = {
             parties: Array(10).fill(null).map(() => []), // 10 parties
             currentPartyIndex: 0,
+            currentFloor: 1, // Current floor number (replaces currentZone + currentStage)
             currentZone: 'a',
             currentStage: 1,
+            unlockedFloor: 1, // Highest unlocked floor
             unlockedZones: ['a'],
             unlockedStages: { a: 1, b: 1, c: 1, d: 1, e: 1 },
             materials: {},
@@ -1376,7 +1417,13 @@
             marketplace: { enabled: true, items: [] },
             isAdmin: false,
             gameSpeed: 1,
-            partyAssignments: Array(10).fill(null).map(() => ({ zone: 'a', stage: 1 })),
+            partyAssignments: Array(10).fill(null).map(() => ({ floor: 1 })),
+            nextCharacterId: 1, // Unique character ID counter
+
+            // Get current zone based on floor
+            get currentZoneFromFloor() {
+                return getZoneFromFloor(this.currentFloor);
+            },
 
             get party() {
                 return this.parties[this.currentPartyIndex];
@@ -1425,6 +1472,8 @@
 
                 this.currentPartyIndex = user.currentPartyIndex || 0;
                 this.gold = user.gold || 1000;
+                this.currentFloor = user.currentFloor || 1;
+                this.unlockedFloor = user.unlockedFloor || 1;
                 this.currentZone = user.currentZone || 'a';
                 this.currentStage = user.currentStage || 1;
                 this.unlockedZones = user.unlockedZones || ['a'];
@@ -1437,7 +1486,11 @@
                 this.marketplace.items = user.marketplaceItems || [];
                 this.isAdmin = user.isAdmin || false;
                 this.gameSpeed = user.gameSpeed || 1;
-                this.partyAssignments = user.partyAssignments || Array(10).fill(null).map(() => ({ zone: 'a', stage: 1 }));
+                // Convert old partyAssignments format to new floor-based format
+                this.partyAssignments = user.partyAssignments || Array(10).fill(null).map(() => ({ floor: 1 }));
+                // Ensure all assignments have floor property
+                this.partyAssignments = this.partyAssignments.map(a => a.floor ? a : { floor: 1 });
+                this.nextCharacterId = user.nextCharacterId || 1000;
 
                 if (!this.mercenaryGuild.availableMercenaries || this.mercenaryGuild.availableMercenaries.length === 0) {
                     this.generateMercenaries();
@@ -1577,34 +1630,30 @@
                 const container = document.getElementById('party-list');
                 container.innerHTML = '';
 
-                // Add party zone assignment
+                // Add party floor assignment
                 const assignment = this.partyAssignments[this.currentPartyIndex];
                 const assignmentDiv = document.createElement('div');
                 assignmentDiv.style.cssText = 'background: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; margin-bottom: 10px;';
+
+                const currentFloor = assignment.floor || 1;
+                const currentZone = getZoneFromFloor(currentFloor);
+                const currentZoneName = ZONES[currentZone].name;
+
                 assignmentDiv.innerHTML = `
                     <div style="font-size: 12px; margin-bottom: 5px; font-weight: bold;">파티 사냥 지역</div>
-                    <div style="display: flex; gap: 5px; margin-bottom: 5px;">
-                        ${Object.keys(ZONES).map(zoneKey => {
-                            const zone = ZONES[zoneKey];
-                            const isUnlocked = this.unlockedZones.includes(zoneKey);
-                            const isActive = assignment.zone === zoneKey;
-                            return `<button class="btn ${isActive ? 'btn-success' : 'btn-primary'}"
-                                style="flex: 1; padding: 5px; font-size: 10px; ${!isUnlocked ? 'opacity: 0.3; cursor: not-allowed;' : ''}"
-                                onclick="game.setPartyZone(${this.currentPartyIndex}, '${zoneKey}')"
-                                ${!isUnlocked ? 'disabled' : ''}>
-                                ${zone.name}
-                            </button>`;
-                        }).join('')}
+                    <div style="margin-bottom: 5px; display: flex; gap: 5px; align-items: center;">
+                        <input type="number" id="party-floor-input-${this.currentPartyIndex}"
+                            value="${currentFloor}" min="1" max="${this.unlockedFloor || 1000}"
+                            style="flex: 1; padding: 5px; background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 3px;"
+                            onchange="game.setPartyFloor(${this.currentPartyIndex}, parseInt(this.value))">
+                        <button class="btn btn-primary" style="padding: 5px 10px; font-size: 10px;"
+                            onclick="game.setPartyFloor(${this.currentPartyIndex}, parseInt(document.getElementById('party-floor-input-${this.currentPartyIndex}').value))">
+                            설정
+                        </button>
                     </div>
-                    <select onchange="game.setPartyStage(${this.currentPartyIndex}, parseInt(this.value))"
-                        style="width: 100%; padding: 5px; background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 3px;">
-                        ${Array.from({length: 10}, (_, i) => i + 1).map(stageNum => {
-                            const isUnlocked = stageNum <= this.unlockedStages[assignment.zone];
-                            return `<option value="${stageNum}" ${assignment.stage === stageNum ? 'selected' : ''} ${!isUnlocked ? 'disabled' : ''}>
-                                ${assignment.zone.toUpperCase()}-${stageNum}${!isUnlocked ? ' (잠김)' : ''}
-                            </option>`;
-                        }).join('')}
-                    </select>
+                    <div style="font-size: 11px; color: #aaa;">
+                        현재: ${currentFloor}층 (${currentZoneName}) | 최대: ${this.unlockedFloor || 1}층
+                    </div>
                 `;
                 container.appendChild(assignmentDiv);
 
@@ -2289,12 +2338,14 @@
 
             generateEnemies() {
                 this.enemies = [];
-                const zoneIndex = Object.keys(ZONES).indexOf(this.currentZone);
-                const stageMultiplier = 1 + ((zoneIndex * 10 + this.currentStage - 1) * 0.01);
-                const zoneBonus = zoneIndex * 0.03;
-                const totalMultiplier = stageMultiplier + zoneBonus;
-                const zone = ZONES[this.currentZone];
-                const isBossStage = this.currentStage === 10;
+
+                // Use floor-based calculation if available
+                const currentFloor = this.currentFloor || 1;
+                const currentZone = getZoneFromFloor(currentFloor);
+                const totalMultiplier = 1 + (currentFloor - 1) * 0.01; // 1% increase per floor
+
+                const zone = ZONES[currentZone];
+                const isBossStage = (currentFloor % 10 === 0); // Every 10th floor is a boss stage
 
                 // Boss Stage 2-Phase System
                 if (isBossStage) {
@@ -2503,29 +2554,55 @@
                         this.addLog('골드 상자를 발견했습니다! +1000골드!');
                     }
 
-                    // Materials
-                    const zone = ZONES[this.currentZone];
+                    // Materials (use floor-based zone)
+                    const currentFloor = this.currentFloor || 1;
+                    const currentZone = getZoneFromFloor(currentFloor);
+                    const zone = ZONES[currentZone];
                     const materials = MATERIALS[zone.theme];
                     const materialGain = materials[Math.floor(Math.random() * materials.length)];
                     const amount = 1 + Math.floor(Math.random() * 3);
                     this.materials[materialGain] = (this.materials[materialGain] || 0) + amount;
                     this.addLog(`${materialGain} ${amount}개를 획득했습니다!`);
 
-                    // Legendary Equipment (0.001% chance per item)
+                    // Legendary Equipment with floor-based increasing drop rate
+                    // Base drop rate: 0.001% (0.00001)
+                    // Increase: 0.01% per floor (multiplier: 1.01^floor)
+                    // For rings and earrings: 0.002% base (0.00002)
                     const legendaryItems = LEGENDARY_EQUIPMENT[zone.theme];
                     legendaryItems.forEach(item => {
-                        if (Math.random() < 0.00001) {
+                        const baseDropRate = (item.type.includes('Earring') || item.type.includes('Ring')) ? 0.00002 : 0.00001;
+                        // Drop rate increases by 1% per floor: dropRate * (1.01 ^ floor)
+                        const currentFloor = this.currentFloor || this.currentStage;
+                        const adjustedDropRate = baseDropRate * Math.pow(1.01, currentFloor - 1);
+
+                        if (Math.random() < adjustedDropRate) {
                             this.inventory.push({ ...item, enhancement: 0 });
-                            this.addLog(`전설의 장비 [${item.name}]을(를) 획득했습니다!!!`);
+                            this.addLog(`⭐ 전설의 장비 [${item.name}]을(를) 획득했습니다!!! ⭐`);
                         }
                     });
 
-                    // Unlock next stage (infinite progression) and auto-progress
+                    // Unlock next floor/stage (infinite progression) and auto-progress
+                    // Floor-based progression
+                    if (this.currentFloor >= this.unlockedFloor) {
+                        this.currentFloor++;
+                        this.unlockedFloor = this.currentFloor;
+                        const newZone = getZoneFromFloor(this.currentFloor);
+                        const zoneName = ZONES[newZone].name;
+                        this.addLog(`다음 층으로 이동합니다: ${this.currentFloor}층 (${zoneName})`);
+
+                        // Check if entering new zone
+                        const prevFloor = this.currentFloor - 1;
+                        const prevZone = getZoneFromFloor(prevFloor);
+                        if (newZone !== prevZone) {
+                            this.addLog(`🎉 새로운 구역 진입! ${zoneName}에 오신 것을 환영합니다!`);
+                        }
+                    }
+
+                    // Legacy zone/stage system (for compatibility)
                     if (this.currentStage >= this.unlockedStages[this.currentZone]) {
                         if (this.currentStage < 10) {
                             this.unlockedStages[this.currentZone] = this.currentStage + 1;
                             this.currentStage = this.currentStage + 1;
-                            this.addLog(`다음 스테이지로 이동합니다: ${this.currentZone.toUpperCase()}-${this.currentStage}`);
                         } else {
                             const zones = Object.keys(ZONES);
                             const currentZoneIndex = zones.indexOf(this.currentZone);
@@ -2534,12 +2611,9 @@
 
                             if (!this.unlockedZones.includes(nextZone)) {
                                 this.unlockedZones.push(nextZone);
-                                this.addLog(`새로운 구역 ${ZONES[nextZone].name}이(가) 해금되었습니다!`);
                             }
-                            // Move to next zone's first stage
                             this.currentZone = nextZone;
                             this.currentStage = 1;
-                            this.addLog(`${ZONES[nextZone].name} 구역으로 이동합니다!`);
                         }
                     }
 
@@ -2881,6 +2955,14 @@
                 document.getElementById('speed-display').textContent = `${speed}x`;
             },
 
+            setPartyFloor(partyIndex, floor) {
+                if (floor < 1) floor = 1;
+                if (floor > this.unlockedFloor) floor = this.unlockedFloor;
+                this.partyAssignments[partyIndex].floor = floor;
+                this.renderPartyList();
+                this.addLog(`파티 ${partyIndex + 1}의 사냥 지역을 ${floor}층으로 설정했습니다.`);
+            },
+
             setPartyZone(partyIndex, zone) {
                 if (!this.unlockedZones.includes(zone)) return;
                 this.partyAssignments[partyIndex].zone = zone;
@@ -2909,8 +2991,16 @@
             },
 
             updateDisplay() {
-                document.getElementById('current-stage').textContent =
-                    `구역: ${this.currentZone.toUpperCase()}-${this.currentStage} (${ZONES[this.currentZone].name})`;
+                // Use currentFloor if available, otherwise fall back to currentZone + currentStage
+                if (this.currentFloor) {
+                    const zone = getZoneFromFloor(this.currentFloor);
+                    const zoneName = ZONES[zone].name;
+                    document.getElementById('current-stage').textContent =
+                        `${this.currentFloor}층 (${zoneName})`;
+                } else {
+                    document.getElementById('current-stage').textContent =
+                        `구역: ${this.currentZone.toUpperCase()}-${this.currentStage} (${ZONES[this.currentZone].name})`;
+                }
                 document.getElementById('gold-display').textContent = `골드: ${this.gold}`;
                 document.getElementById('auto-battle-status').textContent =
                     `자동 전투: ${this.autoBattle ? 'ON' : 'OFF'}`;
@@ -3054,7 +3144,7 @@
                 };
 
                 return {
-                    id: Date.now(),
+                    id: this.nextCharacterId++,
                     name: name,
                     class: classId,
                     grade: grade,
@@ -3371,6 +3461,9 @@
                     case 'monster':
                         this.renderMonsterEncyclopedia(container);
                         break;
+                    case 'mercenary':
+                        this.renderMercenaryEncyclopedia(container);
+                        break;
                     case 'item':
                         this.renderItemEncyclopedia(container);
                         break;
@@ -3380,7 +3473,126 @@
                     case 'zone':
                         this.renderZoneEncyclopedia(container);
                         break;
+                    case 'material':
+                        this.renderMaterialEncyclopedia(container);
+                        break;
                 }
+            },
+
+            renderMercenaryEncyclopedia(container) {
+                container.innerHTML = '<div style="font-size: 14px; margin-bottom: 10px; font-weight: bold;">용병 직업 정보</div>';
+
+                Object.entries(CLASSES).forEach(([classId, classData]) => {
+                    const classDiv = document.createElement('div');
+                    classDiv.style.cssText = 'background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; padding: 10px; margin-bottom: 10px;';
+
+                    classDiv.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 8px; font-size: 15px;">
+                            <span style="font-size: 24px;">${classData.icon}</span> ${classData.name}
+                        </div>
+
+                        <div style="margin-bottom: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px; color: #4CAF50;">기본 스텟</div>
+                            <div style="padding-left: 10px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 3px; font-size: 11px;">
+                                <div>힘(STR): ${classData.stats.str}</div>
+                                <div>민첩(DEX): ${classData.stats.dex}</div>
+                                <div>지력(INT): ${classData.stats.int}</div>
+                                <div>체력(HP): ${classData.stats.hp}</div>
+                                <div>마나(MP): ${classData.stats.mp}</div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px; color: #ffeb3b;">등급별 추가 스텟</div>
+                            <div style="padding-left: 10px; font-size: 11px;">
+                                <div>• <span style="color: #aaa;">하급(일반)</span>: 추가 스텟 없음</div>
+                                <div>• <span style="color: #3498db;">중급</span>: 주 스텟 +2</div>
+                                <div>• <span style="color: #9b59b6;">상급</span>: 주 스텟 2개 각 +2</div>
+                                <div>• <span style="color: #e74c3c;">최상급</span>: 주 스텟 2개 각 +2, 나머지 +1</div>
+                                <div>• <span style="color: #f39c12;">레전드</span>: 모든 스텟 +3</div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px; color: #ff6b35;">레벨업 시 스텟 성장</div>
+                            <div style="padding-left: 10px; font-size: 11px;">
+                                <div>• 레벨업 시 자동으로 해당 직업의 기본 스텟 순서대로 상승</div>
+                                <div>• 추가로 스탯 포인트 1개 부여 (수동 배분 가능)</div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px; color: #52b788;">보유 스킬</div>
+                            <div style="padding-left: 10px; font-size: 11px;">
+                                ${classData.skills.map(skill => `
+                                    <div style="background: rgba(0,0,0,0.3); padding: 5px; border-radius: 3px; margin-bottom: 3px;">
+                                        <strong>${skill.name}</strong> (${skill.type === 'physical' ? '물리' : skill.type === 'magic' ? '마법' : skill.type === 'heal' ? '치유' : '버프'})
+                                        <div style="color: #aaa; font-size: 10px;">• 위력: ${skill.power}배, 대상: ${skill.target === 'single' ? '단일' : skill.target === 'all' ? '전체' : skill.target === 'ally' ? '아군' : '자신'}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="font-weight: bold; margin-bottom: 5px; color: #2a9d8f;">전직 시스템</div>
+                            <div style="padding-left: 10px; font-size: 11px;">
+                                <div>• 레벨 50 도달 시 전직 가능 (최대 4회)</div>
+                                <div>• 전직 시 모든 스텟 +2씩 영구 증가</div>
+                                <div>• 레벨은 1로 초기화되나 성장한 스텟은 유지</div>
+                                <div>• 환생 시스템: 초기 스텟으로 돌아가고 레벨 1부터 재시작</div>
+                            </div>
+                        </div>
+                    `;
+
+                    container.appendChild(classDiv);
+                });
+            },
+
+            renderMaterialEncyclopedia(container) {
+                container.innerHTML = '<div style="font-size: 14px; margin-bottom: 10px; font-weight: bold;">재료 도감 및 수급처</div>';
+
+                Object.entries(MATERIALS).forEach(([theme, materials]) => {
+                    const zone = Object.values(ZONES).find(z => z.theme === theme);
+                    const zoneKey = Object.keys(ZONES).find(k => ZONES[k].theme === theme);
+                    const themeDiv = document.createElement('div');
+                    themeDiv.style.cssText = 'background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; padding: 10px; margin-bottom: 10px;';
+
+                    themeDiv.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 8px; color: ${zone.color}; font-size: 15px;">${zone.name} 재료</div>
+
+                        <div style="margin-bottom: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px; color: #4CAF50;">수급처</div>
+                            <div style="padding-left: 10px; font-size: 11px;">
+                                <div>• 구역: ${zoneKey.toUpperCase()}</div>
+                                <div>• 스테이지: 1-10 (모든 스테이지)</div>
+                                <div>• 드롭 방식: 전투 승리 시 랜덤 획득</div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 8px;">
+                            <div style="font-weight: bold; margin-bottom: 5px; color: #ff6b35;">재료 목록 (총 ${materials.length}종)</div>
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px;">
+                                ${materials.map(material => {
+                                    const icon = getItemIcon(material);
+                                    return `<div style="background: rgba(0,0,0,0.3); padding: 5px; border-radius: 3px; font-size: 11px;">
+                                        <span style="font-size: 16px;">${icon}</span> ${material}
+                                    </div>`;
+                                }).join('')}
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="font-weight: bold; margin-bottom: 5px; color: #2a9d8f;">용도</div>
+                            <div style="padding-left: 10px; font-size: 11px;">
+                                <div>• 장비 제작 (대장간)</div>
+                                <div>• 장비 강화</div>
+                                <div>• 상점 판매</div>
+                            </div>
+                        </div>
+                    `;
+
+                    container.appendChild(themeDiv);
+                });
             },
 
             renderMonsterEncyclopedia(container) {
@@ -3435,13 +3647,39 @@
             renderEquipmentEncyclopedia(container) {
                 container.innerHTML = '<div style="font-size: 14px; margin-bottom: 10px; font-weight: bold;">장비 도감</div>';
 
+                // Equipment grade info
+                const gradeInfoDiv = document.createElement('div');
+                gradeInfoDiv.style.cssText = 'background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.3); border-radius: 5px; padding: 10px; margin-bottom: 10px;';
+                gradeInfoDiv.innerHTML = `
+                    <div style="font-weight: bold; margin-bottom: 8px; font-size: 13px; color: #ffeb3b;">장비 등급 정보</div>
+                    <div style="font-size: 11px; padding-left: 10px;">
+                        <div style="margin-bottom: 3px;">• <span style="color: #aaa;">일반 장비</span>: 기본 스텟 제공</div>
+                        <div style="margin-bottom: 3px;">• <span style="color: #f39c12;">전설 장비</span>: 기본 스텟 대비 120% 능력치 + 고유 스킬 보유</div>
+                        <div style="margin-bottom: 3px;">• 장비는 강화를 통해 성능 향상 가능</div>
+                        <div>• 장비 제작은 대장간에서 재료를 소모하여 제작</div>
+                    </div>
+                `;
+                container.appendChild(gradeInfoDiv);
+
                 Object.entries(LEGENDARY_EQUIPMENT).forEach(([theme, items]) => {
                     const zone = Object.values(ZONES).find(z => z.theme === theme);
+                    const zoneKey = Object.keys(ZONES).find(k => ZONES[k].theme === theme);
                     const themeDiv = document.createElement('div');
                     themeDiv.style.cssText = 'background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; padding: 10px; margin-bottom: 10px;';
 
+                    const materials = MATERIALS[theme];
                     themeDiv.innerHTML = `
-                        <div style="font-weight: bold; margin-bottom: 8px; color: ${zone.color};">${zone.name} 전설 장비</div>
+                        <div style="font-weight: bold; margin-bottom: 8px; color: ${zone.color}; font-size: 14px;">${zone.name} 전설 장비</div>
+
+                        <div style="margin-bottom: 8px; font-size: 11px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 3px;">
+                            <div style="font-weight: bold; margin-bottom: 5px; color: #4CAF50;">제작 재료 (${zone.name})</div>
+                            <div style="padding-left: 10px;">
+                                <div>• 수급 구역: ${zoneKey.toUpperCase()}</div>
+                                <div>• 주요 재료: ${materials.slice(0, 3).join(', ')} 등</div>
+                                <div>• 전체 ${materials.length}종의 재료 획득 가능</div>
+                            </div>
+                        </div>
+
                         ${items.map(item => {
                             const icon = getItemIcon(item.name, item.type);
                             const slotNames = {
@@ -3450,17 +3688,21 @@
                                 leftEarring: '왼쪽 귀걸이', rightEarring: '오른쪽 귀걸이',
                                 leftRing: '왼쪽 반지', rightRing: '오른쪽 반지'
                             };
+                            const statNames = {
+                                str: '힘', dex: '민첩', int: '지력', hp: 'HP', mp: 'MP', def: '방어'
+                            };
                             return `<div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 3px; margin-bottom: 5px; border: 1px solid #f39c12;">
                                 <div style="margin-bottom: 5px;">
                                     <span style="font-size: 20px;">${icon}</span>
                                     <strong style="color: #f39c12;">${item.name}</strong>
                                     <span style="color: #aaa; font-size: 11px;">(${slotNames[item.type]})</span>
                                 </div>
-                                <div style="font-size: 11px; color: #aaa;">
-                                    스탯: ${Object.entries(item.stats).map(([k, v]) => `${k}:${v}`).join(', ')}
+                                <div style="font-size: 11px; color: #aaa; margin-bottom: 3px;">
+                                    스탯: ${Object.entries(item.stats).map(([k, v]) => `${statNames[k] || k} +${v}`).join(', ')}
                                 </div>
-                                <div style="font-size: 11px; color: #4CAF50;">스킬: ${item.skill}</div>
-                                <div style="font-size: 10px; color: #888;">드롭률: ${(item.dropRate * 100).toFixed(3)}%</div>
+                                <div style="font-size: 11px; color: #4CAF50; margin-bottom: 3px;">고유 스킬: ${item.skill}</div>
+                                <div style="font-size: 10px; color: #888; margin-bottom: 3px;">기본 드롭률: ${(item.dropRate * 100).toFixed(3)}%</div>
+                                <div style="font-size: 10px; color: #ff6b35;">• 층수가 높을수록 드롭률 증가 (1층당 +0.01%)</div>
                             </div>`;
                         }).join('')}
                     `;
@@ -3526,6 +3768,8 @@
                 };
                 user.currentPartyIndex = this.currentPartyIndex;
                 user.gold = this.gold;
+                user.currentFloor = this.currentFloor;
+                user.unlockedFloor = this.unlockedFloor;
                 user.currentZone = this.currentZone;
                 user.currentStage = this.currentStage;
                 user.unlockedZones = this.unlockedZones;
@@ -3538,6 +3782,7 @@
                 user.marketplaceItems = this.marketplace.items;
                 user.gameSpeed = this.gameSpeed;
                 user.partyAssignments = this.partyAssignments;
+                user.nextCharacterId = this.nextCharacterId;
 
                 users[auth.currentUser] = user;
                 localStorage.setItem('rpg_users', JSON.stringify(users));
