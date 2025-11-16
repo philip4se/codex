@@ -1511,6 +1511,7 @@
                     expToNext: 100,
                     stats: { ...finalStats },
                     baseStats: { ...finalStats },
+                    initialStats: { ...finalStats },
                     currentHp: finalStats.hp * 10,
                     maxHp: finalStats.hp * 10,
                     currentMp: finalStats.mp * 10,
@@ -1522,7 +1523,10 @@
                         leftRing: null, rightRing: null
                     },
                     availableStats: 0,
-                    personality: this.generatePersonality()
+                    personality: this.generatePersonality(),
+                    promotionCount: 0,
+                    rebirthCount: 0,
+                    levelUpIndex: 0
                 };
 
                 this.party.push(character);
@@ -1635,7 +1639,7 @@
                         ${char.availableStats > 0 ? `<div style="color: #ffeb3b; margin-top: 5px; font-size: 11px;">스탯 포인트: ${char.availableStats}</div>` : ''}
                         <div style="display: flex; gap: 5px; margin-top: 8px;">
                             <button class="btn btn-primary" onclick="event.stopPropagation(); game.showMercenaryEquipment(${char.id})" style="flex: 1; padding: 5px; font-size: 10px;">장비</button>
-                            <button class="btn btn-success" onclick="event.stopPropagation(); game.showCharacterDetail(this.party.find(c => c.id === ${char.id}))" style="flex: 1; padding: 5px; font-size: 10px;">상세</button>
+                            <button class="btn btn-success" onclick="event.stopPropagation(); game.showCharacterDetailById(${char.id})" style="flex: 1; padding: 5px; font-size: 10px;">상세</button>
                         </div>
                     `;
                     container.appendChild(card);
@@ -1753,6 +1757,24 @@
                 });
             },
 
+            showCharacterDetailById(charId) {
+                // Find character in current party, inn, or all parties
+                let char = this.party.find(c => c.id === charId);
+                if (!char) {
+                    char = this.inn.mercenaries.find(c => c.id === charId);
+                }
+                if (!char) {
+                    // Search in all parties
+                    for (let party of this.parties) {
+                        char = party.find(c => c.id === charId);
+                        if (char) break;
+                    }
+                }
+                if (char) {
+                    this.showCharacterDetail(char);
+                }
+            },
+
             showCharacterDetail(char) {
                 const modal = document.getElementById('character-detail-modal');
                 const header = document.getElementById('char-detail-header');
@@ -1760,13 +1782,37 @@
 
                 const classData = CLASSES[char.class];
 
-                header.innerHTML = `${classData.icon} ${char.name} (Lv.${char.level})`;
+                // Initialize counts for backwards compatibility
+                if (char.promotionCount === undefined) char.promotionCount = 0;
+                if (char.rebirthCount === undefined) char.rebirthCount = 0;
+
+                // Update header with promotion/rebirth info
+                let headerExtra = '';
+                if (char.promotionCount > 0) {
+                    headerExtra += ` [${char.promotionCount}차 전직]`;
+                }
+                if (char.rebirthCount > 0) {
+                    headerExtra += ` [환생 ${char.rebirthCount}회]`;
+                }
+                header.innerHTML = `${classData.icon} ${char.name} (Lv.${char.level})${headerExtra}`;
 
                 let html = `
                     <div style="margin-bottom: 20px;">
                         <strong>직업:</strong> ${classData.name} | <strong>성격:</strong> ${char.personality}
                     </div>
                 `;
+
+                // Show promotion/rebirth status
+                if (char.promotionCount > 0 || char.rebirthCount > 0) {
+                    html += `
+                        <div style="background: rgba(255,215,0,0.2); border: 2px solid #ffd700; border-radius: 8px; padding: 10px; margin-bottom: 15px;">
+                            <div style="font-size: 12px;">
+                                ${char.promotionCount > 0 ? `<div>전직: ${char.promotionCount}차 (최대 4차)</div>` : ''}
+                                ${char.rebirthCount > 0 ? `<div>환생: ${char.rebirthCount}회</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
 
                 if (char.availableStats > 0) {
                     html += `
@@ -1788,19 +1834,31 @@
                     <div style="margin-top: 20px;">
                         <strong>경험치:</strong> ${char.exp} / ${char.expToNext}
                         <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${(char.exp / char.expToNext) * 100}%">
-                                ${Math.floor((char.exp / char.expToNext) * 100)}%
+                            <div class="progress-fill" style="width: ${char.level >= 30 ? 100 : (char.exp / char.expToNext) * 100}%">
+                                ${char.level >= 30 ? 'MAX' : Math.floor((char.exp / char.expToNext) * 100) + '%'}
                             </div>
                         </div>
                     </div>
                 `;
 
+                // Show appropriate button based on level and promotion count
                 if (char.level >= 30) {
-                    html += `
-                        <button class="btn btn-primary" style="width: 100%; margin-top: 20px;" onclick="game.promoteCharacter(${char.id})">
-                            전직하기 (Lv.1로 초기화, 스탯 유지)
-                        </button>
-                    `;
+                    if (char.promotionCount < 4) {
+                        // Show promotion button
+                        const promotionLabel = char.promotionCount === 0 ? '1차 전직' : `${char.promotionCount + 1}차 전직`;
+                        html += `
+                            <button class="btn btn-primary" style="width: 100%; margin-top: 20px;" onclick="game.promoteCharacter(${char.id})">
+                                ${promotionLabel} (레벨 1로 초기화, 모든 스탯 +2, 스탯 포인트 +5)
+                            </button>
+                        `;
+                    } else {
+                        // Show rebirth button (promotionCount === 4)
+                        html += `
+                            <button class="btn btn-success" style="width: 100%; margin-top: 20px;" onclick="game.rebirthCharacter(${char.id})">
+                                환생 (초기 스탯 2배, 전직 초기화, 레벨 1로)
+                            </button>
+                        `;
+                    }
                 }
 
                 content.innerHTML = html;
@@ -1823,7 +1881,17 @@
             },
 
             allocateStat(charId, stat, amount) {
-                const char = this.party.find(c => c.id === charId);
+                // Find character in party, inn, or all parties
+                let char = this.party.find(c => c.id === charId);
+                if (!char) {
+                    char = this.inn.mercenaries.find(c => c.id === charId);
+                }
+                if (!char) {
+                    for (let party of this.parties) {
+                        char = party.find(c => c.id === charId);
+                        if (char) break;
+                    }
+                }
                 if (!char) return;
 
                 if (amount > 0 && char.availableStats > 0) {
@@ -1843,21 +1911,135 @@
             },
 
             promoteCharacter(charId) {
-                const char = this.party.find(c => c.id === charId);
+                // Find character in party, inn, or all parties
+                let char = this.party.find(c => c.id === charId);
+                if (!char) {
+                    char = this.inn.mercenaries.find(c => c.id === charId);
+                }
+                if (!char) {
+                    for (let party of this.parties) {
+                        char = party.find(c => c.id === charId);
+                        if (char) break;
+                    }
+                }
+
                 if (!char || char.level < 30) return;
 
+                // Initialize promotionCount if not present (backwards compatibility)
+                if (char.promotionCount === undefined) char.promotionCount = 0;
+
+                // Check if already promoted 4 times
+                if (char.promotionCount >= 4) {
+                    this.addLog('이미 최대 전직 횟수(4회)에 도달했습니다! 환생을 해야 합니다.');
+                    return;
+                }
+
+                // Promotion mechanics
+                char.promotionCount++;
+
+                // Give +5 stat points to allocate
+                char.availableStats += 5;
+
+                // Increase ALL base stats by +2
+                const statKeys = ['str', 'dex', 'int', 'hp', 'mp'];
+                statKeys.forEach(stat => {
+                    char.baseStats[stat] += 2;
+                    char.stats[stat] += 2;
+                    // Update max HP/MP accordingly
+                    if (stat === 'hp') {
+                        char.maxHp += 20; // +2 hp stat = +20 max HP
+                    } else if (stat === 'mp') {
+                        char.maxMp += 20; // +2 mp stat = +20 max MP
+                    }
+                });
+
+                // Reset level and exp
                 char.level = 1;
                 char.exp = 0;
                 char.expToNext = 100;
-                char.baseStats = { ...char.stats };
+                char.levelUpIndex = 0; // Reset level up cycle
 
-                this.addLog(`${char.name}이(가) 전직했습니다! 레벨 1로 초기화되었지만 모든 스탯이 유지됩니다.`);
+                // Full heal
+                char.currentHp = char.maxHp;
+                char.currentMp = char.maxMp;
+
+                this.addLog(`${char.name}이(가) ${char.promotionCount}차 전직했습니다! 레벨 1로 초기화, 모든 스탯 +2, 스탯 포인트 +5!`);
+                this.closeModal('character-detail-modal');
+                this.renderPartyList();
+            },
+
+            rebirthCharacter(charId) {
+                // Find character in party, inn, or all parties
+                let char = this.party.find(c => c.id === charId);
+                if (!char) {
+                    char = this.inn.mercenaries.find(c => c.id === charId);
+                }
+                if (!char) {
+                    for (let party of this.parties) {
+                        char = party.find(c => c.id === charId);
+                        if (char) break;
+                    }
+                }
+
+                if (!char || char.level < 30) return;
+
+                // Initialize counts if not present (backwards compatibility)
+                if (char.promotionCount === undefined) char.promotionCount = 0;
+                if (char.rebirthCount === undefined) char.rebirthCount = 0;
+                if (!char.initialStats) char.initialStats = { ...char.baseStats };
+
+                // Check if eligible for rebirth (must have 4 promotions)
+                if (char.promotionCount < 4) {
+                    this.addLog('환생하려면 4차 전직을 완료해야 합니다!');
+                    return;
+                }
+
+                // Rebirth mechanics
+                char.rebirthCount++;
+
+                // Double the initial stats
+                const statKeys = ['str', 'dex', 'int', 'hp', 'mp'];
+                statKeys.forEach(stat => {
+                    char.initialStats[stat] *= 2;
+                });
+
+                // Reset to new doubled initial stats
+                char.baseStats = { ...char.initialStats };
+                char.stats = { ...char.initialStats };
+
+                // Recalculate HP/MP based on new stats
+                char.maxHp = char.stats.hp * 10;
+                char.maxMp = char.stats.mp * 10;
+                char.currentHp = char.maxHp;
+                char.currentMp = char.maxMp;
+
+                // Reset level, exp, and promotions
+                char.level = 1;
+                char.exp = 0;
+                char.expToNext = 100;
+                char.promotionCount = 0;
+                char.levelUpIndex = 0;
+                char.availableStats = 0; // Reset available stats
+
+                // Equipment is kept (no change needed)
+
+                this.addLog(`${char.name}이(가) ${char.rebirthCount}차 환생했습니다! 초기 스탯이 2배가 되었습니다!`);
                 this.closeModal('character-detail-modal');
                 this.renderPartyList();
             },
 
             showMercenaryEquipment(charId) {
-                const char = this.party.find(c => c.id === charId);
+                // Find character in party, inn, or all parties
+                let char = this.party.find(c => c.id === charId);
+                if (!char) {
+                    char = this.inn.mercenaries.find(c => c.id === charId);
+                }
+                if (!char) {
+                    for (let party of this.parties) {
+                        char = party.find(c => c.id === charId);
+                        if (char) break;
+                    }
+                }
                 if (!char) return;
 
                 const modal = document.getElementById('mercenary-equipment-modal');
@@ -1956,7 +2138,17 @@
             },
 
             equipItem(charId, itemIndex) {
-                const char = this.party.find(c => c.id === charId);
+                // Find character in party, inn, or all parties
+                let char = this.party.find(c => c.id === charId);
+                if (!char) {
+                    char = this.inn.mercenaries.find(c => c.id === charId);
+                }
+                if (!char) {
+                    for (let party of this.parties) {
+                        char = party.find(c => c.id === charId);
+                        if (char) break;
+                    }
+                }
                 if (!char) return;
 
                 const item = this.inventory[itemIndex];
@@ -1982,7 +2174,17 @@
             },
 
             unequipItem(charId, slotType) {
-                const char = this.party.find(c => c.id === charId);
+                // Find character in party, inn, or all parties
+                let char = this.party.find(c => c.id === charId);
+                if (!char) {
+                    char = this.inn.mercenaries.find(c => c.id === charId);
+                }
+                if (!char) {
+                    for (let party of this.parties) {
+                        char = party.find(c => c.id === charId);
+                        if (char) break;
+                    }
+                }
                 if (!char || !char.equipment[slotType]) return;
 
                 // Add to inventory
@@ -2368,13 +2570,52 @@
             },
 
             checkLevelUp(char) {
-                while (char.exp >= char.expToNext) {
+                // Level cap at 30 - no exp gain after reaching level 30
+                if (char.level >= 30) {
+                    char.exp = 0; // Reset exp when at max level
+                    return;
+                }
+
+                while (char.exp >= char.expToNext && char.level < 30) {
                     char.exp -= char.expToNext;
                     char.level++;
                     char.expToNext = Math.floor(char.expToNext * 1.2);
 
                     // Regular stat point
                     char.availableStats++;
+
+                    // Auto stat growth based on class (only for the 6 main classes, not druid)
+                    // Initialize levelUpIndex if not present (for backwards compatibility)
+                    if (char.levelUpIndex === undefined) char.levelUpIndex = 0;
+
+                    // Define stat growth patterns for each class (6-step cycles)
+                    const statGrowthPatterns = {
+                        knight: ['str', 'hp', 'str', 'hp', 'dex', 'int'],
+                        archer: ['dex', 'str', 'dex', 'str', 'hp', 'int'],
+                        rogue: ['dex', 'str', 'dex', 'str', 'hp', 'int'],
+                        priest: ['str', 'hp', 'str', 'hp', 'dex', 'int'],
+                        mage: ['int', 'hp', 'int', 'hp', 'dex', 'dex'],
+                        healer: ['int', 'hp', 'int', 'hp', 'dex', 'hp']
+                    };
+
+                    // Apply auto stat growth (only for classes in the pattern)
+                    if (statGrowthPatterns[char.class]) {
+                        const pattern = statGrowthPatterns[char.class];
+                        const statToIncrease = pattern[char.levelUpIndex % 6];
+
+                        // Increase base stat
+                        char.baseStats[statToIncrease]++;
+                        char.stats[statToIncrease]++;
+
+                        // Update HP/MP max if those stats increased
+                        if (statToIncrease === 'hp') {
+                            char.maxHp += 10;
+                        } else if (statToIncrease === 'mp') {
+                            char.maxMp += 10;
+                        }
+
+                        char.levelUpIndex++;
+                    }
 
                     // Bonus stats at milestones
                     if (char.level % 10 === 0) {
@@ -2385,10 +2626,18 @@
                         this.addLog(`${char.name}이(가) 레벨 ${char.level}에 도달!`);
                     }
 
+                    // Additional HP/MP on level up (beyond stat growth)
                     char.maxHp += 5;
                     char.currentHp = char.maxHp;
                     char.maxMp += 3;
                     char.currentMp = char.maxMp;
+
+                    // Check if reached level cap
+                    if (char.level >= 30) {
+                        this.addLog(`${char.name}이(가) 최대 레벨 30에 도달했습니다! 전직이 필요합니다.`);
+                        char.exp = 0; // Clear remaining exp
+                        break;
+                    }
                 }
             },
 
@@ -2814,6 +3063,7 @@
                     expToNext: 100,
                     stats: { ...finalStats },
                     baseStats: { ...finalStats },
+                    initialStats: { ...finalStats }, // Store original hired stats for rebirth
                     currentHp: finalStats.hp * 10,
                     maxHp: finalStats.hp * 10,
                     currentMp: finalStats.mp * 10,
@@ -2825,7 +3075,10 @@
                         leftRing: null, rightRing: null
                     },
                     availableStats: 0,
-                    personality: this.generatePersonality()
+                    personality: this.generatePersonality(),
+                    promotionCount: 0, // Track promotions (max 4)
+                    rebirthCount: 0, // Track rebirths
+                    levelUpIndex: 0 // Track which stat to auto-increase in the cycle
                 };
             },
 
