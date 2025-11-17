@@ -18,6 +18,44 @@
             overflow-x: hidden;
         }
 
+        body.light-mode {
+            background: linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%);
+            color: #333;
+        }
+
+        body.light-mode .game-header {
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        body.light-mode .side-panel {
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        body.light-mode .center-panel {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        body.light-mode .battlefield {
+            background: linear-gradient(180deg, #f0f0f0 0%, #e0e0e0 100%);
+        }
+
+        body.light-mode .stage-info {
+            color: #333;
+        }
+
+        .theme-toggle-btn {
+            cursor: pointer;
+            padding: 5px 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            margin-left: 10px;
+            display: inline-block;
+        }
+
+        .theme-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
         .game-container {
             max-width: 1400px;
             margin: 0 auto;
@@ -240,6 +278,26 @@
         .btn-danger {
             background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
             color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%);
+            color: white;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 180, 219, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(242, 153, 74, 0.4);
         }
 
         .btn:disabled {
@@ -871,7 +929,8 @@
             <div class="stage-info">
                 <span id="current-stage">구역: A-1</span> |
                 <span id="gold-display">골드: 0</span> |
-                <span id="auto-battle-status">자동 전투: OFF</span>
+                <span id="auto-battle-status">자동 전투: OFF</span> |
+                <span class="theme-toggle-btn" onclick="game.toggleTheme()" id="theme-toggle-btn">🌙 다크모드</span>
             </div>
         </div>
 
@@ -910,6 +969,8 @@
                 <div class="battle-controls">
                     <button class="btn btn-success" onclick="game.startBattle()" id="battle-btn">전투 시작</button>
                     <button class="btn btn-primary" onclick="game.toggleAutoBattle()" id="auto-battle-btn">자동 전투</button>
+                    <button class="btn btn-info" onclick="game.toggleAutoClimb()" id="auto-climb-btn">자동 등반: OFF</button>
+                    <button class="btn btn-warning" onclick="game.toggleRepeatHunt()" id="repeat-hunt-btn">반복 사냥: OFF</button>
                     <button class="btn btn-danger" onclick="game.saveGame()">저장</button>
                     <button class="btn btn-primary" onclick="game.loadGame()">불러오기</button>
                 </div>
@@ -1566,9 +1627,12 @@
             materials: {},
             gold: 0,
             autoBattle: false,
+            autoClimb: false,
+            repeatHunt: false,
             inBattle: false,
             enemies: [],
             bossPhase: 1,
+            lightMode: false,
             inn: { capacity: 6, mercenaries: [] },
             innUpgradeCost: 500,
             mercenaryGuild: { slots: 3, availableMercenaries: [] },
@@ -1657,6 +1721,20 @@
 
                 // Restore global character ID counter
                 globalCharacterId = user.globalCharacterId || 1000;
+
+                // Load new state variables
+                this.autoClimb = user.autoClimb || false;
+                this.repeatHunt = user.repeatHunt || false;
+                this.lightMode = user.lightMode || false;
+
+                // Apply light mode if saved
+                if (this.lightMode) {
+                    document.body.classList.add('light-mode');
+                    const themeBtnElement = document.getElementById('theme-toggle-btn');
+                    if (themeBtnElement) {
+                        themeBtnElement.textContent = '☀️ 화이트모드';
+                    }
+                }
 
                 if (!this.mercenaryGuild.availableMercenaries || this.mercenaryGuild.availableMercenaries.length === 0) {
                     this.generateMercenaries();
@@ -2799,38 +2877,44 @@
 
                     // Unlock next floor/stage (infinite progression) and auto-progress
                     // Floor-based progression
-                    if (this.currentFloor >= this.unlockedFloor) {
-                        this.currentFloor++;
-                        this.unlockedFloor = this.currentFloor;
-                        const newZone = getZoneFromFloor(this.currentFloor);
-                        const zoneName = ZONES[newZone].name;
-                        this.addLog(`다음 층으로 이동합니다: ${this.currentFloor}층 (${zoneName})`);
+                    if (!this.repeatHunt) {
+                        // 반복 사냥이 꺼져있을 때만 다음 층으로 진행
+                        if (this.currentFloor >= this.unlockedFloor) {
+                            this.currentFloor++;
+                            this.unlockedFloor = this.currentFloor;
+                            const newZone = getZoneFromFloor(this.currentFloor);
+                            const zoneName = ZONES[newZone].name;
+                            this.addLog(`다음 층으로 이동합니다: ${this.currentFloor}층 (${zoneName})`);
 
-                        // Check if entering new zone
-                        const prevFloor = this.currentFloor - 1;
-                        const prevZone = getZoneFromFloor(prevFloor);
-                        if (newZone !== prevZone) {
-                            this.addLog(`🎉 새로운 구역 진입! ${zoneName}에 오신 것을 환영합니다!`);
-                        }
-                    }
-
-                    // Legacy zone/stage system (for compatibility)
-                    if (this.currentStage >= this.unlockedStages[this.currentZone]) {
-                        if (this.currentStage < 10) {
-                            this.unlockedStages[this.currentZone] = this.currentStage + 1;
-                            this.currentStage = this.currentStage + 1;
-                        } else {
-                            const zones = Object.keys(ZONES);
-                            const currentZoneIndex = zones.indexOf(this.currentZone);
-                            const nextZoneIndex = (currentZoneIndex + 1) % zones.length;
-                            const nextZone = zones[nextZoneIndex];
-
-                            if (!this.unlockedZones.includes(nextZone)) {
-                                this.unlockedZones.push(nextZone);
+                            // Check if entering new zone
+                            const prevFloor = this.currentFloor - 1;
+                            const prevZone = getZoneFromFloor(prevFloor);
+                            if (newZone !== prevZone) {
+                                this.addLog(`🎉 새로운 구역 진입! ${zoneName}에 오신 것을 환영합니다!`);
                             }
-                            this.currentZone = nextZone;
-                            this.currentStage = 1;
                         }
+
+                        // Legacy zone/stage system (for compatibility)
+                        if (this.currentStage >= this.unlockedStages[this.currentZone]) {
+                            if (this.currentStage < 10) {
+                                this.unlockedStages[this.currentZone] = this.currentStage + 1;
+                                this.currentStage = this.currentStage + 1;
+                            } else {
+                                const zones = Object.keys(ZONES);
+                                const currentZoneIndex = zones.indexOf(this.currentZone);
+                                const nextZoneIndex = (currentZoneIndex + 1) % zones.length;
+                                const nextZone = zones[nextZoneIndex];
+
+                                if (!this.unlockedZones.includes(nextZone)) {
+                                    this.unlockedZones.push(nextZone);
+                                }
+                                this.currentZone = nextZone;
+                                this.currentStage = 1;
+                            }
+                        }
+                    } else {
+                        // 반복 사냥 모드: 같은 층에서 반복
+                        this.addLog(`[반복 사냥] ${this.currentFloor}층에서 계속 사냥합니다.`);
                     }
 
                     // Heal party
@@ -2853,6 +2937,12 @@
                         char.currentHp = char.maxHp;
                         char.currentMp = char.maxMp;
                     });
+
+                    // 자동 등반 모드: 패배해도 재도전
+                    if (this.autoClimb && this.autoBattle) {
+                        this.addLog('[자동 등반] 재도전합니다...');
+                        setTimeout(() => this.startBattle(), 2000 / this.gameSpeed);
+                    }
                 }
 
                 this.renderPartyList();
@@ -3470,6 +3560,41 @@
                 }
             },
 
+            toggleAutoClimb() {
+                this.autoClimb = !this.autoClimb;
+                if (this.autoClimb) {
+                    this.repeatHunt = false;
+                }
+                this.updateDisplay();
+
+                if (this.autoClimb && !this.inBattle && this.autoBattle) {
+                    this.startBattle();
+                }
+            },
+
+            toggleRepeatHunt() {
+                this.repeatHunt = !this.repeatHunt;
+                if (this.repeatHunt) {
+                    this.autoClimb = false;
+                }
+                this.updateDisplay();
+
+                if (this.repeatHunt && !this.inBattle && this.autoBattle) {
+                    this.startBattle();
+                }
+            },
+
+            toggleTheme() {
+                this.lightMode = !this.lightMode;
+                if (this.lightMode) {
+                    document.body.classList.add('light-mode');
+                    document.getElementById('theme-toggle-btn').textContent = '☀️ 화이트모드';
+                } else {
+                    document.body.classList.remove('light-mode');
+                    document.getElementById('theme-toggle-btn').textContent = '🌙 다크모드';
+                }
+            },
+
             setGameSpeed(speed) {
                 this.gameSpeed = speed;
                 document.getElementById('speed-display').textContent = `${speed}x`;
@@ -3524,6 +3649,18 @@
                 document.getElementById('gold-display').textContent = `골드: ${this.gold}`;
                 document.getElementById('auto-battle-status').textContent =
                     `자동 전투: ${this.autoBattle ? 'ON' : 'OFF'}`;
+
+                // Update auto climb and repeat hunt button states
+                const autoClimbBtn = document.getElementById('auto-climb-btn');
+                const repeatHuntBtn = document.getElementById('repeat-hunt-btn');
+                if (autoClimbBtn) {
+                    autoClimbBtn.textContent = `자동 등반: ${this.autoClimb ? 'ON' : 'OFF'}`;
+                    autoClimbBtn.className = this.autoClimb ? 'btn btn-success' : 'btn btn-info';
+                }
+                if (repeatHuntBtn) {
+                    repeatHuntBtn.textContent = `반복 사냥: ${this.repeatHunt ? 'ON' : 'OFF'}`;
+                    repeatHuntBtn.className = this.repeatHunt ? 'btn btn-success' : 'btn btn-warning';
+                }
 
                 // Update floor display
                 this.updateFloorDisplay();
@@ -4321,6 +4458,9 @@
                 user.gameSpeed = this.gameSpeed;
                 user.partyAssignments = this.partyAssignments;
                 user.globalCharacterId = globalCharacterId;
+                user.autoClimb = this.autoClimb;
+                user.repeatHunt = this.repeatHunt;
+                user.lightMode = this.lightMode;
 
                 users[auth.currentUser] = user;
                 localStorage.setItem('rpg_users', JSON.stringify(users));
