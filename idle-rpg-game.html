@@ -1247,7 +1247,7 @@
         <div class="modal-content">
             <div class="modal-header" id="char-detail-header">캐릭터 상세</div>
             <div id="char-detail-content"></div>
-            <button class="btn btn-danger" onclick="game.closeModal('character-detail-modal')" style="width: 100%; margin-top: 20px;">닫기</button>
+            <button class="btn btn-danger" onclick="event.stopPropagation(); game.closeModal('character-detail-modal')" style="width: 100%; margin-top: 20px;">닫기</button>
         </div>
     </div>
 
@@ -2340,15 +2340,20 @@
                             ${char.skills.map(skill => {
                                 const skillLevel = char.skillLevels[skill.name] || 1;
                                 const icon = skillTypeIcons[skill.type] || '🎯';
+                                const canUpgrade = char.skillPoints > 0 && skillLevel < 10;
                                 return `
-                                    <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; padding: 10px; cursor: pointer;"
-                                         onclick="game.showSkillDetail(${char.id}, '${skill.name}')">
+                                    <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; padding: 10px;">
                                         <div style="display: flex; align-items: center; gap: 10px;">
                                             <span style="font-size: 24px;">${icon}</span>
                                             <div style="flex: 1;">
-                                                <div><strong>${skill.name}</strong> Lv.${skillLevel}</div>
+                                                <div><strong>${skill.name}</strong> Lv.${skillLevel}${skillLevel >= 10 ? ' <span style="color: #ffd700;">(MAX)</span>' : ''}</div>
                                                 <div style="font-size: 11px; color: #aaa;">${skill.type} / 위력: ${(skill.power * (1 + (skillLevel - 1) * 0.1)).toFixed(1)}x</div>
                                             </div>
+                                            ${canUpgrade ? `
+                                                <button class="btn btn-success" onclick="event.stopPropagation(); game.upgradeSkill(${char.id}, '${skill.name}')" style="padding: 5px 10px; font-size: 11px; white-space: nowrap;">
+                                                    레벨업
+                                                </button>
+                                            ` : ''}
                                         </div>
                                     </div>
                                 `;
