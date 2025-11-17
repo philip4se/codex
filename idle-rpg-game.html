@@ -1245,7 +1245,7 @@
     </div>
 
     <!-- Character Detail Modal -->
-    <div class="modal" id="character-detail-modal">
+    <div class="modal" id="character-detail-modal" onclick="game.closeModal('character-detail-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header" id="char-detail-header">캐릭터 상세</div>
             <div id="char-detail-content"></div>
@@ -2307,16 +2307,20 @@
                     `;
                 }
 
-                if (char.availableStats > 0) {
-                    html += `
-                        <div class="stat-points-available">
-                            <strong>사용 가능한 스탯 포인트: ${char.availableStats}</strong>
-                        </div>
-                        <div class="stat-allocation">
-                            ${this.renderStatAllocation(char)}
-                        </div>
-                    `;
-                }
+                // Display stats
+                html += `
+                    <div style="margin-top: 20px;">
+                        <strong>스탯</strong>
+                        ${char.availableStats > 0 ? `<span style="color: #ffeb3b; margin-left: 10px;">(사용 가능한 포인트: ${char.availableStats})</span>` : ''}
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+                        <div><strong>힘:</strong> ${char.stats.str}</div>
+                        <div><strong>민첩:</strong> ${char.stats.dex}</div>
+                        <div><strong>지력:</strong> ${char.stats.int}</div>
+                        <div><strong>생명력:</strong> ${char.stats.hp}</div>
+                        <div><strong>마력:</strong> ${char.stats.mp}</div>
+                    </div>
+                `;
 
                 // Initialize skillLevels for backwards compatibility
                 if (!char.skillLevels) {
