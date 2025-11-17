@@ -832,6 +832,233 @@
             25% { transform: translateX(-5px); }
             75% { transform: translateX(5px); }
         }
+
+        /* ===== 라이트 모드 (고급스럽고 세련된 디자인) ===== */
+        body.theme-light {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #2c3e50;
+        }
+
+        body.theme-light .game-header {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        body.theme-light .game-header h1 {
+            color: #2c3e50;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        body.theme-light .stage-info {
+            color: #34495e;
+        }
+
+        body.theme-light .side-panel,
+        body.theme-light .center-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        body.theme-light .battlefield {
+            background: linear-gradient(180deg, #ecf0f1 0%, #bdc3c7 100%);
+            border: 2px solid rgba(0, 0, 0, 0.1);
+        }
+
+        body.theme-light .battle-log {
+            background: rgba(0, 0, 0, 0.05);
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            color: #2c3e50;
+        }
+
+        body.theme-light .character-slot {
+            background: rgba(255, 255, 255, 0.8);
+            border: 3px solid rgba(52, 73, 94, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        body.theme-light .character-slot:hover {
+            border-color: #27ae60;
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.2);
+        }
+
+        body.theme-light .character-slot.active {
+            border-color: #27ae60;
+            box-shadow: 0 0 25px rgba(39, 174, 96, 0.4);
+        }
+
+        body.theme-light .character-name,
+        body.theme-light .character-level {
+            color: #2c3e50;
+        }
+
+        body.theme-light .enemy-slot {
+            background: rgba(231, 76, 60, 0.1);
+            border: 3px solid rgba(231, 76, 60, 0.5);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        body.theme-light .panel-title {
+            color: #2c3e50;
+            border-bottom: 3px solid rgba(52, 152, 219, 0.5);
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        body.theme-light .character-card {
+            background: rgba(255, 255, 255, 0.7);
+            border: 2px solid rgba(52, 73, 94, 0.2);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        body.theme-light .character-card:hover {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(52, 152, 219, 0.5);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        body.theme-light .character-card.selected {
+            border-color: #27ae60;
+            background: rgba(46, 204, 113, 0.15);
+        }
+
+        body.theme-light .stat-item {
+            background: rgba(52, 73, 94, 0.08);
+            color: #2c3e50;
+        }
+
+        body.theme-light .item-slot {
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid rgba(52, 73, 94, 0.3);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        body.theme-light .item-slot:hover {
+            border-color: #27ae60;
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.2);
+        }
+
+        body.theme-light .item-slot.rare {
+            border-color: #3498db;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        body.theme-light .item-slot.epic {
+            border-color: #9b59b6;
+            box-shadow: 0 4px 12px rgba(155, 89, 182, 0.3);
+        }
+
+        body.theme-light .item-slot.legendary {
+            border-color: #f39c12;
+            box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+        }
+
+        body.theme-light .btn {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        body.theme-light .btn-primary {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            border-color: rgba(41, 128, 185, 0.3);
+        }
+
+        body.theme-light .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        body.theme-light .btn-success {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            border-color: rgba(34, 153, 84, 0.3);
+        }
+
+        body.theme-light .btn-success:hover {
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+        }
+
+        body.theme-light .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            border-color: rgba(192, 57, 43, 0.3);
+        }
+
+        body.theme-light .btn-danger:hover {
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+        }
+
+        body.theme-light .btn-warning {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            border-color: rgba(230, 126, 34, 0.3);
+        }
+
+        body.theme-light .modal-content {
+            background: linear-gradient(135deg, #ffffff 0%, #ecf0f1 100%);
+            border: 3px solid rgba(52, 73, 94, 0.2);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+            color: #2c3e50;
+        }
+
+        body.theme-light .modal-header {
+            color: #2c3e50;
+            border-bottom: 2px solid rgba(52, 73, 94, 0.2);
+        }
+
+        body.theme-light .tab {
+            background: rgba(255, 255, 255, 0.6);
+            border: 2px solid rgba(52, 73, 94, 0.2);
+            color: #2c3e50;
+        }
+
+        body.theme-light .tab:hover {
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        body.theme-light .tab.active {
+            background: rgba(52, 152, 219, 0.2);
+            border-color: #3498db;
+            color: #2c3e50;
+        }
+
+        body.theme-light .party-selector-btn {
+            background: rgba(255, 255, 255, 0.7);
+            border: 2px solid rgba(52, 73, 94, 0.2);
+            color: #2c3e50;
+        }
+
+        body.theme-light .party-selector-btn:hover {
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        body.theme-light .party-selector-btn.active {
+            background: rgba(39, 174, 96, 0.2);
+            border-color: #27ae60;
+        }
+
+        body.theme-light .marketplace-item {
+            background: rgba(255, 255, 255, 0.7);
+            border: 2px solid rgba(52, 73, 94, 0.2);
+        }
+
+        body.theme-light .marketplace-item:hover {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        body.theme-light .stat-row {
+            background: rgba(255, 255, 255, 0.6);
+            color: #2c3e50;
+        }
+
+        body.theme-light .input-group input,
+        body.theme-light .input-group select {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid rgba(52, 73, 94, 0.2);
+            color: #2c3e50;
+        }
+
+        body.theme-light .input-group input:focus,
+        body.theme-light .input-group select:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -881,7 +1108,8 @@
             <div class="stage-info">
                 <span id="current-stage">구역: A-1</span> |
                 <span id="gold-display">골드: 0</span> |
-                <span id="auto-battle-status">자동 전투: OFF</span>
+                <span id="auto-battle-status">자동 전투: OFF</span> |
+                <button id="theme-toggle-btn" class="btn btn-primary" onclick="game.toggleTheme()" style="padding: 5px 15px; font-size: 12px; margin-left: 10px;">🌙 다크모드</button>
             </div>
         </div>
 
@@ -931,12 +1159,14 @@
                 <!-- Speed Controls -->
                 <div style="text-align: center; margin-top: 15px;">
                     <div style="margin-bottom: 10px; font-size: 14px;">전투 속도: <span id="speed-display">1x</span></div>
-                    <div style="display: flex; gap: 10px; justify-content: center;">
+                    <div style="display: flex; gap: 5px; justify-content: center; flex-wrap: wrap;">
                         <button class="btn btn-primary" onclick="game.setGameSpeed(1)" style="padding: 8px 16px;">1x</button>
                         <button class="btn btn-primary" onclick="game.setGameSpeed(2)" style="padding: 8px 16px;">2x</button>
                         <button class="btn btn-primary" onclick="game.setGameSpeed(3)" style="padding: 8px 16px;">3x</button>
                         <button class="btn btn-primary" onclick="game.setGameSpeed(5)" style="padding: 8px 16px;">5x</button>
                         <button class="btn btn-primary" onclick="game.setGameSpeed(100)" style="padding: 8px 16px;">100x</button>
+                        <button class="btn btn-primary" onclick="game.setGameSpeed(1000)" style="padding: 8px 16px;">1000x</button>
+                        <button class="btn btn-primary" onclick="game.setGameSpeed(5000)" style="padding: 8px 16px;">5000x</button>
                     </div>
                 </div>
             </div>
@@ -1588,6 +1818,7 @@
             currentZone: 'a',
             currentStage: 1,
             unlockedFloor: 1, // Highest unlocked floor
+            lastClearedFloor: 1, // Last successfully cleared floor
             unlockedZones: ['a'],
             unlockedStages: { a: 1, b: 1, c: 1, d: 1, e: 1 },
             materials: {},
@@ -1607,6 +1838,7 @@
             marketplace: { enabled: true, items: [] },
             isAdmin: false,
             gameSpeed: 1,
+            currentTheme: 'dark', // 'dark' or 'light'
             partyAssignments: Array(10).fill(null).map(() => ({ floor: 1 })),
             nextCharacterId: 1, // Unique character ID counter
 
@@ -1631,6 +1863,9 @@
                 this.renderMaterials();
                 this.renderCrafting();
                 this.updateDisplay();
+
+                // Apply theme
+                this.applyTheme();
 
                 // Initialize materials
                 Object.values(MATERIALS).flat().forEach(mat => {
@@ -1664,6 +1899,7 @@
                 this.gold = user.gold || 1000;
                 this.currentFloor = user.currentFloor || 1;
                 this.unlockedFloor = user.unlockedFloor || 1;
+                this.lastClearedFloor = user.lastClearedFloor || 1;
                 this.currentZone = user.currentZone || 'a';
                 this.currentStage = user.currentStage || 1;
                 this.unlockedZones = user.unlockedZones || ['a'];
@@ -1677,6 +1913,7 @@
                 this.marketplace.items = user.marketplaceItems || [];
                 this.isAdmin = user.isAdmin || false;
                 this.gameSpeed = user.gameSpeed || 1;
+                this.currentTheme = user.currentTheme || 'dark';
                 // Convert old partyAssignments format to new floor-based format
                 this.partyAssignments = user.partyAssignments || Array(10).fill(null).map(() => ({ floor: 1 }));
                 // Ensure all assignments have floor property
@@ -2820,12 +3057,12 @@
                     }
 
                     // Legendary Equipment with floor-based increasing drop rate
-                    // Base drop rate: 1% (0.01)
+                    // Base drop rate: 0.01% (0.0001)
                     // Increase: 1% per floor (multiplier: 1.01^floor)
-                    // For rings and earrings: 2% base (0.02)
+                    // For rings and earrings: 0.02% base (0.0002)
                     const legendaryItems = LEGENDARY_EQUIPMENT[zone.theme];
                     legendaryItems.forEach(item => {
-                        const baseDropRate = (item.type.includes('Earring') || item.type.includes('Ring')) ? 0.02 : 0.01;
+                        const baseDropRate = (item.type.includes('Earring') || item.type.includes('Ring')) ? 0.0002 : 0.0001;
                         // Drop rate increases by 1% per floor: dropRate * (1.01 ^ floor)
                         const currentFloor = this.currentFloor || this.currentStage;
                         const adjustedDropRate = baseDropRate * Math.pow(1.01, currentFloor - 1);
@@ -2838,6 +3075,9 @@
 
                     // Unlock next floor/stage (infinite progression) and auto-progress
                     // Floor-based progression
+                    // 마지막 클리어 층 업데이트
+                    this.lastClearedFloor = this.currentFloor;
+
                     if (this.currentFloor >= this.unlockedFloor) {
                         this.currentFloor++;
                         this.unlockedFloor = this.currentFloor;
@@ -2887,11 +3127,21 @@
                     }
                 } else {
                     this.addLog('--- 패배... ---');
+                    // 마지막으로 클리어한 층으로 되돌아가기
+                    this.currentFloor = this.lastClearedFloor;
+                    this.updateFloorDisplay();
+                    this.addLog(`마지막 클리어 층 ${this.lastClearedFloor}층으로 이동합니다.`);
+
                     // Heal party after defeat
                     this.party.forEach(char => {
                         char.currentHp = char.maxHp;
                         char.currentMp = char.maxMp;
                     });
+
+                    // 자동 전투가 켜져있으면 다시 시작
+                    if (this.autoBattle) {
+                        setTimeout(() => this.startBattle(), 2000 / this.gameSpeed);
+                    }
                 }
 
                 this.renderPartyList();
@@ -3528,6 +3778,31 @@
             setGameSpeed(speed) {
                 this.gameSpeed = speed;
                 document.getElementById('speed-display').textContent = `${speed}x`;
+            },
+
+            toggleTheme() {
+                if (this.currentTheme === 'dark') {
+                    this.currentTheme = 'light';
+                    document.body.classList.add('theme-light');
+                    document.getElementById('theme-toggle-btn').innerHTML = '☀️ 라이트모드';
+                } else {
+                    this.currentTheme = 'dark';
+                    document.body.classList.remove('theme-light');
+                    document.getElementById('theme-toggle-btn').innerHTML = '🌙 다크모드';
+                }
+                this.addLog(`${this.currentTheme === 'light' ? '라이트' : '다크'}모드로 변경되었습니다.`);
+            },
+
+            applyTheme() {
+                if (this.currentTheme === 'light') {
+                    document.body.classList.add('theme-light');
+                    const btn = document.getElementById('theme-toggle-btn');
+                    if (btn) btn.innerHTML = '☀️ 라이트모드';
+                } else {
+                    document.body.classList.remove('theme-light');
+                    const btn = document.getElementById('theme-toggle-btn');
+                    if (btn) btn.innerHTML = '🌙 다크모드';
+                }
             },
 
             setPartyFloor(partyIndex, floor) {
@@ -4478,6 +4753,7 @@
                 user.gold = this.gold;
                 user.currentFloor = this.currentFloor;
                 user.unlockedFloor = this.unlockedFloor;
+                user.lastClearedFloor = this.lastClearedFloor;
                 user.currentZone = this.currentZone;
                 user.currentStage = this.currentStage;
                 user.unlockedZones = this.unlockedZones;
@@ -4490,6 +4766,7 @@
                 user.lastGuildRefresh = this.lastGuildRefresh;
                 user.marketplaceItems = this.marketplace.items;
                 user.gameSpeed = this.gameSpeed;
+                user.currentTheme = this.currentTheme;
                 user.partyAssignments = this.partyAssignments;
                 user.globalCharacterId = globalCharacterId;
 
