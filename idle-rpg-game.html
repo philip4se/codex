@@ -5,6 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>방치형 RPG 게임</title>
     <style>
+        :root {
+            /* Dark mode colors (default) */
+            --bg-gradient-start: #1e3c72;
+            --bg-gradient-end: #2a5298;
+            --text-primary: #fff;
+            --text-secondary: #aaa;
+            --panel-bg: rgba(0, 0, 0, 0.4);
+            --panel-bg-light: rgba(0, 0, 0, 0.3);
+            --panel-bg-dark: rgba(0, 0, 0, 0.5);
+            --border-color: #666;
+            --input-bg: rgba(0, 0, 0, 0.3);
+            --input-border: rgba(255, 255, 255, 0.3);
+            --battlefield-gradient-start: #2c3e50;
+            --battlefield-gradient-end: #34495e;
+            --slot-bg: rgba(255, 255, 255, 0.1);
+            --slot-bg-hover: rgba(255, 255, 255, 0.15);
+        }
+
+        body.light-mode {
+            /* White mode colors */
+            --bg-gradient-start: #e3f2fd;
+            --bg-gradient-end: #bbdefb;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --panel-bg: rgba(255, 255, 255, 0.8);
+            --panel-bg-light: rgba(255, 255, 255, 0.9);
+            --panel-bg-dark: rgba(255, 255, 255, 0.7);
+            --border-color: #bdbdbd;
+            --input-bg: rgba(255, 255, 255, 0.9);
+            --input-border: rgba(0, 0, 0, 0.2);
+            --battlefield-gradient-start: #f5f5f5;
+            --battlefield-gradient-end: #e0e0e0;
+            --slot-bg: rgba(0, 0, 0, 0.05);
+            --slot-bg-hover: rgba(0, 0, 0, 0.1);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,9 +49,10 @@
 
         body {
             font-family: 'Courier New', monospace;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: #fff;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            color: var(--text-primary);
             overflow-x: hidden;
+            transition: background 0.3s, color 0.3s;
         }
 
         .game-container {
@@ -27,7 +64,7 @@
         .game-header {
             text-align: center;
             padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
+            background: var(--panel-bg-light);
             border-radius: 10px;
             margin-bottom: 20px;
         }
@@ -51,13 +88,13 @@
         }
 
         .side-panel {
-            background: rgba(0, 0, 0, 0.4);
+            background: var(--panel-bg);
             border-radius: 10px;
             padding: 15px;
         }
 
         .center-panel {
-            background: rgba(0, 0, 0, 0.3);
+            background: var(--panel-bg-light);
             border-radius: 10px;
             padding: 20px;
         }
@@ -65,7 +102,7 @@
         .battlefield {
             min-height: 400px;
             position: relative;
-            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            background: linear-gradient(180deg, var(--battlefield-gradient-start) 0%, var(--battlefield-gradient-end) 100%);
             border-radius: 10px;
             padding: 20px;
             margin-bottom: 20px;
@@ -80,8 +117,8 @@
         .character-slot {
             width: 80px;
             height: 100px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid #666;
+            background: var(--slot-bg);
+            border: 2px solid var(--border-color);
             border-radius: 8px;
             display: flex;
             flex-direction: column;
@@ -177,7 +214,7 @@
 
         .battle-log {
             height: 150px;
-            background: rgba(0, 0, 0, 0.5);
+            background: var(--panel-bg-dark);
             border-radius: 8px;
             padding: 10px;
             overflow-y: auto;
@@ -252,7 +289,7 @@
             font-weight: bold;
             margin-bottom: 15px;
             padding-bottom: 10px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            border-bottom: 2px solid var(--input-border);
             color: #ffeb3b;
         }
 
@@ -263,8 +300,8 @@
         }
 
         .character-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: var(--slot-bg);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 10px;
             cursor: pointer;
@@ -272,7 +309,7 @@
         }
 
         .character-card:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--slot-bg-hover);
             transform: translateX(5px);
         }
 
@@ -447,7 +484,7 @@
         }
 
         .modal-content {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            background: linear-gradient(135deg, var(--battlefield-gradient-start) 0%, var(--battlefield-gradient-end) 100%);
             border-radius: 15px;
             padding: 30px;
             max-width: 600px;
@@ -460,7 +497,7 @@
             font-size: 24px;
             margin-bottom: 20px;
             color: #ffeb3b;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            border-bottom: 2px solid var(--input-border);
             padding-bottom: 10px;
         }
 
@@ -472,8 +509,8 @@
         }
 
         .class-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: var(--slot-bg);
+            border: 2px solid var(--border-color);
             border-radius: 10px;
             padding: 15px;
             cursor: pointer;
@@ -873,6 +910,9 @@
                 <span id="gold-display">골드: 0</span> |
                 <span id="auto-battle-status">자동 전투: OFF</span>
             </div>
+            <button class="btn btn-primary" onclick="game.toggleTheme()" id="theme-toggle-btn" style="margin-top: 10px; padding: 8px 16px; font-size: 12px;">
+                🌙 다크 모드
+            </button>
         </div>
 
         <!-- Main Game Area -->
@@ -2551,6 +2591,12 @@
                     return;
                 }
 
+                // Apply party floor assignment to current floor
+                const assignment = this.partyAssignments[this.currentPartyIndex];
+                if (assignment && assignment.floor) {
+                    this.currentFloor = assignment.floor;
+                }
+
                 this.inBattle = true;
                 document.getElementById('battle-btn').disabled = true;
                 this.bossPhase = 1; // Reset boss phase
@@ -3497,6 +3543,20 @@
                 }
             },
 
+            toggleTheme() {
+                const body = document.body;
+                const btn = document.getElementById('theme-toggle-btn');
+                const isLightMode = body.classList.toggle('light-mode');
+
+                if (isLightMode) {
+                    btn.innerHTML = '☀️ 화이트 모드';
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    btn.innerHTML = '🌙 다크 모드';
+                    localStorage.setItem('theme', 'dark');
+                }
+            },
+
             setGameSpeed(speed) {
                 this.gameSpeed = speed;
                 document.getElementById('speed-display').textContent = `${speed}x`;
@@ -4362,6 +4422,16 @@
 
         // Initialize game on page load
         window.onload = () => {
+            // Load saved theme
+            const savedTheme = localStorage.getItem('theme');
+            const btn = document.getElementById('theme-toggle-btn');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+                if (btn) btn.innerHTML = '☀️ 화이트 모드';
+            } else {
+                if (btn) btn.innerHTML = '🌙 다크 모드';
+            }
+
             // Show login screen
             document.getElementById('login-screen').style.display = 'flex';
             document.getElementById('game-container').style.display = 'none';
