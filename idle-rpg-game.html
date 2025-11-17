@@ -1133,25 +1133,26 @@
                 <!-- Speed Controls -->
                 <div style="text-align: center; margin-top: 15px;">
                     <div style="margin-bottom: 10px; font-size: 14px;">전투 속도: <span id="speed-display">1x</span></div>
-                    <div style="display: flex; gap: 10px; justify-content: center;">
+                    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
                         <button class="btn btn-primary" onclick="game.setGameSpeed(1)" style="padding: 8px 16px;">1x</button>
                         <button class="btn btn-primary" onclick="game.setGameSpeed(2)" style="padding: 8px 16px;">2x</button>
                         <button class="btn btn-primary" onclick="game.setGameSpeed(3)" style="padding: 8px 16px;">3x</button>
-                        <button class="btn btn-primary" onclick="game.setGameSpeed(5)" style="padding: 8px 16px;">5x</button>
-                        <button class="btn btn-primary" onclick="game.setGameSpeed(100)" style="padding: 8px 16px;">100x</button>
+                        <button class="btn btn-primary" onclick="game.setGameSpeed(1000)" style="padding: 8px 16px;">1000x</button>
+                        <button class="btn btn-primary" onclick="game.setGameSpeed(6000)" style="padding: 8px 16px;">6000x</button>
+                        <button class="btn btn-primary" onclick="game.setGameSpeed(12000)" style="padding: 8px 16px;">12000x</button>
                     </div>
                 </div>
             </div>
 
             <!-- Right Panel: Multiple Systems -->
             <div class="side-panel">
-                <div class="tabs" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;">
-                    <div class="tab active" onclick="game.switchTab('inventory')">인벤토리</div>
-                    <div class="tab" onclick="game.switchTab('inn')">여관</div>
-                    <div class="tab" onclick="game.switchTab('guild')">용병길드</div>
-                    <div class="tab" onclick="game.switchTab('blacksmith')">대장간</div>
-                    <div class="tab" onclick="game.switchTab('marketplace')">거래소</div>
-                    <div class="tab" onclick="game.switchTab('encyclopedia')">백과사전</div>
+                <div class="tabs" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px;">
+                    <div class="tab active" onclick="game.switchTab('inventory')" style="font-size: 11px; padding: 8px 5px;">인벤토리</div>
+                    <div class="tab" onclick="game.switchTab('inn')" style="font-size: 11px; padding: 8px 5px;">여관</div>
+                    <div class="tab" onclick="game.switchTab('guild')" style="font-size: 11px; padding: 8px 5px;">용병길드</div>
+                    <div class="tab" onclick="game.switchTab('blacksmith')" style="font-size: 11px; padding: 8px 5px;">대장간</div>
+                    <div class="tab" onclick="game.switchTab('marketplace')" style="font-size: 11px; padding: 8px 5px;">거래소</div>
+                    <div class="tab" onclick="game.switchTab('encyclopedia')" style="font-size: 11px; padding: 8px 5px;">백과사전</div>
                 </div>
 
                 <div id="inventory-tab" class="tab-content active">
@@ -2001,6 +2002,8 @@
                     currentMp: finalStats.mp * 10,
                     maxMp: finalStats.mp * 10,
                     skills: [...classData.skills],
+                    skillLevels: classData.skills.reduce((acc, skill) => { acc[skill.name] = 1; return acc; }, {}),
+                    skillPoints: 0,
                     equipment: {
                         leftWeapon: null, rightWeapon: null, helmet: null, armor: null,
                         leggings: null, boots: null, earring1: null, earring2: null,
@@ -2326,10 +2329,44 @@
                     `;
                 }
 
+                // Initialize skillLevels for backwards compatibility
+                if (!char.skillLevels) {
+                    char.skillLevels = char.skills.reduce((acc, skill) => { acc[skill.name] = 1; return acc; }, {});
+                }
+                if (char.skillPoints === undefined) char.skillPoints = 0;
+
+                // Skill icons mapping
+                const skillTypeIcons = {
+                    physical: '⚔️',
+                    magic: '✨',
+                    heal: '💚',
+                    buff: '🛡️'
+                };
+
                 html += `
                     <div style="margin-top: 20px;">
+                        <strong>스킬 포인트: ${char.skillPoints}</strong>
+                    </div>
+                    <div style="margin-top: 15px;">
                         <strong>스킬:</strong><br>
-                        ${char.skills.map(skill => `• ${skill.name} (${skill.type})`).join('<br>')}
+                        <div style="display: grid; gap: 10px; margin-top: 10px;">
+                            ${char.skills.map(skill => {
+                                const skillLevel = char.skillLevels[skill.name] || 1;
+                                const icon = skillTypeIcons[skill.type] || '🎯';
+                                return `
+                                    <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; padding: 10px; cursor: pointer;"
+                                         onclick="game.showSkillDetail(${char.id}, '${skill.name}')">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <span style="font-size: 24px;">${icon}</span>
+                                            <div style="flex: 1;">
+                                                <div><strong>${skill.name}</strong> Lv.${skillLevel}</div>
+                                                <div style="font-size: 11px; color: #aaa;">${skill.type} / 위력: ${(skill.power * (1 + (skillLevel - 1) * 0.1)).toFixed(1)}x</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
                     </div>
 
                     <div style="margin-top: 20px;">
@@ -2374,8 +2411,16 @@
                     <div class="stat-row">
                         <span>${statNames[stat]}: ${char.stats[stat]}</span>
                         <div class="stat-controls">
-                            <button class="stat-btn" onclick="game.allocateStat(${char.id}, '${stat}', -1)" ${char.stats[stat] <= char.baseStats[stat] ? 'disabled' : ''}>-</button>
-                            <button class="stat-btn" onclick="game.allocateStat(${char.id}, '${stat}', 1)" ${char.availableStats <= 0 ? 'disabled' : ''}>+</button>
+                            <button class="stat-btn"
+                                onmousedown="game.startStatIncrease(${char.id}, '${stat}', -1)"
+                                onmouseup="game.stopStatIncrease()"
+                                onmouseleave="game.stopStatIncrease()"
+                                ${char.stats[stat] <= char.baseStats[stat] ? 'disabled' : ''}>-</button>
+                            <button class="stat-btn"
+                                onmousedown="game.startStatIncrease(${char.id}, '${stat}', 1)"
+                                onmouseup="game.stopStatIncrease()"
+                                onmouseleave="game.stopStatIncrease()"
+                                ${char.availableStats <= 0 ? 'disabled' : ''}>+</button>
                         </div>
                     </div>
                 `).join('');
@@ -2409,6 +2454,100 @@
 
                 this.showCharacterDetail(char);
                 this.renderPartyList();
+            },
+
+            statIncreaseInterval: null,
+
+            startStatIncrease(charId, stat, amount) {
+                this.allocateStat(charId, stat, amount);
+
+                this.statIncreaseInterval = setInterval(() => {
+                    this.allocateStat(charId, stat, amount);
+                }, 100);
+            },
+
+            stopStatIncrease() {
+                if (this.statIncreaseInterval) {
+                    clearInterval(this.statIncreaseInterval);
+                    this.statIncreaseInterval = null;
+                }
+            },
+
+            showSkillDetail(charId, skillName) {
+                let char = this.party.find(c => c.id === charId);
+                if (!char) char = this.inn.mercenaries.find(c => c.id === charId);
+                if (!char) {
+                    for (let party of this.parties) {
+                        char = party.find(c => c.id === charId);
+                        if (char) break;
+                    }
+                }
+                if (!char) return;
+
+                const skill = char.skills.find(s => s.name === skillName);
+                if (!skill) return;
+
+                const skillLevel = char.skillLevels[skillName] || 1;
+                const currentPower = skill.power * (1 + (skillLevel - 1) * 0.1);
+                const nextPower = skill.power * (1 + skillLevel * 0.1);
+
+                const skillTypeIcons = {
+                    physical: '⚔️',
+                    magic: '✨',
+                    heal: '💚',
+                    buff: '🛡️'
+                };
+                const icon = skillTypeIcons[skill.type] || '🎯';
+
+                const message = `
+                    <div style="text-align: center; margin-bottom: 15px; font-size: 32px;">${icon}</div>
+                    <h3 style="text-align: center; margin-bottom: 15px;">${skillName}</h3>
+                    <div style="margin-bottom: 15px;">
+                        <strong>현재 레벨:</strong> ${skillLevel}<br>
+                        <strong>타입:</strong> ${skill.type}<br>
+                        <strong>대상:</strong> ${skill.target}<br>
+                        <strong>현재 위력:</strong> ${currentPower.toFixed(1)}x<br>
+                        ${skillLevel < 10 ? `<strong>다음 레벨 위력:</strong> ${nextPower.toFixed(1)}x` : '<strong>최대 레벨 도달!</strong>'}
+                    </div>
+                    ${char.skillPoints > 0 && skillLevel < 10 ? `
+                        <button class="btn btn-success" onclick="game.upgradeSkill(${charId}, '${skillName}')" style="width: 100%;">
+                            스킬 레벨업 (스킬 포인트 1 소모)
+                        </button>
+                    ` : ''}
+                    ${char.skillPoints === 0 ? '<div style="color: #888; text-align: center; margin-top: 10px;">스킬 포인트가 부족합니다</div>' : ''}
+                    ${skillLevel >= 10 ? '<div style="color: #ffd700; text-align: center; margin-top: 10px;">최대 레벨!</div>' : ''}
+                `;
+
+                this.addLog(message);
+            },
+
+            upgradeSkill(charId, skillName) {
+                let char = this.party.find(c => c.id === charId);
+                if (!char) char = this.inn.mercenaries.find(c => c.id === charId);
+                if (!char) {
+                    for (let party of this.parties) {
+                        char = party.find(c => c.id === charId);
+                        if (char) break;
+                    }
+                }
+                if (!char) return;
+
+                if (char.skillPoints <= 0) {
+                    this.addLog('스킬 포인트가 부족합니다!');
+                    return;
+                }
+
+                const skillLevel = char.skillLevels[skillName] || 1;
+                if (skillLevel >= 10) {
+                    this.addLog('이미 최대 레벨입니다!');
+                    return;
+                }
+
+                char.skillLevels[skillName] = skillLevel + 1;
+                char.skillPoints--;
+
+                this.addLog(`${skillName} 스킬이 레벨 ${skillLevel + 1}로 상승했습니다!`);
+                this.showCharacterDetail(char);
             },
 
             promoteCharacter(charId) {
@@ -3138,6 +3277,13 @@
 
                     // Regular stat point
                     char.availableStats++;
+
+                    // Skill point (every 3 levels)
+                    if (char.skillPoints === undefined) char.skillPoints = 0;
+                    if (char.level % 3 === 0) {
+                        char.skillPoints++;
+                        this.addLog(`${char.name}이(가) 스킬 포인트 1개를 획득했습니다!`);
+                    }
 
                     // Auto stat growth based on class (only for the 6 main classes, not druid)
                     // Initialize levelUpIndex if not present (for backwards compatibility)
