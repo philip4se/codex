@@ -1120,6 +1120,8 @@
                             style="flex: 1; padding: 10px; font-size: 16px; background: rgba(0,0,0,0.5); color: white; border: 2px solid rgba(255,235,59,0.5); border-radius: 5px; text-align: center;">
                         <button class="btn btn-primary" onclick="game.jumpToFloor(parseInt(document.getElementById('floor-jump-input').value))"
                             style="padding: 10px 20px; font-size: 14px; font-weight: bold;">이동</button>
+                        <button class="btn btn-primary" onclick="game.jumpToMaxFloor()"
+                            style="padding: 10px 20px; font-size: 14px; font-weight: bold; white-space: nowrap;">최고 층</button>
                     </div>
                     <button class="btn btn-success" onclick="game.toggleRepeatBattle()" id="repeat-battle-btn"
                         style="width: 100%; padding: 10px; font-size: 14px; font-weight: bold;">
@@ -2377,14 +2379,14 @@
                         // Show promotion button
                         const promotionLabel = char.promotionCount === 0 ? '1차 전직' : `${char.promotionCount + 1}차 전직`;
                         html += `
-                            <button class="btn btn-primary" style="width: 100%; margin-top: 20px;" onclick="game.promoteCharacter(${char.id})">
+                            <button class="btn btn-primary" style="width: 100%; margin-top: 20px;" onclick="event.stopPropagation(); game.promoteCharacter(${char.id})">
                                 ${promotionLabel} (레벨 1로 초기화, 모든 스탯 +2, 스탯 포인트 +5)
                             </button>
                         `;
                     } else {
                         // Show rebirth button (promotionCount === 4)
                         html += `
-                            <button class="btn btn-success" style="width: 100%; margin-top: 20px;" onclick="game.rebirthCharacter(${char.id})">
+                            <button class="btn btn-success" style="width: 100%; margin-top: 20px;" onclick="event.stopPropagation(); game.rebirthCharacter(${char.id})">
                                 환생 (초기 스탯 2배, 전직 초기화, 레벨 1로)
                             </button>
                         `;
@@ -3905,6 +3907,13 @@
                 this.currentFloor = floor;
                 const zoneName = ZONES[getZoneFromFloor(this.currentFloor)].name;
                 this.addLog(`${floor}층 (${zoneName})으로 이동했습니다.`);
+                this.updateDisplay();
+            },
+
+            jumpToMaxFloor() {
+                this.currentFloor = this.unlockedFloor;
+                const zoneName = ZONES[getZoneFromFloor(this.currentFloor)].name;
+                this.addLog(`최고 층 ${this.unlockedFloor}층 (${zoneName})으로 이동했습니다!`);
                 this.updateDisplay();
             },
 
