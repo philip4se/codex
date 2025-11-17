@@ -13,8 +13,8 @@
 
         body {
             font-family: 'Courier New', monospace;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: #fff;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            color: #e4e4e7;
             overflow-x: hidden;
         }
 
@@ -27,7 +27,8 @@
         .game-header {
             text-align: center;
             padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(30, 30, 46, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 10px;
             margin-bottom: 20px;
         }
@@ -51,13 +52,15 @@
         }
 
         .side-panel {
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(30, 30, 46, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 10px;
             padding: 15px;
         }
 
         .center-panel {
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(30, 30, 46, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 10px;
             padding: 20px;
         }
@@ -65,7 +68,8 @@
         .battlefield {
             min-height: 400px;
             position: relative;
-            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            background: linear-gradient(180deg, #1e1e2e 0%, #2a2a40 100%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 10px;
             padding: 20px;
             margin-bottom: 20px;
@@ -263,8 +267,8 @@
         }
 
         .character-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(45, 45, 65, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 8px;
             padding: 10px;
             cursor: pointer;
@@ -272,7 +276,8 @@
         }
 
         .character-card:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(60, 60, 85, 0.5);
+            border-color: rgba(255, 255, 255, 0.3);
             transform: translateX(5px);
         }
 
@@ -625,21 +630,25 @@
         }
 
         .tab {
-            padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 12px;
+            background: rgba(45, 45, 65, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 5px;
             cursor: pointer;
             transition: all 0.3s;
+            font-size: 13px;
+            white-space: nowrap;
         }
 
         .tab:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(60, 60, 85, 0.6);
+            border-color: rgba(255, 255, 255, 0.35);
         }
 
         .tab.active {
-            background: rgba(76, 175, 80, 0.3);
+            background: rgba(76, 175, 80, 0.4);
             border-color: #4CAF50;
+            font-weight: bold;
         }
 
         .tab-content {
@@ -1571,7 +1580,7 @@
             bossPhase: 1,
             inn: { capacity: 6, mercenaries: [] },
             innUpgradeCost: 500,
-            mercenaryGuild: { slots: 3, availableMercenaries: [] },
+            mercenaryGuild: { slots: 3, availableMercenaries: [], isFirstVisit: true },
             guildUpgradeCost: 5000,
             lastGuildRefresh: Date.now(), // Last time guild mercenaries were refreshed
             inventory: [],
@@ -3580,24 +3589,65 @@
             // Mercenary Guild System
             generateMercenaries() {
                 this.mercenaryGuild.availableMercenaries = [];
-                const grades = ['common', 'common', 'common', 'uncommon', 'uncommon', 'rare', 'rare', 'epic', 'legendary'];
                 const classes = Object.keys(CLASSES);
 
-                for (let i = 0; i < this.mercenaryGuild.slots; i++) {
-                    const randomClass = classes[Math.floor(Math.random() * classes.length)];
-                    const randomGrade = grades[Math.floor(Math.random() * grades.length)];
-                    const classData = CLASSES[randomClass];
+                // 최초 방문 시 고정 용병 생성 (하급 치료사, 하급 성직자, 랜덤 1명)
+                if (this.mercenaryGuild.isFirstVisit) {
+                    // 하급 치료사
+                    this.mercenaryGuild.availableMercenaries.push({
+                        id: globalCharacterId++,
+                        class: 'healer',
+                        grade: 'common',
+                        name: `${CLASSES['healer'].name}${Math.floor(Math.random() * 1000)}`
+                    });
 
+                    // 하급 성직자
+                    this.mercenaryGuild.availableMercenaries.push({
+                        id: globalCharacterId++,
+                        class: 'priest',
+                        grade: 'common',
+                        name: `${CLASSES['priest'].name}${Math.floor(Math.random() * 1000)}`
+                    });
+
+                    // 랜덤 1명
+                    const randomClass = classes[Math.floor(Math.random() * classes.length)];
+                    const randomGrade = this.getRandomGrade();
                     this.mercenaryGuild.availableMercenaries.push({
                         id: globalCharacterId++,
                         class: randomClass,
                         grade: randomGrade,
-                        name: `${classData.name}${Math.floor(Math.random() * 1000)}`
+                        name: `${CLASSES[randomClass].name}${Math.floor(Math.random() * 1000)}`
                     });
+
+                    this.mercenaryGuild.isFirstVisit = false;
+                } else {
+                    // 이후 방문 시 랜덤 생성 (6시간마다)
+                    for (let i = 0; i < this.mercenaryGuild.slots; i++) {
+                        const randomClass = classes[Math.floor(Math.random() * classes.length)];
+                        const randomGrade = this.getRandomGrade();
+                        const classData = CLASSES[randomClass];
+
+                        this.mercenaryGuild.availableMercenaries.push({
+                            id: globalCharacterId++,
+                            class: randomClass,
+                            grade: randomGrade,
+                            name: `${classData.name}${Math.floor(Math.random() * 1000)}`
+                        });
+                    }
                 }
 
                 // Update last refresh time
                 this.lastGuildRefresh = Date.now();
+            },
+
+            // 용병 등급을 랜덤으로 결정 (전설 1% 확률)
+            getRandomGrade() {
+                const rand = Math.random() * 100;
+                if (rand < 1) return 'legendary';  // 1% 확률
+                if (rand < 6) return 'epic';        // 5% 확률
+                if (rand < 16) return 'rare';       // 10% 확률
+                if (rand < 36) return 'uncommon';   // 20% 확률
+                return 'common';                    // 64% 확률
             },
 
             checkGuildRefresh() {
