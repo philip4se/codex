@@ -1112,6 +1112,23 @@
                     <div id="zone-name-display" style="font-size: 14px; color: #aaa;">얼어붙은 빙하</div>
                 </div>
 
+                <!-- Floor Navigation -->
+                <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                    <div style="font-size: 14px; font-weight: bold; margin-bottom: 10px; text-align: center; color: #ffeb3b;">층 이동</div>
+                    <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+                        <input type="number" id="floor-jump-input" value="1" min="1"
+                            style="flex: 1; padding: 10px; font-size: 16px; background: rgba(0,0,0,0.5); color: white; border: 2px solid rgba(255,235,59,0.5); border-radius: 5px; text-align: center;">
+                        <button class="btn btn-primary" onclick="game.jumpToFloor(parseInt(document.getElementById('floor-jump-input').value))"
+                            style="padding: 10px 20px; font-size: 14px; font-weight: bold;">이동</button>
+                        <button class="btn btn-primary" onclick="game.jumpToMaxFloor()"
+                            style="padding: 10px 20px; font-size: 14px; font-weight: bold; white-space: nowrap;">최고 층</button>
+                    </div>
+                    <button class="btn btn-success" onclick="game.toggleRepeatBattle()" id="repeat-battle-btn"
+                        style="width: 100%; padding: 10px; font-size: 14px; font-weight: bold;">
+                        반복전투: OFF
+                    </button>
+                </div>
+
                 <!-- Battlefield -->
                 <div class="battlefield">
                     <div class="team-container" id="player-team"></div>
@@ -1126,8 +1143,6 @@
                 <div class="battle-controls">
                     <button class="btn btn-success" onclick="game.startBattle()" id="battle-btn">전투 시작</button>
                     <button class="btn btn-primary" onclick="game.toggleAutoBattle()" id="auto-battle-btn">자동 전투</button>
-                    <button class="btn btn-danger" onclick="game.saveGame()">저장</button>
-                    <button class="btn btn-primary" onclick="game.loadGame()">불러오기</button>
                 </div>
 
                 <!-- Speed Controls -->
@@ -1230,8 +1245,8 @@
     </div>
 
     <!-- Character Detail Modal -->
-    <div class="modal" id="character-detail-modal">
-        <div class="modal-content">
+    <div class="modal" id="character-detail-modal" onclick="game.closeModal('character-detail-modal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header" id="char-detail-header">캐릭터 상세</div>
             <div id="char-detail-content"></div>
             <button class="btn btn-danger" onclick="game.closeModal('character-detail-modal')" style="width: 100%; margin-top: 20px;">닫기</button>
@@ -1832,6 +1847,7 @@
             materials: {},
             gold: 0,
             autoBattle: false,
+            repeatBattle: false,
             inBattle: false,
             enemies: [],
             bossPhase: 1,
@@ -2064,33 +2080,6 @@
                 const container = document.getElementById('party-list');
                 container.innerHTML = '';
 
-                // Add party floor assignment
-                const assignment = this.partyAssignments[this.currentPartyIndex];
-                const assignmentDiv = document.createElement('div');
-                assignmentDiv.style.cssText = 'background: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; margin-bottom: 10px;';
-
-                const currentFloor = assignment.floor || 1;
-                const currentZone = getZoneFromFloor(currentFloor);
-                const currentZoneName = ZONES[currentZone].name;
-
-                assignmentDiv.innerHTML = `
-                    <div style="font-size: 12px; margin-bottom: 5px; font-weight: bold;">파티 사냥 지역</div>
-                    <div style="margin-bottom: 5px; display: flex; gap: 5px; align-items: center;">
-                        <input type="number" id="party-floor-input-${this.currentPartyIndex}"
-                            value="${currentFloor}" min="1" max="${this.unlockedFloor || 1000}"
-                            style="flex: 1; padding: 5px; background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 3px;"
-                            onchange="game.setPartyFloor(${this.currentPartyIndex}, parseInt(this.value))">
-                        <button class="btn btn-primary" style="padding: 5px 10px; font-size: 10px;"
-                            onclick="game.setPartyFloor(${this.currentPartyIndex}, parseInt(document.getElementById('party-floor-input-${this.currentPartyIndex}').value))">
-                            설정
-                        </button>
-                    </div>
-                    <div style="font-size: 11px; color: #aaa;">
-                        현재: ${currentFloor}층 (${currentZoneName}) | 최대: ${this.unlockedFloor || 1}층
-                    </div>
-                `;
-                container.appendChild(assignmentDiv);
-
                 this.party.forEach(char => {
                     const classData = CLASSES[char.class];
                     const gradeData = MERCENARY_GRADES[char.grade || 'common'];
@@ -2318,16 +2307,20 @@
                     `;
                 }
 
-                if (char.availableStats > 0) {
-                    html += `
-                        <div class="stat-points-available">
-                            <strong>사용 가능한 스탯 포인트: ${char.availableStats}</strong>
-                        </div>
-                        <div class="stat-allocation">
-                            ${this.renderStatAllocation(char)}
-                        </div>
-                    `;
-                }
+                // Display stats
+                html += `
+                    <div style="margin-top: 20px;">
+                        <strong>스탯</strong>
+                        ${char.availableStats > 0 ? `<span style="color: #ffeb3b; margin-left: 10px;">(사용 가능한 포인트: ${char.availableStats})</span>` : ''}
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+                        <div><strong>힘:</strong> ${char.stats.str}</div>
+                        <div><strong>민첩:</strong> ${char.stats.dex}</div>
+                        <div><strong>지력:</strong> ${char.stats.int}</div>
+                        <div><strong>생명력:</strong> ${char.stats.hp}</div>
+                        <div><strong>마력:</strong> ${char.stats.mp}</div>
+                    </div>
+                `;
 
                 // Initialize skillLevels for backwards compatibility
                 if (!char.skillLevels) {
@@ -2353,15 +2346,20 @@
                             ${char.skills.map(skill => {
                                 const skillLevel = char.skillLevels[skill.name] || 1;
                                 const icon = skillTypeIcons[skill.type] || '🎯';
+                                const canUpgrade = char.skillPoints > 0 && skillLevel < 10;
                                 return `
-                                    <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; padding: 10px; cursor: pointer;"
-                                         onclick="game.showSkillDetail(${char.id}, '${skill.name}')">
+                                    <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; padding: 10px;">
                                         <div style="display: flex; align-items: center; gap: 10px;">
                                             <span style="font-size: 24px;">${icon}</span>
                                             <div style="flex: 1;">
-                                                <div><strong>${skill.name}</strong> Lv.${skillLevel}</div>
+                                                <div><strong>${skill.name}</strong> Lv.${skillLevel}${skillLevel >= 10 ? ' <span style="color: #ffd700;">(MAX)</span>' : ''}</div>
                                                 <div style="font-size: 11px; color: #aaa;">${skill.type} / 위력: ${(skill.power * (1 + (skillLevel - 1) * 0.1)).toFixed(1)}x</div>
                                             </div>
+                                            ${canUpgrade ? `
+                                                <button class="btn btn-success" onclick="game.upgradeSkill(${char.id}, '${skill.name}')" style="padding: 5px 10px; font-size: 11px; white-space: nowrap;">
+                                                    레벨업
+                                                </button>
+                                            ` : ''}
                                         </div>
                                     </div>
                                 `;
@@ -3202,8 +3200,8 @@
                     });
 
                     // Unlock next floor/stage (infinite progression) and auto-progress
-                    // Floor-based progression
-                    if (this.currentFloor >= this.unlockedFloor) {
+                    // Floor-based progression (skip if repeatBattle is enabled)
+                    if (!this.repeatBattle && this.currentFloor >= this.unlockedFloor) {
                         this.currentFloor++;
                         this.unlockedFloor = this.currentFloor;
                         const newZone = getZoneFromFloor(this.currentFloor);
@@ -3249,14 +3247,29 @@
 
                     if (this.autoBattle) {
                         setTimeout(() => this.startBattle(), 2000 / this.gameSpeed);
+                    } else if (this.repeatBattle) {
+                        setTimeout(() => this.startBattle(), 2000 / this.gameSpeed);
                     }
                 } else {
                     this.addLog('--- 패배... ---');
+
+                    // Move to previous floor if not at floor 1
+                    if (this.currentFloor > 1) {
+                        this.currentFloor--;
+                        const zoneName = ZONES[getZoneFromFloor(this.currentFloor)].name;
+                        this.addLog(`직전 층으로 이동합니다: ${this.currentFloor}층 (${zoneName})`);
+                    }
+
                     // Heal party after defeat
                     this.party.forEach(char => {
                         char.currentHp = char.maxHp;
                         char.currentMp = char.maxMp;
                     });
+
+                    // Continue auto battle or repeat battle if enabled
+                    if (this.autoBattle || this.repeatBattle) {
+                        setTimeout(() => this.startBattle(), 2000 / this.gameSpeed);
+                    }
                 }
 
                 this.renderPartyList();
@@ -3881,6 +3894,40 @@
                 this.updateDisplay();
 
                 if (this.autoBattle && !this.inBattle) {
+                    this.startBattle();
+                }
+            },
+
+            jumpToFloor(floor) {
+                if (floor < 1) {
+                    this.addLog('1층보다 낮은 층으로 이동할 수 없습니다.');
+                    return;
+                }
+                if (floor > this.unlockedFloor) {
+                    this.addLog(`아직 잠긴 층입니다. 현재 최대 층: ${this.unlockedFloor}층`);
+                    return;
+                }
+
+                this.currentFloor = floor;
+                const zoneName = ZONES[getZoneFromFloor(this.currentFloor)].name;
+                this.addLog(`${floor}층 (${zoneName})으로 이동했습니다.`);
+                this.updateDisplay();
+            },
+
+            jumpToMaxFloor() {
+                this.currentFloor = this.unlockedFloor;
+                const zoneName = ZONES[getZoneFromFloor(this.currentFloor)].name;
+                this.addLog(`최고 층 ${this.unlockedFloor}층 (${zoneName})으로 이동했습니다!`);
+                this.updateDisplay();
+            },
+
+            toggleRepeatBattle() {
+                this.repeatBattle = !this.repeatBattle;
+                document.getElementById('repeat-battle-btn').textContent =
+                    `반복전투: ${this.repeatBattle ? 'ON' : 'OFF'}`;
+                this.addLog(`반복전투: ${this.repeatBattle ? 'ON (현재 층에서만 전투)' : 'OFF'}`);
+
+                if (this.repeatBattle && !this.inBattle && !this.autoBattle) {
                     this.startBattle();
                 }
             },
