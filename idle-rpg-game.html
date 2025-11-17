@@ -3252,11 +3252,24 @@
                     }
                 } else {
                     this.addLog('--- 패배... ---');
+
+                    // Move to previous floor if not at floor 1
+                    if (this.currentFloor > 1) {
+                        this.currentFloor--;
+                        const zoneName = ZONES[getZoneFromFloor(this.currentFloor)].name;
+                        this.addLog(`직전 층으로 이동합니다: ${this.currentFloor}층 (${zoneName})`);
+                    }
+
                     // Heal party after defeat
                     this.party.forEach(char => {
                         char.currentHp = char.maxHp;
                         char.currentMp = char.maxMp;
                     });
+
+                    // Continue auto battle if enabled
+                    if (this.autoBattle) {
+                        setTimeout(() => this.startBattle(), 2000 / this.gameSpeed);
+                    }
                 }
 
                 this.renderPartyList();
