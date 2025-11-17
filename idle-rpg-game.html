@@ -1246,10 +1246,10 @@
 
     <!-- Character Detail Modal -->
     <div class="modal" id="character-detail-modal">
-        <div class="modal-content">
+        <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header" id="char-detail-header">캐릭터 상세</div>
             <div id="char-detail-content"></div>
-            <button class="btn btn-danger" onclick="event.stopPropagation(); game.closeModal('character-detail-modal')" style="width: 100%; margin-top: 20px;">닫기</button>
+            <button class="btn btn-danger" onclick="game.closeModal('character-detail-modal')" style="width: 100%; margin-top: 20px;">닫기</button>
         </div>
     </div>
 
@@ -2352,7 +2352,7 @@
                                                 <div style="font-size: 11px; color: #aaa;">${skill.type} / 위력: ${(skill.power * (1 + (skillLevel - 1) * 0.1)).toFixed(1)}x</div>
                                             </div>
                                             ${canUpgrade ? `
-                                                <button class="btn btn-success" onclick="event.stopPropagation(); game.upgradeSkill(${char.id}, '${skill.name}')" style="padding: 5px 10px; font-size: 11px; white-space: nowrap;">
+                                                <button class="btn btn-success" onclick="game.upgradeSkill(${char.id}, '${skill.name}')" style="padding: 5px 10px; font-size: 11px; white-space: nowrap;">
                                                     레벨업
                                                 </button>
                                             ` : ''}
@@ -2379,14 +2379,14 @@
                         // Show promotion button
                         const promotionLabel = char.promotionCount === 0 ? '1차 전직' : `${char.promotionCount + 1}차 전직`;
                         html += `
-                            <button class="btn btn-primary" style="width: 100%; margin-top: 20px;" onclick="event.stopPropagation(); game.promoteCharacter(${char.id})">
+                            <button class="btn btn-primary" style="width: 100%; margin-top: 20px;" onclick="game.promoteCharacter(${char.id})">
                                 ${promotionLabel} (레벨 1로 초기화, 모든 스탯 +2, 스탯 포인트 +5)
                             </button>
                         `;
                     } else {
                         // Show rebirth button (promotionCount === 4)
                         html += `
-                            <button class="btn btn-success" style="width: 100%; margin-top: 20px;" onclick="event.stopPropagation(); game.rebirthCharacter(${char.id})">
+                            <button class="btn btn-success" style="width: 100%; margin-top: 20px;" onclick="game.rebirthCharacter(${char.id})">
                                 환생 (초기 스탯 2배, 전직 초기화, 레벨 1로)
                             </button>
                         `;
