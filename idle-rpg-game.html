@@ -301,6 +301,107 @@
             border-radius: 3px;
         }
 
+        /* Character Portrait Styles */
+        .character-portrait {
+            width: 64px;
+            height: 64px;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+        }
+
+        .character-portrait:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .character-portrait img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            image-rendering: pixelated;
+        }
+
+        .character-portrait-large {
+            width: 128px;
+            height: 128px;
+            margin: 20px auto;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        .character-portrait-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            image-rendering: pixelated;
+        }
+
+        /* Promotion Tier Effects */
+        .promotion-0 {
+            border: 2px solid #888;
+        }
+
+        .promotion-1 {
+            border: 2px solid #4CAF50;
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+            animation: glow-green 2s ease-in-out infinite;
+        }
+
+        .promotion-2 {
+            border: 2px solid #2196F3;
+            box-shadow: 0 0 15px rgba(33, 150, 243, 0.5);
+            animation: glow-blue 2s ease-in-out infinite;
+        }
+
+        .promotion-3 {
+            border: 2px solid #9C27B0;
+            box-shadow: 0 0 20px rgba(156, 39, 176, 0.6);
+            animation: glow-purple 2s ease-in-out infinite;
+        }
+
+        .promotion-4 {
+            border: 3px solid #FFD700;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.8);
+            animation: glow-gold 2s ease-in-out infinite;
+        }
+
+        @keyframes glow-green {
+            0%, 100% { box-shadow: 0 0 15px rgba(76, 175, 80, 0.5); }
+            50% { box-shadow: 0 0 25px rgba(76, 175, 80, 0.8); }
+        }
+
+        @keyframes glow-blue {
+            0%, 100% { box-shadow: 0 0 15px rgba(33, 150, 243, 0.5); }
+            50% { box-shadow: 0 0 25px rgba(33, 150, 243, 0.8); }
+        }
+
+        @keyframes glow-purple {
+            0%, 100% { box-shadow: 0 0 20px rgba(156, 39, 176, 0.6); }
+            50% { box-shadow: 0 0 30px rgba(156, 39, 176, 0.9); }
+        }
+
+        @keyframes glow-gold {
+            0%, 100% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.8); }
+            50% { box-shadow: 0 0 35px rgba(255, 215, 0, 1); }
+        }
+
+        /* Placeholder Portrait (when no image is available) */
+        .character-portrait-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            background: linear-gradient(135deg, rgba(100, 100, 100, 0.3), rgba(150, 150, 150, 0.3));
+        }
+
         .inventory-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -1878,6 +1979,33 @@
                 this.parties[this.currentPartyIndex] = value;
             },
 
+            // Get character portrait image path
+            getCharacterImagePath(char) {
+                const promotionLevel = char.promotionCount || 0;
+                const className = char.class;
+                // Image format: images/knight_0.png, images/knight_1.png, etc.
+                return `images/${className}_${promotionLevel}.png`;
+            },
+
+            // Render character portrait with fallback
+            renderCharacterPortrait(char, size = 'small') {
+                const promotionLevel = char.promotionCount || 0;
+                const imagePath = this.getCharacterImagePath(char);
+                const sizeClass = size === 'large' ? 'character-portrait-large' : 'character-portrait';
+                const classData = CLASSES[char.class];
+
+                return `
+                    <div class="${sizeClass} promotion-${promotionLevel}">
+                        <img src="${imagePath}"
+                             alt="${char.name}"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="character-portrait-placeholder" style="display: none;">
+                            ${classData.icon}
+                        </div>
+                    </div>
+                `;
+            },
+
             init() {
                 this.renderZoneSelect();
                 this.renderSubstageSelect();
@@ -2093,12 +2221,14 @@
                     const card = document.createElement('div');
                     card.className = 'character-card';
                     card.innerHTML = `
-                        <div class="character-info">
-                            <div>
-                                <span style="font-size: 20px;">${classData.icon}</span>
-                                <strong>${char.name}</strong> (Lv.${char.level})
+                        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
+                            ${this.renderCharacterPortrait(char, 'small')}
+                            <div class="character-info" style="flex: 1; margin-bottom: 0;">
+                                <div>
+                                    <strong>${char.name}</strong> (Lv.${char.level})
+                                </div>
+                                <div style="font-size: 11px; color: ${gradeColors[char.grade || 'common']};">${gradeData.name} / ${char.personality}</div>
                             </div>
-                            <div style="font-size: 11px; color: ${gradeColors[char.grade || 'common']};">${gradeData.name} / ${char.personality}</div>
                         </div>
                         <div class="character-stats">
                             <div class="stat-item">HP: ${char.currentHp}/${char.maxHp}</div>
@@ -2290,7 +2420,8 @@
                 header.innerHTML = `${classData.icon} ${char.name} (Lv.${char.level})${headerExtra}`;
 
                 let html = `
-                    <div style="margin-bottom: 20px;">
+                    ${this.renderCharacterPortrait(char, 'large')}
+                    <div style="margin-bottom: 20px; text-align: center;">
                         <strong>직업:</strong> ${classData.name} | <strong>성격:</strong> ${char.personality}
                     </div>
                 `;
