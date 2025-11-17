@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Courier New', monospace;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            background: linear-gradient(135deg, #0a0e1a 0%, #151a2e 100%);
             color: #fff;
             overflow-x: hidden;
         }
@@ -27,7 +27,7 @@
         .game-header {
             text-align: center;
             padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.6);
             border-radius: 10px;
             margin-bottom: 20px;
         }
@@ -51,13 +51,13 @@
         }
 
         .side-panel {
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.6);
             border-radius: 10px;
             padding: 15px;
         }
 
         .center-panel {
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.6);
             border-radius: 10px;
             padding: 20px;
         }
@@ -65,7 +65,7 @@
         .battlefield {
             min-height: 400px;
             position: relative;
-            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            background: linear-gradient(180deg, #1a2332 0%, #0f1419 100%);
             border-radius: 10px;
             padding: 20px;
             margin-bottom: 20px;
@@ -822,6 +822,219 @@
             25% { transform: translateX(-5px); }
             75% { transform: translateX(5px); }
         }
+
+        /* 입체감 추가 - 다크모드 */
+        body:not(.light) .game-header {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        body:not(.light) .side-panel {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        body:not(.light) .center-panel {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        body:not(.light) .battlefield {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        body:not(.light) .character-slot {
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        body:not(.light) .btn {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        body:not(.light) .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        /* 화이트모드 스타일 */
+        body.light {
+            background: linear-gradient(135deg, #e8f4f8 0%, #d4e9f2 100%);
+            color: #1a202c;
+        }
+
+        body.light .game-header {
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            color: #1a202c;
+        }
+
+        body.light .game-header h1 {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        body.light .stage-info {
+            color: #d97706;
+        }
+
+        body.light .side-panel {
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            color: #1a202c;
+        }
+
+        body.light .center-panel {
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            color: #1a202c;
+        }
+
+        body.light .battlefield {
+            background: linear-gradient(180deg, #f0f4f8 0%, #d9e2ec 100%);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        body.light .character-slot {
+            background: rgba(0, 0, 0, 0.05);
+            border-color: #cbd5e0;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+            color: #1a202c;
+        }
+
+        body.light .character-name {
+            color: #1a202c;
+        }
+
+        body.light .enemy-slot {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
+        }
+
+        body.light .battle-log {
+            background: rgba(0, 0, 0, 0.1);
+            color: #1a202c;
+        }
+
+        body.light .panel-title {
+            color: #d97706;
+        }
+
+        body.light .character-card {
+            background: rgba(0, 0, 0, 0.03);
+            border-color: #cbd5e0;
+            color: #1a202c;
+        }
+
+        body.light .character-card:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        body.light .character-card.selected {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        body.light .stat-item {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        body.light .item-slot {
+            background: rgba(0, 0, 0, 0.1);
+            border-color: #cbd5e0;
+        }
+
+        body.light .stage-zone {
+            background: rgba(255, 255, 255, 0.6);
+            border-color: #cbd5e0;
+        }
+
+        body.light .substage-btn {
+            background: rgba(255, 255, 255, 0.6);
+            border-color: #cbd5e0;
+            color: #1a202c;
+        }
+
+        body.light .modal {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        body.light .modal-content {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+            color: #1a202c;
+        }
+
+        body.light .modal-header {
+            color: #d97706;
+        }
+
+        body.light .class-card {
+            background: rgba(255, 255, 255, 0.7);
+            border-color: #cbd5e0;
+        }
+
+        body.light .login-box {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+            color: #1a202c;
+        }
+
+        body.light .login-title {
+            color: #d97706;
+        }
+
+        body.light .input-group input {
+            border-color: #cbd5e0;
+            background: rgba(255, 255, 255, 0.8);
+            color: #1a202c;
+        }
+
+        body.light .party-selector-btn {
+            background: rgba(255, 255, 255, 0.6);
+            border-color: #cbd5e0;
+            color: #1a202c;
+        }
+
+        body.light .marketplace-item {
+            background: rgba(255, 255, 255, 0.7);
+            border-color: #cbd5e0;
+        }
+
+        body.light .stat-row {
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        body.light .btn {
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        body.light .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 테마 토글 버튼 */
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 24px;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(15deg);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        body.light .theme-toggle {
+            background: rgba(0, 0, 0, 0.1);
+            border-color: rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -866,7 +1079,10 @@
 
     <div class="game-container" id="game-container" style="display: none;">
         <!-- Header -->
-        <div class="game-header">
+        <div class="game-header" style="position: relative;">
+            <div class="theme-toggle" onclick="game.toggleTheme()" title="테마 변경">
+                <span id="theme-icon">🌙</span>
+            </div>
             <h1>⚔️ 방치형 RPG 게임 ⚔️</h1>
             <div class="stage-info">
                 <span id="current-stage">구역: A-1</span> |
@@ -917,25 +1133,26 @@
                 <!-- Speed Controls -->
                 <div style="text-align: center; margin-top: 15px;">
                     <div style="margin-bottom: 10px; font-size: 14px;">전투 속도: <span id="speed-display">1x</span></div>
-                    <div style="display: flex; gap: 10px; justify-content: center;">
+                    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
                         <button class="btn btn-primary" onclick="game.setGameSpeed(1)" style="padding: 8px 16px;">1x</button>
                         <button class="btn btn-primary" onclick="game.setGameSpeed(2)" style="padding: 8px 16px;">2x</button>
                         <button class="btn btn-primary" onclick="game.setGameSpeed(3)" style="padding: 8px 16px;">3x</button>
-                        <button class="btn btn-primary" onclick="game.setGameSpeed(5)" style="padding: 8px 16px;">5x</button>
-                        <button class="btn btn-primary" onclick="game.setGameSpeed(100)" style="padding: 8px 16px;">100x</button>
+                        <button class="btn btn-primary" onclick="game.setGameSpeed(1000)" style="padding: 8px 16px;">1000x</button>
+                        <button class="btn btn-primary" onclick="game.setGameSpeed(6000)" style="padding: 8px 16px;">6000x</button>
+                        <button class="btn btn-primary" onclick="game.setGameSpeed(12000)" style="padding: 8px 16px;">12000x</button>
                     </div>
                 </div>
             </div>
 
             <!-- Right Panel: Multiple Systems -->
             <div class="side-panel">
-                <div class="tabs" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;">
-                    <div class="tab active" onclick="game.switchTab('inventory')">인벤토리</div>
-                    <div class="tab" onclick="game.switchTab('inn')">여관</div>
-                    <div class="tab" onclick="game.switchTab('guild')">용병길드</div>
-                    <div class="tab" onclick="game.switchTab('blacksmith')">대장간</div>
-                    <div class="tab" onclick="game.switchTab('marketplace')">거래소</div>
-                    <div class="tab" onclick="game.switchTab('encyclopedia')">백과사전</div>
+                <div class="tabs" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px;">
+                    <div class="tab active" onclick="game.switchTab('inventory')" style="font-size: 11px; padding: 8px 5px;">인벤토리</div>
+                    <div class="tab" onclick="game.switchTab('inn')" style="font-size: 11px; padding: 8px 5px;">여관</div>
+                    <div class="tab" onclick="game.switchTab('guild')" style="font-size: 11px; padding: 8px 5px;">용병길드</div>
+                    <div class="tab" onclick="game.switchTab('blacksmith')" style="font-size: 11px; padding: 8px 5px;">대장간</div>
+                    <div class="tab" onclick="game.switchTab('marketplace')" style="font-size: 11px; padding: 8px 5px;">거래소</div>
+                    <div class="tab" onclick="game.switchTab('encyclopedia')" style="font-size: 11px; padding: 8px 5px;">백과사전</div>
                 </div>
 
                 <div id="inventory-tab" class="tab-content active">
@@ -1224,6 +1441,13 @@
             knight: {
                 name: '기사',
                 icon: '🛡️',
+                svgSprites: [
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="6" y="2" width="4" height="2" fill="#666"/><rect x="6" y="4" width="4" height="2" fill="#ffcc99"/><rect x="5" y="6" width="6" height="4" fill="#555"/><rect x="4" y="7" width="2" height="3" fill="#888"/><rect x="6" y="10" width="2" height="4" fill="#333"/><rect x="8" y="10" width="2" height="4" fill="#333"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="6" y="1" width="4" height="3" fill="#a0a0a0"/><rect x="6" y="4" width="4" height="2" fill="#ffcc99"/><rect x="4" y="6" width="8" height="4" fill="#4a90e2"/><rect x="3" y="7" width="2" height="4" fill="#4a90e2"/><rect x="11" y="6" width="2" height="4" fill="#c0c0c0"/><rect x="6" y="10" width="2" height="4" fill="#2c3e50"/><rect x="8" y="10" width="2" height="4" fill="#2c3e50"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="5" y="1" width="6" height="3" fill="#c0c0c0"/><rect x="6" y="1" width="4" height="1" fill="#fff"/><rect x="6" y="4" width="4" height="2" fill="#ffcc99"/><rect x="4" y="6" width="8" height="5" fill="#3498db"/><rect x="3" y="7" width="2" height="4" fill="#3498db"/><rect x="11" y="6" width="2" height="5" fill="#e0e0e0"/><rect x="6" y="11" width="2" height="3" fill="#34495e"/><rect x="8" y="11" width="2" height="3" fill="#34495e"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="5" y="0" width="6" height="3" fill="#ffd700"/><rect x="6" y="0" width="4" height="1" fill="#fff"/><rect x="5" y="1" width="1" height="2" fill="#ffa500"/><rect x="10" y="1" width="1" height="2" fill="#ffa500"/><rect x="6" y="3" width="4" height="2" fill="#ffcc99"/><rect x="4" y="5" width="8" height="6" fill="#ffa500"/><rect x="3" y="6" width="2" height="5" fill="#ffd700"/><rect x="11" y="5" width="2" height="6" fill="#ffd700"/><rect x="6" y="11" width="2" height="3" fill="#8b4513"/><rect x="8" y="11" width="2" height="3" fill="#8b4513"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="4" y="0" width="8" height="3" fill="#ffd700"/><rect x="6" y="0" width="4" height="1" fill="#fff"/><rect x="5" y="0" width="1" height="3" fill="#ffa500"/><rect x="10" y="0" width="1" height="3" fill="#ffa500"/><rect x="3" y="1" width="1" height="2" fill="#fff" opacity="0.7"/><rect x="12" y="1" width="1" height="2" fill="#fff" opacity="0.7"/><rect x="6" y="3" width="4" height="2" fill="#ffcc99"/><rect x="4" y="5" width="8" height="6" fill="#ff8c00"/><rect x="3" y="6" width="2" height="5" fill="#ffd700"/><rect x="11" y="5" width="2" height="6" fill="#ffd700"/><rect x="2" y="7" width="1" height="3" fill="#fff" opacity="0.5"/><rect x="13" y="7" width="1" height="3" fill="#fff" opacity="0.5"/><rect x="6" y="11" width="2" height="3" fill="#8b4513"/><rect x="8" y="11" width="2" height="3" fill="#8b4513"/></svg>')}`
+                ],
                 stats: { str: 10, dex: 4, int: 4, hp: 10, mp: 4 },
                 skills: [
                     { name: '강타', power: 1.5, target: 'single', type: 'physical' },
@@ -1233,6 +1457,13 @@
             archer: {
                 name: '궁수',
                 icon: '🏹',
+                svgSprites: [
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="7" y="2" width="2" height="2" fill="#8b4513"/><rect x="6" y="4" width="4" height="2" fill="#ffcc99"/><rect x="5" y="6" width="6" height="4" fill="#228b22"/><rect x="11" y="7" width="3" height="1" fill="#8b4513"/><rect x="6" y="10" width="2" height="4" fill="#654321"/><rect x="8" y="10" width="2" height="4" fill="#654321"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="7" y="2" width="2" height="2" fill="#654321"/><rect x="6" y="2" width="1" height="1" fill="#228b22"/><rect x="9" y="2" width="1" height="1" fill="#228b22"/><rect x="6" y="4" width="4" height="2" fill="#ffcc99"/><rect x="5" y="6" width="6" height="5" fill="#2e8b57"/><rect x="11" y="7" width="3" height="1" fill="#a0522d"/><rect x="11" y="8" width="1" height="1" fill="#a0522d"/><rect x="6" y="11" width="2" height="3" fill="#654321"/><rect x="8" y="11" width="2" height="3" fill="#654321"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="7" y="1" width="2" height="2" fill="#654321"/><rect x="6" y="1" width="1" height="2" fill="#32cd32"/><rect x="9" y="1" width="1" height="2" fill="#32cd32"/><rect x="6" y="3" width="4" height="2" fill="#ffcc99"/><rect x="4" y="5" width="8" height="6" fill="#228b22"/><rect x="11" y="7" width="4" height="1" fill="#d2691e"/><rect x="12" y="6" width="1" height="1" fill="#d2691e"/><rect x="12" y="8" width="1" height="1" fill="#d2691e"/><rect x="6" y="11" width="2" height="3" fill="#654321"/><rect x="8" y="11" width="2" height="3" fill="#654321"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="7" y="1" width="2" height="2" fill="#8b4513"/><rect x="6" y="1" width="1" height="2" fill="#ffd700"/><rect x="9" y="1" width="1" height="2" fill="#ffd700"/><rect x="5" y="2" width="1" height="1" fill="#ffd700"/><rect x="10" y="2" width="1" height="1" fill="#ffd700"/><rect x="6" y="3" width="4" height="2" fill="#ffcc99"/><rect x="4" y="5" width="8" height="6" fill="#ffa500"/><rect x="11" y="6" width="4" height="1" fill="#ffd700"/><rect x="12" y="5" width="1" height="1" fill="#ffd700"/><rect x="12" y="7" width="2" height="1" fill="#ffd700"/><rect x="6" y="11" width="2" height="3" fill="#8b4513"/><rect x="8" y="11" width="2" height="3" fill="#8b4513"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="7" y="0" width="2" height="3" fill="#8b4513"/><rect x="6" y="0" width="1" height="3" fill="#ffd700"/><rect x="9" y="0" width="1" height="3" fill="#ffd700"/><rect x="5" y="1" width="1" height="2" fill="#ffd700"/><rect x="10" y="1" width="1" height="2" fill="#ffd700"/><rect x="4" y="2" width="1" height="1" fill="#fff" opacity="0.6"/><rect x="11" y="2" width="1" height="1" fill="#fff" opacity="0.6"/><rect x="6" y="3" width="4" height="2" fill="#ffcc99"/><rect x="4" y="5" width="8" height="6" fill="#ff8c00"/><rect x="11" y="6" width="4" height="1" fill="#ffd700"/><rect x="12" y="5" width="2" height="1" fill="#ffd700"/><rect x="12" y="7" width="3" height="1" fill="#ffd700"/><rect x="13" y="6" width="1" height="1" fill="#fff" opacity="0.5"/><rect x="6" y="11" width="2" height="3" fill="#8b4513"/><rect x="8" y="11" width="2" height="3" fill="#8b4513"/></svg>')}`
+                ],
                 stats: { str: 6, dex: 10, int: 6, hp: 6, mp: 6 },
                 skills: [
                     { name: '정밀 사격', power: 2.0, target: 'single', type: 'physical' },
@@ -1242,6 +1473,13 @@
             priest: {
                 name: '성기사',
                 icon: '✝️',
+                svgSprites: [
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="6" y="2" width="4" height="2" fill="#daa520"/><rect x="6" y="4" width="4" height="2" fill="#ffcc99"/><rect x="5" y="6" width="6" height="4" fill="#fff"/><rect x="7" y="5" width="2" height="2" fill="#daa520"/><rect x="7" y="7" width="2" height="4" fill="#daa520"/><rect x="6" y="10" width="2" height="4" fill="#666"/><rect x="8" y="10" width="2" height="4" fill="#666"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="6" y="1" width="4" height="3" fill="#f0e68c"/><rect x="6" y="4" width="4" height="2" fill="#ffcc99"/><rect x="4" y="6" width="8" height="5" fill="#f5f5dc"/><rect x="7" y="5" width="2" height="3" fill="#daa520"/><rect x="6" y="7" width="4" height="4" fill="#daa520"/><rect x="6" y="11" width="2" height="3" fill="#696969"/><rect x="8" y="11" width="2" height="3" fill="#696969"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="5" y="1" width="6" height="3" fill="#ffd700"/><rect x="6" y="4" width="4" height="2" fill="#ffcc99"/><rect x="4" y="6" width="8" height="5" fill="#fff"/><rect x="7" y="4" width="2" height="4" fill="#ffd700"/><rect x="5" y="7" width="6" height="4" fill="#ffd700"/><rect x="6" y="11" width="2" height="3" fill="#808080"/><rect x="8" y="11" width="2" height="3" fill="#808080"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="5" y="0" width="6" height="3" fill="#ffd700"/><rect x="4" y="1" width="1" height="2" fill="#fff" opacity="0.6"/><rect x="11" y="1" width="1" height="2" fill="#fff" opacity="0.6"/><rect x="6" y="3" width="4" height="2" fill="#ffcc99"/><rect x="4" y="5" width="8" height="6" fill="#fffacd"/><rect x="7" y="4" width="2" height="5" fill="#ffd700"/><rect x="5" y="6" width="6" height="5" fill="#ffd700"/><rect x="6" y="11" width="2" height="3" fill="#a9a9a9"/><rect x="8" y="11" width="2" height="3" fill="#a9a9a9"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="4" y="0" width="8" height="3" fill="#ffd700"/><rect x="3" y="1" width="1" height="2" fill="#fff" opacity="0.7"/><rect x="12" y="1" width="1" height="2" fill="#fff" opacity="0.7"/><rect x="2" y="2" width="1" height="1" fill="#fff" opacity="0.5"/><rect x="13" y="2" width="1" height="1" fill="#fff" opacity="0.5"/><rect x="6" y="3" width="4" height="2" fill="#ffcc99"/><rect x="4" y="5" width="8" height="6" fill="#fffacd"/><rect x="7" y="4" width="2" height="6" fill="#ffd700"/><rect x="4" y="6" width="8" height="5" fill="#ffd700"/><rect x="6" y="11" width="2" height="3" fill="#c0c0c0"/><rect x="8" y="11" width="2" height="3" fill="#c0c0c0"/></svg>')}`
+                ],
                 stats: { str: 8, dex: 4, int: 8, hp: 8, mp: 8 },
                 skills: [
                     { name: '신성한 빛', power: 1.2, target: 'single', type: 'magic' },
@@ -1251,6 +1489,13 @@
             rogue: {
                 name: '도적',
                 icon: '🗡️',
+                svgSprites: [
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="7" y="2" width="2" height="2" fill="#333"/><rect x="6" y="4" width="4" height="2" fill="#ffcc99"/><rect x="5" y="6" width="6" height="4" fill="#2f4f4f"/><rect x="11" y="7" width="2" height="1" fill="#c0c0c0"/><rect x="6" y="10" width="2" height="4" fill="#1c1c1c"/><rect x="8" y="10" width="2" height="4" fill="#1c1c1c"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="7" y="2" width="2" height="2" fill="#2f4f4f"/><rect x="6" y="4" width="4" height="2" fill="#ffcc99"/><rect x="5" y="6" width="6" height="5" fill="#36454f"/><rect x="11" y="7" width="3" height="1" fill="#d3d3d3"/><rect x="3" y="7" width="2" height="1" fill="#d3d3d3"/><rect x="6" y="11" width="2" height="3" fill="#1c1c1c"/><rect x="8" y="11" width="2" height="3" fill="#1c1c1c"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="6" y="1" width="4" height="3" fill="#2f4f4f"/><rect x="6" y="4" width="4" height="2" fill="#ffcc99"/><rect x="4" y="6" width="8" height="5" fill="#483d8b"/><rect x="11" y="6" width="3" height="1" fill="#e0e0e0"/><rect x="2" y="6" width="2" height="1" fill="#e0e0e0"/><rect x="6" y="11" width="2" height="3" fill="#1c1c1c"/><rect x="8" y="11" width="2" height="3" fill="#1c1c1c"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="6" y="1" width="4" height="3" fill="#4b0082"/><rect x="6" y="4" width="4" height="2" fill="#ffcc99"/><rect x="4" y="5" width="8" height="6" fill="#6a0dad"/><rect x="11" y="6" width="4" height="1" fill="#f0f0f0"/><rect x="1" y="6" width="3" height="1" fill="#f0f0f0"/><rect x="6" y="11" width="2" height="3" fill="#1c1c1c"/><rect x="8" y="11" width="2" height="3" fill="#1c1c1c"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="5" y="0" width="6" height="3" fill="#4b0082"/><rect x="4" y="1" width="1" height="2" fill="#8b00ff" opacity="0.7"/><rect x="11" y="1" width="1" height="2" fill="#8b00ff" opacity="0.7"/><rect x="6" y="3" width="4" height="2" fill="#ffcc99"/><rect x="4" y="5" width="8" height="6" fill="#8a2be2"/><rect x="11" y="5" width="4" height="1" fill="#fff"/><rect x="1" y="5" width="3" height="1" fill="#fff"/><rect x="12" y="6" width="1" height="1" fill="#fff" opacity="0.6"/><rect x="3" y="6" width="1" height="1" fill="#fff" opacity="0.6"/><rect x="6" y="11" width="2" height="3" fill="#1c1c1c"/><rect x="8" y="11" width="2" height="3" fill="#1c1c1c"/></svg>')}`
+                ],
                 stats: { str: 8, dex: 8, int: 6, hp: 6, mp: 6 },
                 skills: [
                     { name: '급소 공격', power: 1.8, target: 'single', type: 'physical' },
@@ -1260,6 +1505,13 @@
             druid: {
                 name: '드루이드',
                 icon: '🌿',
+                svgSprites: [
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="7" y="2" width="2" height="2" fill="#228b22"/><rect x="6" y="4" width="4" height="2" fill="#ffcc99"/><rect x="5" y="6" width="6" height="4" fill="#8fbc8f"/><rect x="4" y="7" width="1" height="2" fill="#32cd32"/><rect x="11" y="7" width="1" height="2" fill="#32cd32"/><rect x="6" y="10" width="2" height="4" fill="#654321"/><rect x="8" y="10" width="2" height="4" fill="#654321"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="7" y="2" width="2" height="2" fill="#228b22"/><rect x="6" y="2" width="1" height="1" fill="#32cd32"/><rect x="9" y="2" width="1" height="1" fill="#32cd32"/><rect x="6" y="4" width="4" height="2" fill="#ffcc99"/><rect x="4" y="6" width="8" height="5" fill="#3cb371"/><rect x="3" y="7" width="1" height="2" fill="#7cfc00"/><rect x="12" y="7" width="1" height="2" fill="#7cfc00"/><rect x="6" y="11" width="2" height="3" fill="#654321"/><rect x="8" y="11" width="2" height="3" fill="#654321"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="6" y="1" width="4" height="3" fill="#228b22"/><rect x="5" y="2" width="1" height="1" fill="#32cd32"/><rect x="10" y="2" width="1" height="1" fill="#32cd32"/><rect x="6" y="4" width="4" height="2" fill="#ffcc99"/><rect x="4" y="6" width="8" height="5" fill="#2e8b57"/><rect x="3" y="7" width="1" height="3" fill="#7cfc00"/><rect x="12" y="7" width="1" height="3" fill="#7cfc00"/><rect x="2" y="8" width="1" height="1" fill="#adff2f"/><rect x="13" y="8" width="1" height="1" fill="#adff2f"/><rect x="6" y="11" width="2" height="3" fill="#654321"/><rect x="8" y="11" width="2" height="3" fill="#654321"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="6" y="1" width="4" height="3" fill="#006400"/><rect x="5" y="1" width="1" height="2" fill="#32cd32"/><rect x="10" y="1" width="1" height="2" fill="#32cd32"/><rect x="6" y="3" width="4" height="2" fill="#ffcc99"/><rect x="4" y="5" width="8" height="6" fill="#228b22"/><rect x="3" y="6" width="1" height="4" fill="#7cfc00"/><rect x="12" y="6" width="1" height="4" fill="#7cfc00"/><rect x="2" y="7" width="1" height="2" fill="#adff2f"/><rect x="13" y="7" width="1" height="2" fill="#adff2f"/><rect x="6" y="11" width="2" height="3" fill="#654321"/><rect x="8" y="11" width="2" height="3" fill="#654321"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="5" y="0" width="6" height="3" fill="#006400"/><rect x="4" y="1" width="1" height="2" fill="#32cd32"/><rect x="11" y="1" width="1" height="2" fill="#32cd32"/><rect x="3" y="1" width="1" height="2" fill="#7cfc00" opacity="0.6"/><rect x="12" y="1" width="1" height="2" fill="#7cfc00" opacity="0.6"/><rect x="6" y="3" width="4" height="2" fill="#ffcc99"/><rect x="4" y="5" width="8" height="6" fill="#228b22"/><rect x="3" y="6" width="1" height="4" fill="#7cfc00"/><rect x="12" y="6" width="1" height="4" fill="#7cfc00"/><rect x="2" y="7" width="1" height="3" fill="#adff2f"/><rect x="13" y="7" width="1" height="3" fill="#adff2f"/><rect x="6" y="11" width="2" height="3" fill="#654321"/><rect x="8" y="11" width="2" height="3" fill="#654321"/></svg>')}`
+                ],
                 stats: { str: 8, dex: 6, int: 6, hp: 8, mp: 4 },
                 skills: [
                     { name: '야수 변신', power: 0, target: 'self', type: 'buff', effect: 'transform' },
@@ -1269,6 +1521,13 @@
             mage: {
                 name: '법사',
                 icon: '🔮',
+                svgSprites: [
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="6" y="1" width="4" height="2" fill="#4b0082"/><rect x="7" y="1" width="2" height="1" fill="#9370db"/><rect x="6" y="3" width="4" height="2" fill="#ffcc99"/><rect x="5" y="5" width="6" height="5" fill="#483d8b"/><rect x="11" y="6" width="2" height="3" fill="#8b4513"/><rect x="6" y="10" width="2" height="4" fill="#333"/><rect x="8" y="10" width="2" height="4" fill="#333"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="6" y="1" width="4" height="2" fill="#4b0082"/><rect x="7" y="0" width="2" height="1" fill="#9370db"/><rect x="6" y="3" width="4" height="2" fill="#ffcc99"/><rect x="4" y="5" width="8" height="6" fill="#6a5acd"/><rect x="11" y="6" width="3" height="4" fill="#8b4513"/><rect x="12" y="5" width="1" height="1" fill="#daa520"/><rect x="6" y="11" width="2" height="3" fill="#333"/><rect x="8" y="11" width="2" height="3" fill="#333"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="5" y="1" width="6" height="2" fill="#4b0082"/><rect x="6" y="0" width="4" height="1" fill="#9370db"/><rect x="6" y="3" width="4" height="2" fill="#ffcc99"/><rect x="4" y="5" width="8" height="6" fill="#7b68ee"/><rect x="11" y="6" width="3" height="4" fill="#daa520"/><rect x="12" y="5" width="2" height="1" fill="#daa520"/><rect x="13" y="6" width="1" height="1" fill="#ffd700"/><rect x="6" y="11" width="2" height="3" fill="#333"/><rect x="8" y="11" width="2" height="3" fill="#333"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="5" y="0" width="6" height="3" fill="#4b0082"/><rect x="6" y="0" width="4" height="1" fill="#9370db"/><rect x="4" y="1" width="1" height="1" fill="#9370db" opacity="0.6"/><rect x="11" y="1" width="1" height="1" fill="#9370db" opacity="0.6"/><rect x="6" y="3" width="4" height="2" fill="#ffcc99"/><rect x="4" y="5" width="8" height="6" fill="#8a2be2"/><rect x="11" y="5" width="4" height="5" fill="#ffd700"/><rect x="12" y="4" width="2" height="1" fill="#ffd700"/><rect x="13" y="5" width="2" height="1" fill="#fff" opacity="0.5"/><rect x="6" y="11" width="2" height="3" fill="#333"/><rect x="8" y="11" width="2" height="3" fill="#333"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="4" y="0" width="8" height="3" fill="#4b0082"/><rect x="6" y="0" width="4" height="1" fill="#9370db"/><rect x="3" y="1" width="1" height="2" fill="#9370db" opacity="0.7"/><rect x="12" y="1" width="1" height="2" fill="#9370db" opacity="0.7"/><rect x="2" y="2" width="1" height="1" fill="#da70d6" opacity="0.5"/><rect x="13" y="2" width="1" height="1" fill="#da70d6" opacity="0.5"/><rect x="6" y="3" width="4" height="2" fill="#ffcc99"/><rect x="4" y="5" width="8" height="6" fill="#9370db"/><rect x="11" y="5" width="4" height="6" fill="#ffd700"/><rect x="12" y="4" width="3" height="1" fill="#ffd700"/><rect x="13" y="5" width="2" height="2" fill="#fff" opacity="0.6"/><rect x="6" y="11" width="2" height="3" fill="#333"/><rect x="8" y="11" width="2" height="3" fill="#333"/></svg>')}`
+                ],
                 stats: { str: 4, dex: 4, int: 10, hp: 6, mp: 10 },
                 skills: [
                     { name: '화염구', power: 1.6, target: 'all', type: 'magic' },
@@ -1278,6 +1537,13 @@
             healer: {
                 name: '치료사',
                 icon: '💊',
+                svgSprites: [
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="7" y="2" width="2" height="2" fill="#dc143c"/><rect x="6" y="4" width="4" height="2" fill="#ffcc99"/><rect x="5" y="6" width="6" height="4" fill="#fff"/><rect x="11" y="7" width="2" height="3" fill="#8b4513"/><rect x="6" y="10" width="2" height="4" fill="#666"/><rect x="8" y="10" width="2" height="4" fill="#666"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="7" y="2" width="2" height="2" fill="#ff1493"/><rect x="6" y="4" width="4" height="2" fill="#ffcc99"/><rect x="4" y="6" width="8" height="5" fill="#fff"/><rect x="11" y="7" width="3" height="3" fill="#a0522d"/><rect x="11" y="8" width="1" height="1" fill="#ffc0cb"/><rect x="6" y="11" width="2" height="3" fill="#696969"/><rect x="8" y="11" width="2" height="3" fill="#696969"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="6" y="1" width="4" height="3" fill="#ff69b4"/><rect x="6" y="4" width="4" height="2" fill="#ffcc99"/><rect x="4" y="6" width="8" height="5" fill="#fffaf0"/><rect x="11" y="6" width="3" height="4" fill="#d2691e"/><rect x="11" y="7" width="2" height="2" fill="#ffb6c1"/><rect x="12" y="8" width="1" height="1" fill="#fff"/><rect x="6" y="11" width="2" height="3" fill="#808080"/><rect x="8" y="11" width="2" height="3" fill="#808080"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="6" y="1" width="4" height="3" fill="#ff1493"/><rect x="5" y="2" width="1" height="1" fill="#ffb6c1"/><rect x="10" y="2" width="1" height="1" fill="#ffb6c1"/><rect x="6" y="3" width="4" height="2" fill="#ffcc99"/><rect x="4" y="5" width="8" height="6" fill="#fffaf0"/><rect x="11" y="6" width="4" height="4" fill="#ffd700"/><rect x="12" y="7" width="2" height="2" fill="#ffb6c1"/><rect x="13" y="8" width="1" height="1" fill="#fff"/><rect x="6" y="11" width="2" height="3" fill="#a9a9a9"/><rect x="8" y="11" width="2" height="3" fill="#a9a9a9"/></svg>')}`,
+                    `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="5" y="0" width="6" height="3" fill="#ff1493"/><rect x="4" y="1" width="1" height="2" fill="#ffb6c1"/><rect x="11" y="1" width="1" height="2" fill="#ffb6c1"/><rect x="3" y="2" width="1" height="1" fill="#ffc0cb" opacity="0.6"/><rect x="12" y="2" width="1" height="1" fill="#ffc0cb" opacity="0.6"/><rect x="6" y="3" width="4" height="2" fill="#ffcc99"/><rect x="4" y="5" width="8" height="6" fill="#fffaf0"/><rect x="11" y="5" width="4" height="5" fill="#ffd700"/><rect x="12" y="6" width="3" height="3" fill="#ffb6c1"/><rect x="13" y="7" width="2" height="2" fill="#fff" opacity="0.7"/><rect x="6" y="11" width="2" height="3" fill="#c0c0c0"/><rect x="8" y="11" width="2" height="3" fill="#c0c0c0"/></svg>')}`
+                ],
                 stats: { str: 4, dex: 4, int: 10, hp: 6, mp: 10 },
                 skills: [
                     { name: '대치유', power: 2.0, target: 'ally', type: 'heal' },
@@ -1341,45 +1607,45 @@
         const LEGENDARY_EQUIPMENT = {
             // A구역 (1-200층): 기사, 궁수 전설 장비
             ice: [
-                { name: '얼음의 수호자', type: 'leftWeapon', class: 'knight', stats: { str: 18, hp: 24 }, skill: '빙하의 수호', dropRate: 0.0001 },
-                { name: '극북의 성벽', type: 'rightWeapon', class: 'knight', stats: { hp: 30, def: 18 }, skill: '절대방어', dropRate: 0.0001 },
-                { name: '서리바람의 장궁', type: 'leftWeapon', class: 'archer', stats: { dex: 24, int: 12 }, skill: '빙설의 화살', dropRate: 0.0001 },
-                { name: '동토의 신궁', type: 'leftWeapon', class: 'archer', stats: { dex: 27, hp: 15 }, skill: '관통빙탄', dropRate: 0.0001 },
-                { name: '빙하의 성벽', type: 'rightWeapon', class: 'knight', stats: { hp: 40, def: 25 }, skill: '얼음 요새', dropRate: 0.0001, isShield: true }
+                { name: '얼음의 수호자', type: 'leftWeapon', class: 'knight', stats: { str: 18, hp: 24 }, skill: '빙하의 수호', dropRate: 0.000001 },
+                { name: '극북의 성벽', type: 'rightWeapon', class: 'knight', stats: { hp: 30, def: 18 }, skill: '절대방어', dropRate: 0.000001 },
+                { name: '서리바람의 장궁', type: 'leftWeapon', class: 'archer', stats: { dex: 24, int: 12 }, skill: '빙설의 화살', dropRate: 0.000001 },
+                { name: '동토의 신궁', type: 'leftWeapon', class: 'archer', stats: { dex: 27, hp: 15 }, skill: '관통빙탄', dropRate: 0.000001 },
+                { name: '빙하의 성벽', type: 'rightWeapon', class: 'knight', stats: { hp: 40, def: 25 }, skill: '얼음 요새', dropRate: 0.000001, isShield: true }
             ],
             // B구역 (201-400층): 성기사, 치료사 전설 장비
             lava: [
-                { name: '태양의 성배', type: 'leftWeapon', class: 'priest', stats: { int: 24, mp: 30 }, skill: '신성한 빛의 심판', dropRate: 0.0001 },
-                { name: '화염심장의 지팡이', type: 'leftWeapon', class: 'priest', stats: { int: 21, hp: 24 }, skill: '정화의 불꽃', dropRate: 0.0001 },
-                { name: '생명의 영약', type: 'leftWeapon', class: 'healer', stats: { int: 27, mp: 36 }, skill: '완전치유', dropRate: 0.0001 },
-                { name: '희망의 등불', type: 'leftWeapon', class: 'healer', stats: { int: 24, mp: 30 }, skill: '축복의 빛', dropRate: 0.0001 },
-                { name: '신성한 방패', type: 'rightWeapon', class: 'priest', stats: { hp: 38, mp: 28, def: 22 }, skill: '성스러운 가호', dropRate: 0.0001, isShield: true }
+                { name: '태양의 성배', type: 'leftWeapon', class: 'priest', stats: { int: 24, mp: 30 }, skill: '신성한 빛의 심판', dropRate: 0.000001 },
+                { name: '화염심장의 지팡이', type: 'leftWeapon', class: 'priest', stats: { int: 21, hp: 24 }, skill: '정화의 불꽃', dropRate: 0.000001 },
+                { name: '생명의 영약', type: 'leftWeapon', class: 'healer', stats: { int: 27, mp: 36 }, skill: '완전치유', dropRate: 0.000001 },
+                { name: '희망의 등불', type: 'leftWeapon', class: 'healer', stats: { int: 24, mp: 30 }, skill: '축복의 빛', dropRate: 0.000001 },
+                { name: '신성한 방패', type: 'rightWeapon', class: 'priest', stats: { hp: 38, mp: 28, def: 22 }, skill: '성스러운 가호', dropRate: 0.000001, isShield: true }
             ],
             // C구역 (401-600층): 드루이드, 도적 전설 장비
             forest: [
-                { name: '세계수의 가지', type: 'leftWeapon', class: 'druid', stats: { int: 21, hp: 27 }, skill: '자연의 분노', dropRate: 0.0001 },
-                { name: '대지의 권능', type: 'leftWeapon', class: 'druid', stats: { str: 18, int: 18, hp: 24 }, skill: '야수왕의 강림', dropRate: 0.0001 },
-                { name: '그림자 추적자', type: 'leftWeapon', class: 'rogue', stats: { dex: 30, str: 18 }, skill: '암살', dropRate: 0.0001 },
-                { name: '은밀의 단검', type: 'rightWeapon', class: 'rogue', stats: { dex: 27, int: 15 }, skill: '연쇄 급습', dropRate: 0.0001 },
-                { name: '타이탄의 대검', type: 'leftWeapon', class: 'knight', stats: { str: 45, hp: 35, def: 20 }, skill: '대지 분쇄', dropRate: 0.0001, isTwoHanded: true }
+                { name: '세계수의 가지', type: 'leftWeapon', class: 'druid', stats: { int: 21, hp: 27 }, skill: '자연의 분노', dropRate: 0.000001 },
+                { name: '대지의 권능', type: 'leftWeapon', class: 'druid', stats: { str: 18, int: 18, hp: 24 }, skill: '야수왕의 강림', dropRate: 0.000001 },
+                { name: '그림자 추적자', type: 'leftWeapon', class: 'rogue', stats: { dex: 30, str: 18 }, skill: '암살', dropRate: 0.000001 },
+                { name: '은밀의 단검', type: 'rightWeapon', class: 'rogue', stats: { dex: 27, int: 15 }, skill: '연쇄 급습', dropRate: 0.000001 },
+                { name: '타이탄의 대검', type: 'leftWeapon', class: 'knight', stats: { str: 45, hp: 35, def: 20 }, skill: '대지 분쇄', dropRate: 0.000001, isTwoHanded: true }
             ],
             // D구역 (601-800층): 법사, 갑옷 전설 장비
             ocean: [
-                { name: '심연의 마도서', type: 'leftWeapon', class: 'mage', stats: { int: 36, mp: 36 }, skill: '해일의 마법진', dropRate: 0.0001 },
-                { name: '파도를 삼킨 지팡이', type: 'leftWeapon', class: 'mage', stats: { int: 33, dex: 15 }, skill: '얼어붙은 파도', dropRate: 0.0001 },
-                { name: '심해용의 갑주', type: 'armor', stats: { hp: 42, def: 30 }, skill: '수호의 물결', dropRate: 0.0001 },
-                { name: '아틀란티스의 전갑', type: 'armor', stats: { hp: 45, mp: 30 }, skill: '물의 축복', dropRate: 0.0001 }
+                { name: '심연의 마도서', type: 'leftWeapon', class: 'mage', stats: { int: 36, mp: 36 }, skill: '해일의 마법진', dropRate: 0.000001 },
+                { name: '파도를 삼킨 지팡이', type: 'leftWeapon', class: 'mage', stats: { int: 33, dex: 15 }, skill: '얼어붙은 파도', dropRate: 0.000001 },
+                { name: '심해용의 갑주', type: 'armor', stats: { hp: 42, def: 30 }, skill: '수호의 물결', dropRate: 0.000001 },
+                { name: '아틀란티스의 전갑', type: 'armor', stats: { hp: 45, mp: 30 }, skill: '물의 축복', dropRate: 0.000001 }
             ],
             // E구역 (801-1000층): 투구, 신발, 귀걸이, 반지 전설 장비
             dark: [
-                { name: '지배자의 왕관', type: 'helmet', stats: { int: 30, hp: 30, mp: 30 }, skill: '암흑의 권능', dropRate: 0.0001 },
-                { name: '어둠의 제왕투구', type: 'helmet', stats: { str: 27, hp: 36 }, skill: '공포의 지배', dropRate: 0.0001 },
-                { name: '심연보행자의 신발', type: 'boots', stats: { dex: 33, hp: 27 }, skill: '차원이동', dropRate: 0.0001 },
-                { name: '밤그림자의 장화', type: 'boots', stats: { dex: 30, int: 24 }, skill: '은신술', dropRate: 0.0001 },
-                { name: '영혼의 귀걸이', type: 'earring1', stats: { int: 36, mp: 42 }, skill: '마나 폭발', dropRate: 0.0002 },
-                { name: '공허의 귀걸이', type: 'earring2', stats: { int: 36, mp: 42 }, skill: '마나 재생', dropRate: 0.0002 },
-                { name: '파멸의 반지', type: 'ring1', stats: { str: 30, int: 30 }, skill: '생명 흡수', dropRate: 0.0002 },
-                { name: '영원의 반지', type: 'ring2', stats: { hp: 36, mp: 36 }, skill: '불멸의 의지', dropRate: 0.0002 }
+                { name: '지배자의 왕관', type: 'helmet', stats: { int: 30, hp: 30, mp: 30 }, skill: '암흑의 권능', dropRate: 0.000001 },
+                { name: '어둠의 제왕투구', type: 'helmet', stats: { str: 27, hp: 36 }, skill: '공포의 지배', dropRate: 0.000001 },
+                { name: '심연보행자의 신발', type: 'boots', stats: { dex: 33, hp: 27 }, skill: '차원이동', dropRate: 0.000001 },
+                { name: '밤그림자의 장화', type: 'boots', stats: { dex: 30, int: 24 }, skill: '은신술', dropRate: 0.000001 },
+                { name: '영혼의 귀걸이', type: 'earring1', stats: { int: 36, mp: 42 }, skill: '마나 폭발', dropRate: 0.000002 },
+                { name: '공허의 귀걸이', type: 'earring2', stats: { int: 36, mp: 42 }, skill: '마나 재생', dropRate: 0.000002 },
+                { name: '파멸의 반지', type: 'ring1', stats: { str: 30, int: 30 }, skill: '생명 흡수', dropRate: 0.000002 },
+                { name: '영원의 반지', type: 'ring2', stats: { hp: 36, mp: 36 }, skill: '불멸의 의지', dropRate: 0.000002 }
             ]
         };
 
@@ -1736,6 +2002,8 @@
                     currentMp: finalStats.mp * 10,
                     maxMp: finalStats.mp * 10,
                     skills: [...classData.skills],
+                    skillLevels: classData.skills.reduce((acc, skill) => { acc[skill.name] = 1; return acc; }, {}),
+                    skillPoints: 0,
                     equipment: {
                         leftWeapon: null, rightWeapon: null, helmet: null, armor: null,
                         leggings: null, boots: null, earring1: null, earring2: null,
@@ -2061,10 +2329,44 @@
                     `;
                 }
 
+                // Initialize skillLevels for backwards compatibility
+                if (!char.skillLevels) {
+                    char.skillLevels = char.skills.reduce((acc, skill) => { acc[skill.name] = 1; return acc; }, {});
+                }
+                if (char.skillPoints === undefined) char.skillPoints = 0;
+
+                // Skill icons mapping
+                const skillTypeIcons = {
+                    physical: '⚔️',
+                    magic: '✨',
+                    heal: '💚',
+                    buff: '🛡️'
+                };
+
                 html += `
                     <div style="margin-top: 20px;">
+                        <strong>스킬 포인트: ${char.skillPoints}</strong>
+                    </div>
+                    <div style="margin-top: 15px;">
                         <strong>스킬:</strong><br>
-                        ${char.skills.map(skill => `• ${skill.name} (${skill.type})`).join('<br>')}
+                        <div style="display: grid; gap: 10px; margin-top: 10px;">
+                            ${char.skills.map(skill => {
+                                const skillLevel = char.skillLevels[skill.name] || 1;
+                                const icon = skillTypeIcons[skill.type] || '🎯';
+                                return `
+                                    <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; padding: 10px; cursor: pointer;"
+                                         onclick="game.showSkillDetail(${char.id}, '${skill.name}')">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <span style="font-size: 24px;">${icon}</span>
+                                            <div style="flex: 1;">
+                                                <div><strong>${skill.name}</strong> Lv.${skillLevel}</div>
+                                                <div style="font-size: 11px; color: #aaa;">${skill.type} / 위력: ${(skill.power * (1 + (skillLevel - 1) * 0.1)).toFixed(1)}x</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
                     </div>
 
                     <div style="margin-top: 20px;">
@@ -2109,8 +2411,16 @@
                     <div class="stat-row">
                         <span>${statNames[stat]}: ${char.stats[stat]}</span>
                         <div class="stat-controls">
-                            <button class="stat-btn" onclick="game.allocateStat(${char.id}, '${stat}', -1)" ${char.stats[stat] <= char.baseStats[stat] ? 'disabled' : ''}>-</button>
-                            <button class="stat-btn" onclick="game.allocateStat(${char.id}, '${stat}', 1)" ${char.availableStats <= 0 ? 'disabled' : ''}>+</button>
+                            <button class="stat-btn"
+                                onmousedown="game.startStatIncrease(${char.id}, '${stat}', -1)"
+                                onmouseup="game.stopStatIncrease()"
+                                onmouseleave="game.stopStatIncrease()"
+                                ${char.stats[stat] <= char.baseStats[stat] ? 'disabled' : ''}>-</button>
+                            <button class="stat-btn"
+                                onmousedown="game.startStatIncrease(${char.id}, '${stat}', 1)"
+                                onmouseup="game.stopStatIncrease()"
+                                onmouseleave="game.stopStatIncrease()"
+                                ${char.availableStats <= 0 ? 'disabled' : ''}>+</button>
                         </div>
                     </div>
                 `).join('');
@@ -2144,6 +2454,100 @@
 
                 this.showCharacterDetail(char);
                 this.renderPartyList();
+            },
+
+            statIncreaseInterval: null,
+
+            startStatIncrease(charId, stat, amount) {
+                this.allocateStat(charId, stat, amount);
+
+                this.statIncreaseInterval = setInterval(() => {
+                    this.allocateStat(charId, stat, amount);
+                }, 100);
+            },
+
+            stopStatIncrease() {
+                if (this.statIncreaseInterval) {
+                    clearInterval(this.statIncreaseInterval);
+                    this.statIncreaseInterval = null;
+                }
+            },
+
+            showSkillDetail(charId, skillName) {
+                let char = this.party.find(c => c.id === charId);
+                if (!char) char = this.inn.mercenaries.find(c => c.id === charId);
+                if (!char) {
+                    for (let party of this.parties) {
+                        char = party.find(c => c.id === charId);
+                        if (char) break;
+                    }
+                }
+                if (!char) return;
+
+                const skill = char.skills.find(s => s.name === skillName);
+                if (!skill) return;
+
+                const skillLevel = char.skillLevels[skillName] || 1;
+                const currentPower = skill.power * (1 + (skillLevel - 1) * 0.1);
+                const nextPower = skill.power * (1 + skillLevel * 0.1);
+
+                const skillTypeIcons = {
+                    physical: '⚔️',
+                    magic: '✨',
+                    heal: '💚',
+                    buff: '🛡️'
+                };
+                const icon = skillTypeIcons[skill.type] || '🎯';
+
+                const message = `
+                    <div style="text-align: center; margin-bottom: 15px; font-size: 32px;">${icon}</div>
+                    <h3 style="text-align: center; margin-bottom: 15px;">${skillName}</h3>
+                    <div style="margin-bottom: 15px;">
+                        <strong>현재 레벨:</strong> ${skillLevel}<br>
+                        <strong>타입:</strong> ${skill.type}<br>
+                        <strong>대상:</strong> ${skill.target}<br>
+                        <strong>현재 위력:</strong> ${currentPower.toFixed(1)}x<br>
+                        ${skillLevel < 10 ? `<strong>다음 레벨 위력:</strong> ${nextPower.toFixed(1)}x` : '<strong>최대 레벨 도달!</strong>'}
+                    </div>
+                    ${char.skillPoints > 0 && skillLevel < 10 ? `
+                        <button class="btn btn-success" onclick="game.upgradeSkill(${charId}, '${skillName}')" style="width: 100%;">
+                            스킬 레벨업 (스킬 포인트 1 소모)
+                        </button>
+                    ` : ''}
+                    ${char.skillPoints === 0 ? '<div style="color: #888; text-align: center; margin-top: 10px;">스킬 포인트가 부족합니다</div>' : ''}
+                    ${skillLevel >= 10 ? '<div style="color: #ffd700; text-align: center; margin-top: 10px;">최대 레벨!</div>' : ''}
+                `;
+
+                this.addLog(message);
+            },
+
+            upgradeSkill(charId, skillName) {
+                let char = this.party.find(c => c.id === charId);
+                if (!char) char = this.inn.mercenaries.find(c => c.id === charId);
+                if (!char) {
+                    for (let party of this.parties) {
+                        char = party.find(c => c.id === charId);
+                        if (char) break;
+                    }
+                }
+                if (!char) return;
+
+                if (char.skillPoints <= 0) {
+                    this.addLog('스킬 포인트가 부족합니다!');
+                    return;
+                }
+
+                const skillLevel = char.skillLevels[skillName] || 1;
+                if (skillLevel >= 10) {
+                    this.addLog('이미 최대 레벨입니다!');
+                    return;
+                }
+
+                char.skillLevels[skillName] = skillLevel + 1;
+                char.skillPoints--;
+
+                this.addLog(`${skillName} 스킬이 레벨 ${skillLevel + 1}로 상승했습니다!`);
+                this.showCharacterDetail(char);
             },
 
             promoteCharacter(charId) {
@@ -2192,7 +2596,7 @@
                 // Reset level and exp
                 char.level = 1;
                 char.exp = 0;
-                char.expToNext = 100;
+                char.expToNext = Math.floor(100 * Math.pow(1.5, char.promotionCount));
                 char.levelUpIndex = 0; // Reset level up cycle
 
                 // Full heal
@@ -2252,8 +2656,8 @@
                 // Reset level, exp, and promotions
                 char.level = 1;
                 char.exp = 0;
-                char.expToNext = 100;
                 char.promotionCount = 0;
+                char.expToNext = Math.floor(100 * Math.pow(1.5, char.promotionCount));
                 char.levelUpIndex = 0;
                 char.availableStats = 0; // Reset available stats
 
@@ -2874,6 +3278,13 @@
                     // Regular stat point
                     char.availableStats++;
 
+                    // Skill point (every 3 levels)
+                    if (char.skillPoints === undefined) char.skillPoints = 0;
+                    if (char.level % 3 === 0) {
+                        char.skillPoints++;
+                        this.addLog(`${char.name}이(가) 스킬 포인트 1개를 획득했습니다!`);
+                    }
+
                     // Auto stat growth based on class (only for the 6 main classes, not druid)
                     // Initialize levelUpIndex if not present (for backwards compatibility)
                     if (char.levelUpIndex === undefined) char.levelUpIndex = 0;
@@ -2938,11 +3349,15 @@
                 playerTeam.innerHTML = '';
                 this.party.slice(0, 5).forEach(char => {
                     const classData = CLASSES[char.class];
+                    const promotionColors = ['#ffffff', '#4ade80', '#60a5fa', '#facc15', '#fb923c'];
+                    const nameColor = promotionColors[char.promotionCount || 0];
+                    const spriteIndex = Math.min(char.promotionCount || 0, 4);
+                    const spriteUrl = classData.svgSprites ? classData.svgSprites[spriteIndex] : classData.icon;
                     const slot = document.createElement('div');
                     slot.className = `character-slot ${char.currentHp > 0 ? 'active' : ''}`;
                     slot.innerHTML = `
-                        <div class="character-sprite">${classData.icon}</div>
-                        <div class="character-name">${char.name}</div>
+                        <div class="character-sprite">${classData.svgSprites ? `<img src="${spriteUrl}" alt="${char.name}" style="width: 48px; height: 48px;">` : classData.icon}</div>
+                        <div class="character-name" style="color: ${nameColor}">${char.name}</div>
                         <div class="character-level">Lv.${char.level}</div>
                         <div class="character-hp-bar">
                             <div class="character-hp-fill" style="width: ${(char.currentHp / char.maxHp) * 100}%"></div>
@@ -4330,11 +4745,33 @@
 
             loadGame() {
                 this.addLog('로그인 시 자동으로 불러옵니다.');
+            },
+
+            toggleTheme() {
+                const body = document.body;
+                const themeIcon = document.getElementById('theme-icon');
+
+                if (body.classList.contains('light')) {
+                    body.classList.remove('light');
+                    themeIcon.textContent = '🌙';
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    body.classList.add('light');
+                    themeIcon.textContent = '☀️';
+                    localStorage.setItem('theme', 'light');
+                }
             }
         };
 
         // Initialize game on page load
         window.onload = () => {
+            // Load saved theme
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light');
+                document.getElementById('theme-icon').textContent = '☀️';
+            }
+
             // Show login screen
             document.getElementById('login-screen').style.display = 'flex';
             document.getElementById('game-container').style.display = 'none';
