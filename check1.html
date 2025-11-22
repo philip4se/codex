@@ -1417,7 +1417,7 @@
 
         // 자동으로 사라지는 알림 모달
         let autoHideTimer = null;
-        function showNotification(message, type = 'success') {
+        function showNotification(message, type = 'success', autoClose = true) {
             // 기존 타이머 제거
             if (autoHideTimer) {
                 clearTimeout(autoHideTimer);
@@ -1440,10 +1440,12 @@
                 </div>
             `;
 
-            // 3초 후 자동으로 닫기
-            autoHideTimer = setTimeout(() => {
-                closeNotification();
-            }, 3000);
+            // autoClose가 true일 때만 3초 후 자동으로 닫기
+            if (autoClose) {
+                autoHideTimer = setTimeout(() => {
+                    closeNotification();
+                }, 3000);
+            }
         }
 
         function closeNotification() {
@@ -2396,7 +2398,7 @@
             );
 
             if (todayOrders.length > 0) {
-                showNotification('1일 1잔 이미 사용', 'error');
+                showNotification('1일 1잔 이미 사용', 'error', false);
                 return;
             }
 
@@ -2415,7 +2417,7 @@
             data.beverageOrders.push(order);
             saveData();
             closeModal();
-            showNotification('주문이 접수되었습니다', 'success');
+            showNotification('주문 성공', 'success', false);
             renderBeverage();
         }
 
