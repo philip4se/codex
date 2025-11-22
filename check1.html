@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>당진시청소년재단 시설 통합 관리 시스템 v1.2</title>
+    <title>(재)당진시청소년재단 시설 통합 관리 시스템 v1.2</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -411,12 +411,13 @@
             margin-bottom: 32px;
             padding: 24px;
             padding-bottom: 32px;
-            border-bottom: 2px solid #e5e7eb;
-            background: var(--bg-secondary);
+            border-bottom: 2px solid var(--border-primary);
+            background: var(--bg-primary);
             border-radius: 12px;
-            transition: background-color 0.3s;
+            transition: all 0.3s;
+            border: 1px solid var(--border-primary);
         }
-        .stats-section:last-child { border-bottom: none; }
+        .stats-section:last-child { border-bottom: 1px solid var(--border-primary); }
         .backup-section { background: var(--backup-warning-bg); border: 2px solid var(--backup-warning-border); border-radius: 8px; padding: 20px; margin-bottom: 20px; transition: all 0.3s; }
         .backup-info { font-size: 13px; color: var(--backup-warning-text); margin-bottom: 16px; line-height: 1.6; }
         .backup-warning { background: var(--backup-warning-bg); border: 2px solid var(--backup-warning-border); padding: 12px; border-radius: 6px; margin-bottom: 16px; font-size: 12px; color: var(--backup-warning-text); transition: all 0.3s; }
@@ -436,7 +437,7 @@
         <div class="header">
             <div class="header-flex">
                 <div style="flex: 1;">
-                    <h1 class="title">당진시청소년재단</h1>
+                    <h1 class="title">(재)당진시청소년재단</h1>
                     <p class="subtitle">시설 통합 관리 시스템 v1.2 투트랙 백업</p>
                     <div class="branch-selector">
                         <button class="branch-btn" onclick="toggleBranchDropdown()">
@@ -2317,7 +2318,7 @@
                 <div class="panel">
                     <h3 class="panel-title"><span>⚙️</span> 시설 설정</h3>
                     
-                    <div class="setting-item" style="background: #eff6ff; border-color: #3b82f6;">
+                    <div class="setting-item" style="background: var(--bg-tertiary); border-color: var(--accent-blue);">
                         <div class="setting-name">➕ 새 시설 추가</div>
                         <div class="form-group" style="margin-bottom: 12px;">
                             <label class="form-label">시설명</label>
@@ -2653,8 +2654,8 @@
                     <div class="stats-section">
                         <h4 style="font-weight: 600; margin-bottom: 16px;">시설별 이용 현황</h4>
                         ${data.facilities.map((facility, idx) => `
-                            <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 24px;">
-                                <h5 style="font-weight: 600; font-size: 16px; margin-bottom: 16px; color: #1f2937;">
+                            <div style="background: var(--bg-tertiary); padding: 20px; border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border-primary);">
+                                <h5 style="font-weight: 600; font-size: 16px; margin-bottom: 16px; color: var(--text-primary);">
                                     📍 ${facility.name}
                                 </h5>
                                 
@@ -2848,6 +2849,8 @@
                                 borderColor: 'rgba(139, 92, 246, 1)',
                                 borderWidth: 2,
                                 borderRadius: 8,
+                                barPercentage: 0.5,
+                                categoryPercentage: 0.8,
                                 shadowOffsetX: 3,
                                 shadowOffsetY: 3,
                                 shadowBlur: 10,
@@ -2999,7 +3002,9 @@
                                 backgroundColor: gradient,
                                 borderColor: 'rgba(16, 185, 129, 1)',
                                 borderWidth: 2,
-                                borderRadius: 8
+                                borderRadius: 8,
+                                barPercentage: 0.5,
+                                categoryPercentage: 0.8
                             }]
                         },
                         options: {
@@ -3093,6 +3098,8 @@
                         borderColor: 'rgba(139, 92, 246, 1)',
                         borderWidth: chartType === 'line' ? 3 : 2,
                         borderRadius: chartType === 'bar' ? 8 : 0,
+                        barPercentage: chartType === 'bar' ? 0.5 : undefined,
+                        categoryPercentage: chartType === 'bar' ? 0.8 : undefined,
                         fill: chartType === 'line' ? true : true,
                         tension: chartType === 'line' ? 0.4 : 0,
                         pointRadius: chartType === 'line' ? 5 : 0,
@@ -3200,6 +3207,8 @@
                         ],
                         borderWidth: chartType === 'pie' ? 3 : 2,
                         borderRadius: chartType === 'bar' ? 8 : 0,
+                        barPercentage: chartType === 'bar' ? 0.5 : undefined,
+                        categoryPercentage: chartType === 'bar' ? 0.8 : undefined,
                         hoverOffset: chartType === 'pie' ? 15 : 0,
                         hoverBorderWidth: chartType === 'pie' ? 4 : 2
                     }]
@@ -3296,6 +3305,8 @@
                         borderColor: 'rgba(16, 185, 129, 1)',
                         borderWidth: chartType === 'line' ? 3 : 2,
                         borderRadius: chartType === 'bar' ? 8 : 0,
+                        barPercentage: chartType === 'bar' ? 0.5 : undefined,
+                        categoryPercentage: chartType === 'bar' ? 0.8 : undefined,
                         fill: chartType === 'line' ? true : true,
                         tension: chartType === 'line' ? 0.4 : 0,
                         pointRadius: chartType === 'line' ? 5 : 0,
