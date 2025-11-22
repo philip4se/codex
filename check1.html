@@ -2360,19 +2360,21 @@
                         const hasOrderedToday = todayOrders.length > 0;
 
                         return `
-                            <div class="search-result ${hasOrderedToday ? 'disabled' : ''}"
-                                 onclick="${hasOrderedToday ? '' : `orderBeverage('${beverageId}', '${m.id}')`}"
-                                 style="${hasOrderedToday ? 'opacity: 0.5; cursor: not-allowed;' : 'cursor: pointer;'}">
+                            <div class="search-result" style="cursor: default;">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
                                     <div>
                                         <div style="font-weight: 600; font-size: 15px;">${m.name} (${m.memberNumber})</div>
                                         <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 4px;">${m.phone} | ${m.birthDate}</div>
                                     </div>
                                     ${hasOrderedToday ? `
-                                        <div style="background: var(--accent-red); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
-                                            오늘 주문 완료
-                                        </div>
-                                    ` : ''}
+                                        <button class="btn btn-secondary" onclick="showNotification('1일 1잔 음료 주문 이미 사용', 'error', false)" style="padding: 8px 16px; font-size: 14px;">
+                                            불가능
+                                        </button>
+                                    ` : `
+                                        <button class="btn btn-primary" onclick="orderBeverage('${beverageId}', '${m.id}')" style="padding: 8px 16px; font-size: 14px;">
+                                            주문
+                                        </button>
+                                    `}
                                 </div>
                             </div>
                         `;
@@ -2431,8 +2433,8 @@
             order.status = 'completed';
             order.completedTime = new Date().toISOString();
             saveData();
-            showNotification('음료 제공이 완료되었습니다', 'success');
             renderBeverage();
+            showNotification('음료 제공이 완료되었습니다', 'success');
         }
 
         // 음료 제조 방법 모달
