@@ -199,6 +199,9 @@
         .header-flex { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
         .title { font-size: 28px; font-weight: bold; color: var(--text-primary); }
         .subtitle { color: var(--text-secondary); margin-top: 4px; font-size: 14px; }
+        .admin-login-btn { background: var(--bg-tertiary); border: 2px solid var(--border-primary); border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 20px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; }
+        .admin-login-btn:hover { transform: scale(1.1); background: var(--accent-blue); border-color: var(--accent-blue); }
+        .admin-login-btn.logged-in { background: var(--accent-green); border-color: var(--accent-green); }
         .dark-mode-toggle { background: var(--bg-tertiary); border: 2px solid var(--border-primary); border-radius: 20px; padding: 4px 12px; cursor: pointer; font-size: 20px; transition: all 0.3s; margin-left: 12px; }
         .dark-mode-toggle:hover { transform: scale(1.1); }
         .branch-selector { margin-top: 12px; position: relative; }
@@ -457,7 +460,12 @@
         <div class="header">
             <div class="header-flex">
                 <div style="flex: 1;">
-                    <h1 class="title">(재)당진시청소년재단</h1>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                        <button id="adminLoginBtn" class="admin-login-btn" onclick="showAdminLogin()" title="관리자 로그인">
+                            <span id="adminIcon">🔓</span>
+                        </button>
+                        <h1 class="title" style="margin: 0;">(재)당진시청소년재단</h1>
+                    </div>
                     <p class="subtitle">시설 통합 관리 시스템 v1.2 투트랙 백업</p>
                     <div class="branch-selector">
                         <button class="branch-btn" onclick="toggleBranchDropdown()">
@@ -576,6 +584,11 @@
                 autoSync: false
             },
             isOnline: navigator.onLine,
+            isAdminMode: false,
+            adminCredentials: {
+                username: 'admin1388',
+                password: '1388'
+            },
             pendingSyncData: [],
             lastDataHash: {}
         };
@@ -640,6 +653,102 @@
             state.darkMode = !state.darkMode;
             localStorage.setItem(DARK_MODE_KEY, state.darkMode);
             applyDarkMode();
+        }
+
+        // 관리자 로그인 모달 표시
+        function showAdminLogin() {
+            if (state.isAdminMode) {
+                // 이미 로그인된 경우 로그아웃
+                if (confirm('관리자 모드를 종료하시겠습니까?')) {
+                    logout();
+                }
+                return;
+            }
+
+            document.getElementById('modalContainer').innerHTML = `
+                <div class="modal">
+                    <div class="modal-content" style="max-width: 400px;">
+                        <h3 class="modal-title">🔐 관리자 로그인</h3>
+                        <div class="form-group">
+                            <label class="form-label">아이디</label>
+                            <input type="text" class="form-input" id="adminUsername" value="admin1388" autocomplete="username">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">비밀번호</label>
+                            <input type="password" class="form-input" id="adminPassword" placeholder="비밀번호" autocomplete="current-password" onkeypress="if(event.key==='Enter') attemptLogin()">
+                        </div>
+                        <div style="display: flex; gap: 8px; margin-top: 16px;">
+                            <button class="btn btn-primary" style="flex: 1;" onclick="attemptLogin()">로그인</button>
+                            <button class="btn btn-secondary" style="flex: 1;" onclick="closeModal()">취소</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 로그인 시도
+        function attemptLogin() {
+            const username = document.getElementById('adminUsername').value.trim();
+            const password = document.getElementById('adminPassword').value;
+
+            if (username === state.adminCredentials.username && password === state.adminCredentials.password) {
+                state.isAdminMode = true;
+                localStorage.setItem('djyf_admin_session', 'true');
+                updateAdminUI();
+                closeModal();
+                showAlert('관리자 모드로 전환되었습니다.', 'success');
+                renderTabs();
+                renderCurrentTab();
+            } else {
+                showAlert('아이디 또는 비밀번호가 올바르지 않습니다.', 'error');
+            }
+        }
+
+        // 로그아웃
+        function logout() {
+            state.isAdminMode = false;
+            localStorage.removeItem('djyf_admin_session');
+            updateAdminUI();
+            showAlert('회원 모드로 전환되었습니다.', 'success');
+            renderTabs();
+            renderCurrentTab();
+        }
+
+        // 관리자 UI 업데이트
+        function updateAdminUI() {
+            const btn = document.getElementById('adminLoginBtn');
+            const icon = document.getElementById('adminIcon');
+
+            if (state.isAdminMode) {
+                btn.classList.add('logged-in');
+                btn.title = '관리자 로그아웃';
+                icon.textContent = '🔒';
+            } else {
+                btn.classList.remove('logged-in');
+                btn.title = '관리자 로그인';
+                icon.textContent = '🔓';
+            }
+        }
+
+        // 탭 렌더링 (모드에 따라 표시/숨김)
+        function renderTabs() {
+            const tabsContainer = document.querySelector('.tabs-flex');
+            const allTabs = [
+                { name: 'dashboard', label: '대시보드', showInMember: true },
+                { name: 'reservation', label: '이용 신청', showInMember: true },
+                { name: 'member', label: '회원 관리', showInMember: true },
+                { name: 'dailylog', label: '일지', showInMember: false },
+                { name: 'statistics', label: '통계', showInMember: false },
+                { name: 'history', label: '이용 기록', showInMember: false },
+                { name: 'settings', label: '설정', showInMember: false },
+                { name: 'backup', label: '백업', showInMember: false }
+            ];
+
+            tabsContainer.innerHTML = allTabs
+                .filter(tab => state.isAdminMode || tab.showInMember)
+                .map((tab, idx) => `
+                    <button class="tab ${idx === 0 ? 'active' : ''}" onclick="showTab('${tab.name}')">${tab.label}</button>
+                `).join('');
         }
 
         // 동기화 설정 로드
@@ -1160,6 +1269,15 @@
             loadBackupConfig();
             loadDarkMode();
             loadSyncConfig();
+
+            // 관리자 세션 복원
+            const savedSession = localStorage.getItem('djyf_admin_session');
+            if (savedSession === 'true') {
+                state.isAdminMode = true;
+            }
+            updateAdminUI();
+            renderTabs();
+
             setupNetworkMonitoring();
             setupAutoBackup();
             updateNetworkStatus();
@@ -1500,39 +1618,65 @@
                             statusText = '시간초과!';
                             const overMin = Math.abs(diffMin);
                             const overSec = Math.abs(diffSec);
-                            details = `
-                                <div class="facility-details">
-                                    <div><span>👤</span> ${reservation.memberName} (${reservation.memberNumber})</div>
-                                    <div><span>⏱️</span> 이용시간: ${usedHours > 0 ? usedHours + '시간 ' : ''}${usedMin}분 ${usedSec}초</div>
-                                    <div class="facility-time" style="color: #dc2626; font-weight: bold;">⚠️ +${overMin}분 ${overSec}초 초과중</div>
-                                </div>
-                                <button class="btn btn-danger btn-full" onclick="event.stopPropagation(); checkOut('${reservation.id}')">퇴실 처리</button>
-                            `;
+                            if (state.isAdminMode) {
+                                details = `
+                                    <div class="facility-details">
+                                        <div><span>👤</span> ${reservation.memberName} (${reservation.memberNumber})</div>
+                                        <div><span>⏱️</span> 이용시간: ${usedHours > 0 ? usedHours + '시간 ' : ''}${usedMin}분 ${usedSec}초</div>
+                                        <div class="facility-time" style="color: #dc2626; font-weight: bold;">⚠️ +${overMin}분 ${overSec}초 초과중</div>
+                                    </div>
+                                    <button class="btn btn-danger btn-full" onclick="event.stopPropagation(); checkOut('${reservation.id}')">퇴실 처리</button>
+                                `;
+                            } else {
+                                details = `
+                                    <div style="text-align: center; padding: 10px 0; color: #dc2626; font-size: 13px;">
+                                        <div>⚠️ 이용중 (시간초과)</div>
+                                    </div>
+                                `;
+                            }
                         } else {
                             statusClass = 'using';
                             statusText = '이용중';
-                            details = `
-                                <div class="facility-details">
-                                    <div><span>👤</span> ${reservation.memberName} (${reservation.memberNumber})</div>
-                                    <div><span>⏱️</span> 이용시간: ${usedHours > 0 ? usedHours + '시간 ' : ''}${usedMin}분 ${usedSec}초</div>
-                                    <div class="facility-time">남은시간: ${diffMin}분 ${diffSec}초</div>
-                                </div>
-                                <button class="btn btn-danger btn-full" onclick="event.stopPropagation(); checkOut('${reservation.id}')">퇴실 처리</button>
-                            `;
+                            if (state.isAdminMode) {
+                                details = `
+                                    <div class="facility-details">
+                                        <div><span>👤</span> ${reservation.memberName} (${reservation.memberNumber})</div>
+                                        <div><span>⏱️</span> 이용시간: ${usedHours > 0 ? usedHours + '시간 ' : ''}${usedMin}분 ${usedSec}초</div>
+                                        <div class="facility-time">남은시간: ${diffMin}분 ${diffSec}초</div>
+                                    </div>
+                                    <button class="btn btn-danger btn-full" onclick="event.stopPropagation(); checkOut('${reservation.id}')">퇴실 처리</button>
+                                `;
+                            } else {
+                                details = `
+                                    <div style="text-align: center; padding: 10px 0; color: #6b7280; font-size: 13px;">
+                                        <div>이용중</div>
+                                        <div class="facility-time">남은시간: ${diffMin}분 ${diffSec}초</div>
+                                    </div>
+                                `;
+                            }
                         }
                     } else {
                         statusClass = 'reserved';
                         statusText = '예약됨';
-                        details = `
-                            <div class="facility-details">
-                                <div><span>👤</span> ${reservation.memberName} (${reservation.memberNumber})</div>
-                                <div><span>🕐</span> ${new Date(reservation.startTime).toLocaleTimeString('ko-KR')}</div>
-                            </div>
-                            <button class="btn btn-secondary btn-full" onclick="event.stopPropagation(); cancelReservation('${reservation.id}')">예약 취소</button>
-                        `;
+                        if (state.isAdminMode) {
+                            details = `
+                                <div class="facility-details">
+                                    <div><span>👤</span> ${reservation.memberName} (${reservation.memberNumber})</div>
+                                    <div><span>🕐</span> ${new Date(reservation.startTime).toLocaleTimeString('ko-KR')}</div>
+                                </div>
+                                <button class="btn btn-secondary btn-full" onclick="event.stopPropagation(); cancelReservation('${reservation.id}')">예약 취소</button>
+                            `;
+                        } else {
+                            details = `
+                                <div style="text-align: center; padding: 10px 0; color: #6b7280; font-size: 13px;">
+                                    <div>예약됨</div>
+                                    <div><span>🕐</span> ${new Date(reservation.startTime).toLocaleTimeString('ko-KR')}</div>
+                                </div>
+                            `;
+                        }
                     }
                 } else {
-                    details = '<div style="text-align: center; padding: 10px 0; color: #6b7280; font-size: 13px;">클릭하여 회원 배정</div>';
+                    details = '<div style="text-align: center; padding: 10px 0; color: #6b7280; font-size: 13px;">클릭하여 회원 등록</div>';
                 }
 
                 const bgStyle = facility.backgroundColor ? `background: ${facility.backgroundColor};` : '';
@@ -1565,7 +1709,7 @@
             document.getElementById('modalContainer').innerHTML = `
                 <div class="modal">
                     <div class="modal-content" style="max-width: 600px;">
-                        <h3 class="modal-title">🏢 ${facility.name} - 현황</h3>
+                        <h3 class="modal-title">🏢 ${facility.name} - ${state.isAdminMode ? '현황' : '이용 등록'}</h3>
 
                         <!-- 시설 정보 -->
                         <div style="background: var(--bg-tertiary); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
@@ -1577,8 +1721,8 @@
                             </div>
                         </div>
 
-                        <!-- 현재 이용자 목록 -->
-                        ${currentUsers.length > 0 ? `
+                        <!-- 현재 이용자 목록 (관리자 모드에서만 표시) -->
+                        ${state.isAdminMode ? (currentUsers.length > 0 ? `
                             <div style="margin-bottom: 20px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                                     <h4 style="font-weight: 600; font-size: 16px; margin: 0;">👥 현재 이용자</h4>
@@ -1620,7 +1764,7 @@
                             <div style="background: var(--bg-secondary); padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px; color: var(--text-secondary);">
                                 현재 이용 중인 회원이 없습니다.
                             </div>
-                        `}
+                        `) : ''}
 
                         <!-- 추가 입력 섹션 -->
                         ${canAddMore ? `
@@ -1933,46 +2077,54 @@
                         </div>
                     </div>
                 </div>
-                <div class="panel">
-                    <div class="flex-between">
-                        <h4 class="panel-title">등록된 회원 (${data.members.length}명)</h4>
-                        <div class="btn-group">
-                            <button class="btn btn-success" onclick="downloadMembersExcel()">📥 엑셀 다운로드</button>
-                            <button class="btn btn-primary" onclick="triggerMemberExcelImport()">📤 엑셀 업로드</button>
+                ${state.isAdminMode ? `
+                    <div class="panel">
+                        <div class="flex-between">
+                            <h4 class="panel-title">등록된 회원 (${data.members.length}명)</h4>
+                            <div class="btn-group">
+                                <button class="btn btn-success" onclick="downloadMembersExcel()">📥 엑셀 다운로드</button>
+                                <button class="btn btn-primary" onclick="triggerMemberExcelImport()">📤 엑셀 업로드</button>
+                            </div>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>회원번호</th>
+                                        <th>성명</th>
+                                        <th>성별</th>
+                                        <th>생년월일</th>
+                                        <th>연락처</th>
+                                        <th>거주지역</th>
+                                        <th>가입일</th>
+                                        <th>관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.members.length === 0 ? '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #6b7280;">등록된 회원이 없습니다.</td></tr>' :
+                                    data.members.map(m => `
+                                        <tr>
+                                            <td>${m.memberNumber}</td>
+                                            <td>${m.name}</td>
+                                            <td>${m.gender || '-'}</td>
+                                            <td>${m.birthDate}</td>
+                                            <td>${m.phone}</td>
+                                            <td>${m.region || '-'}</td>
+                                            <td>${new Date(m.registeredAt).toLocaleDateString('ko-KR')}</td>
+                                            <td><button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px;" onclick="editMember('${m.id}')">수정</button></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                    <div style="overflow-x: auto;">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>회원번호</th>
-                                    <th>성명</th>
-                                    <th>성별</th>
-                                    <th>생년월일</th>
-                                    <th>연락처</th>
-                                    <th>거주지역</th>
-                                    <th>가입일</th>
-                                    <th>관리</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${data.members.length === 0 ? '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #6b7280;">등록된 회원이 없습니다.</td></tr>' : 
-                                data.members.map(m => `
-                                    <tr>
-                                        <td>${m.memberNumber}</td>
-                                        <td>${m.name}</td>
-                                        <td>${m.gender || '-'}</td>
-                                        <td>${m.birthDate}</td>
-                                        <td>${m.phone}</td>
-                                        <td>${m.region || '-'}</td>
-                                        <td>${new Date(m.registeredAt).toLocaleDateString('ko-KR')}</td>
-                                        <td><button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px;" onclick="editMember('${m.id}')">수정</button></td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
+                ` : `
+                    <div class="panel" style="text-align: center; padding: 40px;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">🔒</div>
+                        <h4 style="color: var(--text-secondary); margin-bottom: 8px;">등록된 회원 정보는 관리자만 확인할 수 있습니다</h4>
+                        <p style="color: var(--text-tertiary); font-size: 14px;">개인정보 보호를 위해 회원 목록은 관리자 모드에서만 조회 가능합니다.</p>
                     </div>
-                </div>
+                `}
             `;
         }
 
@@ -2911,38 +3063,6 @@
                     </div>
 
                     <div class="stats-section">
-                        <h4 style="font-weight: 600; margin-bottom: 16px;">시설별 이용 현황</h4>
-                        ${data.facilities.map((facility, idx) => `
-                            <div style="background: var(--bg-tertiary); padding: 20px; border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border-primary);">
-                                <h5 style="font-weight: 600; font-size: 16px; margin-bottom: 16px; color: var(--text-primary);">
-                                    📍 ${facility.name}
-                                </h5>
-                                
-                                <div style="margin-bottom: 20px;">
-                                    <div style="font-weight: 600; margin-bottom: 8px;">연령별 이용 분포</div>
-                                    <div class="chart-container" style="height: 250px;">
-                                        <canvas id="facilityAgeChart-${facility.id}"></canvas>
-                                    </div>
-                                </div>
-
-                                <div style="margin-bottom: 20px;">
-                                    <div style="font-weight: 600; margin-bottom: 8px;">성별 이용 분포</div>
-                                    <div class="chart-container" style="height: 250px;">
-                                        <canvas id="facilityGenderChart-${facility.id}"></canvas>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <div style="font-weight: 600; margin-bottom: 8px;">지역별 이용 분포</div>
-                                    <div class="chart-container" style="height: 250px;">
-                                        <canvas id="facilityRegionChart-${facility.id}"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-
-                    <div class="stats-section">
                         <div class="flex-between">
                             <h4 style="font-weight: 600;">연령별 분포</h4>
                             <div class="radio-group">
@@ -3000,6 +3120,38 @@
                         <div class="chart-container">
                             <canvas id="regionChart"></canvas>
                         </div>
+                    </div>
+
+                    <div class="stats-section">
+                        <h4 style="font-weight: 600; margin-bottom: 16px;">시설별 이용 현황</h4>
+                        ${data.facilities.map((facility, idx) => `
+                            <div style="background: var(--bg-tertiary); padding: 20px; border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border-primary);">
+                                <h5 style="font-weight: 600; font-size: 16px; margin-bottom: 16px; color: var(--text-primary);">
+                                    📍 ${facility.name}
+                                </h5>
+
+                                <div style="margin-bottom: 20px;">
+                                    <div style="font-weight: 600; margin-bottom: 8px;">연령별 이용 분포</div>
+                                    <div class="chart-container" style="height: 250px;">
+                                        <canvas id="facilityAgeChart-${facility.id}"></canvas>
+                                    </div>
+                                </div>
+
+                                <div style="margin-bottom: 20px;">
+                                    <div style="font-weight: 600; margin-bottom: 8px;">성별 이용 분포</div>
+                                    <div class="chart-container" style="height: 250px;">
+                                        <canvas id="facilityGenderChart-${facility.id}"></canvas>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div style="font-weight: 600; margin-bottom: 8px;">지역별 이용 분포</div>
+                                    <div class="chart-container" style="height: 250px;">
+                                        <canvas id="facilityRegionChart-${facility.id}"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
             `;
