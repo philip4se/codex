@@ -528,6 +528,7 @@
 
         <div id="dashboard" class="tab-content"></div>
         <div id="reservation" class="tab-content hidden"></div>
+        <div id="beverage" class="tab-content hidden"></div>
         <div id="member" class="tab-content hidden"></div>
         <div id="settings" class="tab-content hidden"></div>
         <div id="dailylog" class="tab-content hidden"></div>
@@ -563,6 +564,8 @@
             currentTime: new Date(),
             editingMemberId: null,
             alerts: [],
+            currentSettingsTab: 'facility',
+            currentStatisticsTab: 'facility',
             editingFacility: {},
             regions: ['고대면', '당진1동', '당진2동', '당진3동', '대호지면', '면천면', '석문면', '송산면', '송악읍', '석문면', '신평면', '우강면', '정미면', '합덕읍', '기타'],
             darkMode: false,
@@ -736,6 +739,7 @@
             const allTabs = [
                 { name: 'dashboard', label: '대시보드', showInMember: true },
                 { name: 'reservation', label: '이용 신청', showInMember: true },
+                { name: 'beverage', label: '음료 주문', showInMember: true },
                 { name: 'member', label: '회원 관리', showInMember: true },
                 { name: 'dailylog', label: '일지', showInMember: false },
                 { name: 'statistics', label: '통계', showInMember: false },
@@ -1314,12 +1318,66 @@
                         ],
                         members: [...defaultMembers],
                         reservations: [],
-                        dailyLogs: []
+                        dailyLogs: [],
+                        beverages: [
+                            {
+                                id: 'BEV-001',
+                                name: '아메리카노',
+                                description: '진한 에스프레소에 물을 더한 기본 커피',
+                                ingredients: '에스프레소 샷 2개, 물 150ml',
+                                recipe: '1. 에스프레소 2샷을 추출합니다\n2. 컵에 뜨거운 물 150ml를 붓습니다\n3. 에스프레소를 천천히 부어 완성합니다'
+                            },
+                            {
+                                id: 'BEV-002',
+                                name: '카페라떼',
+                                description: '부드러운 우유가 들어간 커피',
+                                ingredients: '에스프레소 샷 2개, 우유 200ml',
+                                recipe: '1. 에스프레소 2샷을 추출합니다\n2. 우유를 스팀하여 거품을 만듭니다\n3. 컵에 에스프레소를 넣고 우유를 부어 완성합니다'
+                            },
+                            {
+                                id: 'BEV-003',
+                                name: '오렌지 주스',
+                                description: '상큼한 오렌지 착즙 주스',
+                                ingredients: '오렌지 3개, 얼음',
+                                recipe: '1. 오렌지를 반으로 자릅니다\n2. 착즙기로 오렌지를 짭니다\n3. 컵에 얼음을 넣고 주스를 부어 완성합니다'
+                            }
+                        ],
+                        beverageOrders: []
                     };
                 } else {
                     // branchData가 존재하지만 members가 비어있으면 기본 회원 추가
                     if (!state.branchData[branch.id].members || state.branchData[branch.id].members.length === 0) {
                         state.branchData[branch.id].members = [...defaultMembers];
+                    }
+                    // beverages가 없으면 기본 음료 추가
+                    if (!state.branchData[branch.id].beverages) {
+                        state.branchData[branch.id].beverages = [
+                            {
+                                id: 'BEV-001',
+                                name: '아메리카노',
+                                description: '진한 에스프레소에 물을 더한 기본 커피',
+                                ingredients: '에스프레소 샷 2개, 물 150ml',
+                                recipe: '1. 에스프레소 2샷을 추출합니다\n2. 컵에 뜨거운 물 150ml를 붓습니다\n3. 에스프레소를 천천히 부어 완성합니다'
+                            },
+                            {
+                                id: 'BEV-002',
+                                name: '카페라떼',
+                                description: '부드러운 우유가 들어간 커피',
+                                ingredients: '에스프레소 샷 2개, 우유 200ml',
+                                recipe: '1. 에스프레소 2샷을 추출합니다\n2. 우유를 스팀하여 거품을 만듭니다\n3. 컵에 에스프레소를 넣고 우유를 부어 완성합니다'
+                            },
+                            {
+                                id: 'BEV-003',
+                                name: '오렌지 주스',
+                                description: '상큼한 오렌지 착즙 주스',
+                                ingredients: '오렌지 3개, 얼음',
+                                recipe: '1. 오렌지를 반으로 자릅니다\n2. 착즙기로 오렌지를 짭니다\n3. 컵에 얼음을 넣고 주스를 부어 완성합니다'
+                            }
+                        ];
+                    }
+                    // beverageOrders가 없으면 빈 배열 추가
+                    if (!state.branchData[branch.id].beverageOrders) {
+                        state.branchData[branch.id].beverageOrders = [];
                     }
                 }
             });
@@ -1540,6 +1598,7 @@
             switch(tabName) {
                 case 'dashboard': renderDashboard(); break;
                 case 'reservation': renderReservation(); break;
+                case 'beverage': renderBeverage(); break;
                 case 'member': renderMember(); break;
                 case 'settings': renderSettings(); break;
                 case 'dailylog': renderDailyLog(); break;
@@ -2021,6 +2080,231 @@
                 showAlert('예약이 취소되었습니다.');
                 renderFacilityStatus();
             }
+        }
+
+        // 음료 주문 탭 렌더링
+        function renderBeverage() {
+            const data = state.branchData[state.selectedBranch];
+            const today = new Date().toDateString();
+
+            document.getElementById('beverage').innerHTML = `
+                <div class="panel">
+                    <h3 class="panel-title">☕ 음료 주문</h3>
+                    <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 20px;">
+                        음료를 선택하여 상세 정보를 확인하고 주문할 수 있습니다. (1일 1잔 제한)
+                    </p>
+                    <div class="beverages-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                        ${data.beverages.map(beverage => `
+                            <div class="beverage-card" style="background: var(--bg-secondary); border: 2px solid var(--border-primary); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.3s; position: relative;">
+                                <div onclick="showBeverageDetail('${beverage.id}')">
+                                    <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">
+                                        ${beverage.name}
+                                    </h4>
+                                    <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin-bottom: 16px;">
+                                        ${beverage.description}
+                                    </p>
+                                </div>
+                                <button class="btn btn-primary btn-full" onclick="event.stopPropagation(); showBeverageOrderModal('${beverage.id}')">
+                                    주문하기
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // 음료 상세 정보 모달
+        function showBeverageDetail(beverageId) {
+            const data = state.branchData[state.selectedBranch];
+            const beverage = data.beverages.find(b => b.id === beverageId);
+            if (!beverage) return;
+
+            document.getElementById('modalContainer').innerHTML = `
+                <div class="modal">
+                    <div class="modal-content" style="max-width: 500px;">
+                        <h3 class="modal-title">☕ ${beverage.name}</h3>
+
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="font-size: 15px; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">설명</h4>
+                            <p style="color: var(--text-secondary); line-height: 1.6; font-size: 14px;">
+                                ${beverage.description}
+                            </p>
+                        </div>
+
+                        ${state.isAdminMode ? `
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="font-size: 15px; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">필요 재료</h4>
+                                <p style="color: var(--text-secondary); line-height: 1.6; font-size: 14px;">
+                                    ${beverage.ingredients}
+                                </p>
+                            </div>
+
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="font-size: 15px; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">만드는 법</h4>
+                                <p style="color: var(--text-secondary); line-height: 1.6; font-size: 14px; white-space: pre-line;">
+                                    ${beverage.recipe}
+                                </p>
+                            </div>
+                        ` : ''}
+
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-primary" style="flex: 1;" onclick="closeModal(); showBeverageOrderModal('${beverageId}')">주문하기</button>
+                            <button class="btn btn-secondary" onclick="closeModal()">닫기</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 음료 주문 모달 (회원 검색)
+        function showBeverageOrderModal(beverageId) {
+            const data = state.branchData[state.selectedBranch];
+            const beverage = data.beverages.find(b => b.id === beverageId);
+            if (!beverage) return;
+
+            document.getElementById('modalContainer').innerHTML = `
+                <div class="modal">
+                    <div class="modal-content" style="max-width: 500px;">
+                        <h3 class="modal-title">☕ ${beverage.name} 주문</h3>
+
+                        <div style="background: var(--bg-tertiary); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                            <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">
+                                <strong>⚠️ 주문 제한:</strong> 1일 1잔만 주문 가능합니다.
+                            </p>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">회원 검색</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="bevSearchType" value="name" checked> 이름
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="bevSearchType" value="birth"> 생년월일
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="bevSearchType" value="phone"> 연락처
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="bevSearchType" value="number"> 회원번호
+                                </label>
+                            </div>
+                            <div style="display: flex; gap: 8px; margin-top: 8px;">
+                                <input type="text" class="form-input" id="bevSearchValue" placeholder="검색어 입력" onkeypress="if(event.key==='Enter') searchBeverageMember('${beverageId}')">
+                                <button class="btn btn-primary" onclick="searchBeverageMember('${beverageId}')">검색</button>
+                            </div>
+                        </div>
+
+                        <div id="bevSearchResults"></div>
+
+                        <div style="margin-top: 16px;">
+                            <button class="btn btn-secondary btn-full" onclick="closeModal()">취소</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 음료 주문용 회원 검색
+        function searchBeverageMember(beverageId) {
+            const data = state.branchData[state.selectedBranch];
+            const searchValue = document.getElementById('bevSearchValue').value.trim();
+            const searchType = document.querySelector('input[name="bevSearchType"]:checked').value;
+
+            if (!searchValue) {
+                showAlert('검색어를 입력해주세요.', 'error');
+                return;
+            }
+
+            let results = [];
+            if (searchType === 'name') {
+                results = data.members.filter(m => m.name.includes(searchValue));
+            } else if (searchType === 'birth') {
+                results = data.members.filter(m => m.birthDate.replace(/-/g, '').includes(searchValue.replace(/-/g, '')));
+            } else if (searchType === 'phone') {
+                results = data.members.filter(m => m.phone.includes(searchValue));
+            } else if (searchType === 'number') {
+                results = data.members.filter(m => m.memberNumber.includes(searchValue));
+            }
+
+            const container = document.getElementById('bevSearchResults');
+            if (results.length === 0) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-secondary);">일치하는 회원이 없습니다.</div>';
+                return;
+            }
+
+            const today = new Date().toDateString();
+
+            container.innerHTML = `
+                <div style="margin-top: 16px;">
+                    <label class="form-label">검색 결과 (${results.length}명)</label>
+                    ${results.map(m => {
+                        const todayOrders = data.beverageOrders.filter(order =>
+                            order.memberId === m.id &&
+                            new Date(order.orderTime).toDateString() === today
+                        );
+                        const hasOrderedToday = todayOrders.length > 0;
+
+                        return `
+                            <div class="search-result ${hasOrderedToday ? 'disabled' : ''}"
+                                 onclick="${hasOrderedToday ? '' : `orderBeverage('${beverageId}', '${m.id}')`}"
+                                 style="${hasOrderedToday ? 'opacity: 0.5; cursor: not-allowed;' : 'cursor: pointer;'}">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <div style="font-weight: 600; font-size: 15px;">${m.name} (${m.memberNumber})</div>
+                                        <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 4px;">${m.phone} | ${m.birthDate}</div>
+                                    </div>
+                                    ${hasOrderedToday ? `
+                                        <div style="background: var(--accent-red); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                            오늘 주문 완료
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        // 음료 주문 처리
+        function orderBeverage(beverageId, memberId) {
+            const data = state.branchData[state.selectedBranch];
+            const beverage = data.beverages.find(b => b.id === beverageId);
+            const member = data.members.find(m => m.id === memberId);
+
+            if (!beverage || !member) return;
+
+            // 1일 1잔 제한 체크
+            const today = new Date().toDateString();
+            const todayOrders = data.beverageOrders.filter(order =>
+                order.memberId === memberId &&
+                new Date(order.orderTime).toDateString() === today
+            );
+
+            if (todayOrders.length > 0) {
+                showAlert('이미 오늘 음료를 주문하셨습니다. (1일 1잔 제한)', 'error');
+                return;
+            }
+
+            // 주문 생성
+            const order = {
+                id: 'BO-' + Date.now(),
+                beverageId: beverage.id,
+                beverageName: beverage.name,
+                memberId: member.id,
+                memberName: member.name,
+                memberNumber: member.memberNumber,
+                orderTime: new Date().toISOString(),
+                status: 'completed'
+            };
+
+            data.beverageOrders.push(order);
+            saveData();
+            closeModal();
+            showAlert(`${member.name}님의 ${beverage.name} 주문이 완료되었습니다.`, 'success');
+            renderBeverage();
         }
 
         function renderMember() {
@@ -2693,6 +2977,31 @@
 
             document.getElementById('settings').innerHTML = `
                 <div class="panel">
+                    <div style="display: flex; gap: 12px; margin-bottom: 20px; border-bottom: 2px solid var(--border-primary); padding-bottom: 12px;">
+                        <button class="btn ${state.currentSettingsTab === 'facility' ? 'btn-primary' : 'btn-secondary'}"
+                                onclick="switchSettingsTab('facility')" style="flex: 1;">
+                            🏢 시설 등록
+                        </button>
+                        <button class="btn ${state.currentSettingsTab === 'beverage' ? 'btn-primary' : 'btn-secondary'}"
+                                onclick="switchSettingsTab('beverage')" style="flex: 1;">
+                            ☕ 음료 등록
+                        </button>
+                    </div>
+
+                    ${state.currentSettingsTab === 'facility' ? renderFacilitySettings() : renderBeverageSettings()}
+                </div>
+            `;
+        }
+
+        function switchSettingsTab(tab) {
+            state.currentSettingsTab = tab;
+            renderSettings();
+        }
+
+        function renderFacilitySettings() {
+            const data = state.branchData[state.selectedBranch];
+            return `
+                <div>
                     <h3 class="panel-title"><span>⚙️</span> 시설 설정</h3>
                     
                     <div class="setting-item" style="background: var(--bg-tertiary); border-color: var(--accent-blue);">
@@ -2795,6 +3104,177 @@
                     </div>
                 </div>
             `;
+        }
+
+        function renderBeverageSettings() {
+            const data = state.branchData[state.selectedBranch];
+            return `
+                <div>
+                    <h3 class="panel-title"><span>☕</span> 음료 설정</h3>
+
+                    <div class="setting-item" style="background: var(--bg-tertiary); border-color: var(--accent-blue);">
+                        <div class="setting-name">➕ 새 음료 추가</div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label class="form-label">음료 이름</label>
+                            <input type="text" class="form-input" id="newBeverageName" placeholder="예: 바닐라 라떼">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label class="form-label">음료 설명</label>
+                            <textarea class="form-input" id="newBeverageDescription" placeholder="음료에 대한 간단한 설명" rows="2"></textarea>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label class="form-label">필요 재료</label>
+                            <textarea class="form-input" id="newBeverageIngredients" placeholder="예: 에스프레소 샷 2개, 우유 200ml, 바닐라 시럽 15ml" rows="2"></textarea>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label class="form-label">만드는 법</label>
+                            <textarea class="form-input" id="newBeverageRecipe" placeholder="만드는 방법을 순서대로 입력하세요" rows="4"></textarea>
+                        </div>
+                        <button class="btn btn-primary" onclick="addNewBeverage()">음료 추가</button>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 16px;">
+                        ${data.beverages.map(b => `
+                            <div class="setting-item" id="beverage-${b.id}">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                    <div class="setting-name">${b.name}</div>
+                                    <div style="display: flex; gap: 4px;">
+                                        <button class="btn btn-secondary" style="padding: 4px 12px; font-size: 12px;" onclick="toggleEditBeverage('${b.id}')">수정</button>
+                                        <button class="btn btn-danger" style="padding: 4px 12px; font-size: 12px;" onclick="deleteBeverage('${b.id}')">삭제</button>
+                                    </div>
+                                </div>
+
+                                <div id="bev-view-${b.id}">
+                                    <div style="margin-bottom: 12px;">
+                                        <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px; color: var(--text-primary);">설명</div>
+                                        <div style="font-size: 13px; color: var(--text-secondary);">${b.description}</div>
+                                    </div>
+                                    <div style="margin-bottom: 12px;">
+                                        <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px; color: var(--text-primary);">필요 재료</div>
+                                        <div style="font-size: 13px; color: var(--text-secondary);">${b.ingredients}</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px; color: var(--text-primary);">만드는 법</div>
+                                        <div style="font-size: 13px; color: var(--text-secondary); white-space: pre-line;">${b.recipe}</div>
+                                    </div>
+                                </div>
+
+                                <div id="bev-edit-${b.id}" class="hidden">
+                                    <div class="form-group" style="margin-bottom: 12px;">
+                                        <label class="form-label">음료 이름</label>
+                                        <input type="text" class="form-input" id="editBevName-${b.id}" value="${b.name}">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 12px;">
+                                        <label class="form-label">음료 설명</label>
+                                        <textarea class="form-input" id="editBevDescription-${b.id}" rows="2">${b.description}</textarea>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 12px;">
+                                        <label class="form-label">필요 재료</label>
+                                        <textarea class="form-input" id="editBevIngredients-${b.id}" rows="2">${b.ingredients}</textarea>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 12px;">
+                                        <label class="form-label">만드는 법</label>
+                                        <textarea class="form-input" id="editBevRecipe-${b.id}" rows="4">${b.recipe}</textarea>
+                                    </div>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button class="btn btn-primary" onclick="saveBeverageEdit('${b.id}')">저장</button>
+                                        <button class="btn btn-secondary" onclick="toggleEditBeverage('${b.id}')">취소</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // 새 음료 추가
+        function addNewBeverage() {
+            const name = document.getElementById('newBeverageName').value.trim();
+            const description = document.getElementById('newBeverageDescription').value.trim();
+            const ingredients = document.getElementById('newBeverageIngredients').value.trim();
+            const recipe = document.getElementById('newBeverageRecipe').value.trim();
+
+            if (!name || !description || !ingredients || !recipe) {
+                showAlert('모든 필드를 입력해주세요.', 'error');
+                return;
+            }
+
+            const data = state.branchData[state.selectedBranch];
+            const newBeverage = {
+                id: 'BEV-' + Date.now(),
+                name,
+                description,
+                ingredients,
+                recipe
+            };
+
+            data.beverages.push(newBeverage);
+            saveData();
+            showAlert('음료가 추가되었습니다.', 'success');
+            renderSettings();
+        }
+
+        // 음료 수정 토글
+        function toggleEditBeverage(beverageId) {
+            const viewEl = document.getElementById(`bev-view-${beverageId}`);
+            const editEl = document.getElementById(`bev-edit-${beverageId}`);
+
+            viewEl.classList.toggle('hidden');
+            editEl.classList.toggle('hidden');
+        }
+
+        // 음료 수정 저장
+        function saveBeverageEdit(beverageId) {
+            const data = state.branchData[state.selectedBranch];
+            const beverage = data.beverages.find(b => b.id === beverageId);
+
+            if (!beverage) return;
+
+            const name = document.getElementById(`editBevName-${beverageId}`).value.trim();
+            const description = document.getElementById(`editBevDescription-${beverageId}`).value.trim();
+            const ingredients = document.getElementById(`editBevIngredients-${beverageId}`).value.trim();
+            const recipe = document.getElementById(`editBevRecipe-${beverageId}`).value.trim();
+
+            if (!name || !description || !ingredients || !recipe) {
+                showAlert('모든 필드를 입력해주세요.', 'error');
+                return;
+            }
+
+            beverage.name = name;
+            beverage.description = description;
+            beverage.ingredients = ingredients;
+            beverage.recipe = recipe;
+
+            saveData();
+            showAlert('음료 정보가 수정되었습니다.', 'success');
+            renderSettings();
+        }
+
+        // 음료 삭제
+        function deleteBeverage(beverageId) {
+            const data = state.branchData[state.selectedBranch];
+            const beverage = data.beverages.find(b => b.id === beverageId);
+
+            if (!beverage) return;
+
+            // 주문 내역이 있는지 확인
+            const hasOrders = data.beverageOrders.some(order => order.beverageId === beverageId);
+
+            let confirmMsg = `"${beverage.name}"을(를) 삭제하시겠습니까?`;
+            if (hasOrders) {
+                confirmMsg += '\n\n주문 내역이 있지만 삭제하면 통계에서 제외됩니다.';
+            }
+
+            if (!confirm(confirmMsg)) return;
+
+            const index = data.beverages.findIndex(b => b.id === beverageId);
+            if (index > -1) {
+                data.beverages.splice(index, 1);
+                saveData();
+                showAlert('음료가 삭제되었습니다.', 'success');
+                renderSettings();
+            }
         }
 
         function toggleLocalBackup() {
@@ -3004,17 +3484,50 @@
         let currentChartInstances = {};
         
         function renderStatistics() {
+            document.getElementById('statistics').innerHTML = `
+                <div class="panel">
+                    <div style="display: flex; gap: 12px; margin-bottom: 20px; border-bottom: 2px solid var(--border-primary); padding-bottom: 12px;">
+                        <button class="btn ${state.currentStatisticsTab === 'facility' ? 'btn-primary' : 'btn-secondary'}"
+                                onclick="switchStatisticsTab('facility')" style="flex: 1;">
+                            🏢 시설 통계
+                        </button>
+                        <button class="btn ${state.currentStatisticsTab === 'beverage' ? 'btn-primary' : 'btn-secondary'}"
+                                onclick="switchStatisticsTab('beverage')" style="flex: 1;">
+                            ☕ 음료 통계
+                        </button>
+                    </div>
+
+                    ${state.currentStatisticsTab === 'facility' ? renderFacilityStatistics() : renderBeverageStatistics()}
+                </div>
+            `;
+
+            // 차트 업데이트
+            setTimeout(() => {
+                if (state.currentStatisticsTab === 'facility') {
+                    updateAllCharts();
+                } else {
+                    updateBeverageStatisticsCharts();
+                }
+            }, 100);
+        }
+
+        function switchStatisticsTab(tab) {
+            state.currentStatisticsTab = tab;
+            renderStatistics();
+        }
+
+        function renderFacilityStatistics() {
             const data = state.branchData[state.selectedBranch];
             const completed = data.reservations.filter(r => r.status === 'completed');
-            
+
             const currentYear = new Date().getFullYear();
             const years = [];
             for (let y = currentYear - 30; y <= currentYear; y++) {
                 years.push(y);
             }
-            
-            document.getElementById('statistics').innerHTML = `
-                <div class="panel">
+
+            return `
+                <div>
                     <div class="flex-between">
                         <h3 class="panel-title"><span>📊</span> 이용 통계</h3>
                         <button class="btn btn-success" onclick="downloadAllStatisticsExcel()">📥 통계 엑셀 다운로드</button>
@@ -3155,8 +3668,334 @@
                     </div>
                 </div>
             `;
-            
-            updateAllCharts();
+        }
+
+        function renderBeverageStatistics() {
+            const data = state.branchData[state.selectedBranch];
+            const allOrders = data.beverageOrders || [];
+
+            // 전체 음료 이용 건수
+            const totalOrders = allOrders.length;
+
+            // 음료별 주문 횟수
+            const beverageCounts = {};
+            data.beverages.forEach(bev => {
+                beverageCounts[bev.name] = allOrders.filter(o => o.beverageId === bev.id).length;
+            });
+
+            // 연령별 선호 음료 (청소년 기준: 10대, 20대 초반)
+            const agePreferences = {
+                '10-13세': {},
+                '14-16세': {},
+                '17-19세': {},
+                '20세 이상': {}
+            };
+
+            allOrders.forEach(order => {
+                const member = data.members.find(m => m.id === order.memberId);
+                if (!member) return;
+
+                const birthYear = parseInt(member.birthDate.split('-')[0]);
+                const currentYear = new Date().getFullYear();
+                const age = currentYear - birthYear;
+
+                let ageGroup;
+                if (age >= 10 && age <= 13) ageGroup = '10-13세';
+                else if (age >= 14 && age <= 16) ageGroup = '14-16세';
+                else if (age >= 17 && age <= 19) ageGroup = '17-19세';
+                else ageGroup = '20세 이상';
+
+                if (!agePreferences[ageGroup][order.beverageName]) {
+                    agePreferences[ageGroup][order.beverageName] = 0;
+                }
+                agePreferences[ageGroup][order.beverageName]++;
+            });
+
+            // 지역별 선호 음료
+            const regionPreferences = {};
+            state.regions.forEach(region => {
+                regionPreferences[region] = {};
+            });
+
+            allOrders.forEach(order => {
+                const member = data.members.find(m => m.id === order.memberId);
+                if (!member) return;
+
+                const region = member.region || '기타';
+                if (!regionPreferences[region]) regionPreferences[region] = {};
+
+                if (!regionPreferences[region][order.beverageName]) {
+                    regionPreferences[region][order.beverageName] = 0;
+                }
+                regionPreferences[region][order.beverageName]++;
+            });
+
+            return `
+                <div>
+                    <div class="flex-between">
+                        <h3 class="panel-title"><span>☕</span> 음료 통계</h3>
+                        <button class="btn btn-success" onclick="downloadBeverageStatisticsExcel()">📥 음료 통계 엑셀 다운로드</button>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card blue">
+                            <div class="stat-label">전체 음료 이용 건수</div>
+                            <div class="stat-value">${totalOrders}</div>
+                        </div>
+                        <div class="stat-card green">
+                            <div class="stat-label">등록된 음료</div>
+                            <div class="stat-value">${data.beverages.length}</div>
+                        </div>
+                        <div class="stat-card purple">
+                            <div class="stat-label">오늘 주문 건수</div>
+                            <div class="stat-value">${allOrders.filter(o => new Date(o.orderTime).toDateString() === new Date().toDateString()).length}</div>
+                        </div>
+                    </div>
+
+                    <!-- 음료별 선호도 -->
+                    <div class="stats-section">
+                        <h4 style="font-weight: 600; margin-bottom: 16px;">음료별 선호도 (인기 순위)</h4>
+                        <div class="chart-container">
+                            <canvas id="beveragePreferenceChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- 연령별 선호 음료 -->
+                    <div class="stats-section">
+                        <h4 style="font-weight: 600; margin-bottom: 16px;">연령별 선호 음료</h4>
+                        <div class="chart-container">
+                            <canvas id="agePreferenceChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- 지역별 선호 음료 -->
+                    <div class="stats-section">
+                        <h4 style="font-weight: 600; margin-bottom: 16px;">지역별 선호 음료 (상위 3개)</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+                            ${Object.keys(regionPreferences).filter(region => {
+                                const orders = Object.values(regionPreferences[region]).reduce((a, b) => a + b, 0);
+                                return orders > 0;
+                            }).map(region => {
+                                const beverages = regionPreferences[region];
+                                const sorted = Object.entries(beverages).sort((a, b) => b[1] - a[1]).slice(0, 3);
+                                const total = Object.values(beverages).reduce((a, b) => a + b, 0);
+
+                                return `
+                                    <div style="background: var(--bg-tertiary); padding: 16px; border-radius: 8px; border: 1px solid var(--border-primary);">
+                                        <h5 style="font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">📍 ${region} (${total}건)</h5>
+                                        ${sorted.length > 0 ? sorted.map((item, idx) => `
+                                            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-primary);">
+                                                <span style="color: var(--text-secondary);">${idx + 1}. ${item[0]}</span>
+                                                <span style="font-weight: 600; color: var(--text-primary);">${item[1]}잔</span>
+                                            </div>
+                                        `).join('') : '<div style="text-align: center; padding: 20px; color: var(--text-tertiary);">주문 내역 없음</div>'}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 시설 통계 렌더링 후 차트 업데이트
+        function updateFacilityStatisticsCharts() {
+            if (state.currentStatisticsTab === 'facility') {
+                updateAllCharts();
+            }
+        }
+
+        // 음료 통계 렌더링 후 차트 업데이트
+        function updateBeverageStatisticsCharts() {
+            if (state.currentStatisticsTab === 'beverage') {
+                updateBeveragePreferenceChart();
+                updateAgePreferenceChart();
+            }
+        }
+
+        // 음료별 선호도 차트
+        function updateBeveragePreferenceChart() {
+            const data = state.branchData[state.selectedBranch];
+            const allOrders = data.beverageOrders || [];
+            const canvas = document.getElementById('beveragePreferenceChart');
+            if (!canvas) return;
+
+            const beverageCounts = {};
+            data.beverages.forEach(bev => {
+                beverageCounts[bev.name] = allOrders.filter(o => o.beverageId === bev.id).length;
+            });
+
+            const sorted = Object.entries(beverageCounts).sort((a, b) => b[1] - a[1]);
+            const labels = sorted.map(item => item[0]);
+            const values = sorted.map(item => item[1]);
+
+            if (currentChartInstances['beveragePreference']) {
+                currentChartInstances['beveragePreference'].destroy();
+            }
+
+            const ctx = canvas.getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, 'rgba(139, 92, 246, 0.9)');
+            gradient.addColorStop(0.5, 'rgba(139, 92, 246, 0.7)');
+            gradient.addColorStop(1, 'rgba(139, 92, 246, 0.4)');
+
+            currentChartInstances['beveragePreference'] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '주문 횟수',
+                        data: values,
+                        backgroundColor: gradient,
+                        borderColor: 'rgba(139, 92, 246, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.parsed.y}잔`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                callback: (value) => value + '잔'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 연령별 선호 음료 차트
+        function updateAgePreferenceChart() {
+            const data = state.branchData[state.selectedBranch];
+            const allOrders = data.beverageOrders || [];
+            const canvas = document.getElementById('agePreferenceChart');
+            if (!canvas) return;
+
+            const ageGroups = ['10-13세', '14-16세', '17-19세', '20세 이상'];
+            const beverageNames = [...new Set(allOrders.map(o => o.beverageName))];
+
+            const datasets = beverageNames.map((bevName, idx) => {
+                const colors = [
+                    'rgba(59, 130, 246, 0.8)',
+                    'rgba(139, 92, 246, 0.8)',
+                    'rgba(16, 185, 129, 0.8)',
+                    'rgba(245, 158, 11, 0.8)',
+                    'rgba(239, 68, 68, 0.8)'
+                ];
+
+                const dataPoints = ageGroups.map(ageGroup => {
+                    return allOrders.filter(order => {
+                        const member = data.members.find(m => m.id === order.memberId);
+                        if (!member) return false;
+
+                        const birthYear = parseInt(member.birthDate.split('-')[0]);
+                        const currentYear = new Date().getFullYear();
+                        const age = currentYear - birthYear;
+
+                        let group;
+                        if (age >= 10 && age <= 13) group = '10-13세';
+                        else if (age >= 14 && age <= 16) group = '14-16세';
+                        else if (age >= 17 && age <= 19) group = '17-19세';
+                        else group = '20세 이상';
+
+                        return group === ageGroup && order.beverageName === bevName;
+                    }).length;
+                });
+
+                return {
+                    label: bevName,
+                    data: dataPoints,
+                    backgroundColor: colors[idx % colors.length],
+                    borderColor: colors[idx % colors.length].replace('0.8', '1'),
+                    borderWidth: 2,
+                    borderRadius: 6
+                };
+            });
+
+            if (currentChartInstances['agePreference']) {
+                currentChartInstances['agePreference'].destroy();
+            }
+
+            const ctx = canvas.getContext('2d');
+            currentChartInstances['agePreference'] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ageGroups,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.dataset.label}: ${context.parsed.y}잔`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                callback: (value) => value + '잔'
+                            }
+                        },
+                        x: {
+                            stacked: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // 음료 통계 엑셀 다운로드
+        function downloadBeverageStatisticsExcel() {
+            const data = state.branchData[state.selectedBranch];
+            const allOrders = data.beverageOrders || [];
+
+            const rows = [
+                ['음료 통계', '', '', ''],
+                ['음료명', '총 주문 수', '오늘 주문 수', ''],
+                ...data.beverages.map(bev => {
+                    const totalOrders = allOrders.filter(o => o.beverageId === bev.id).length;
+                    const todayOrders = allOrders.filter(o =>
+                        o.beverageId === bev.id &&
+                        new Date(o.orderTime).toDateString() === new Date().toDateString()
+                    ).length;
+                    return [bev.name, totalOrders, todayOrders, ''];
+                }),
+                ['', '', '', ''],
+                ['주문 내역', '', '', ''],
+                ['주문 시간', '음료명', '주문자', '회원번호'],
+                ...allOrders.map(order => [
+                    new Date(order.orderTime).toLocaleString('ko-KR'),
+                    order.beverageName,
+                    order.memberName,
+                    order.memberNumber
+                ])
+            ];
+
+            const csv = rows.map(row => row.join(',')).join('\n');
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `음료통계_${new Date().toLocaleDateString('ko-KR')}.csv`;
+            link.click();
+            showAlert('음료 통계가 다운로드되었습니다.', 'success');
         }
 
         function getFilteredMembers() {
