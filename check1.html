@@ -1389,10 +1389,8 @@
                             }
                         ];
                     }
-                    // beverageOrders가 없으면 빈 배열 추가
-                    if (!state.branchData[branch.id].beverageOrders) {
-                        state.branchData[branch.id].beverageOrders = [];
-                    }
+                    // beverageOrders 초기화 (기존 주문 내역 제거)
+                    state.branchData[branch.id].beverageOrders = [];
                 }
             });
             
@@ -2355,7 +2353,7 @@
                         const todayOrders = data.beverageOrders.filter(order =>
                             order.memberId === m.id &&
                             new Date(order.orderTime).toDateString() === today &&
-                            order.status === 'completed'
+                            (order.status === 'pending' || order.status === 'completed')
                         );
                         const hasOrderedToday = todayOrders.length > 0;
 
@@ -2389,12 +2387,12 @@
 
             if (!beverage || !member) return;
 
-            // 1일 1잔 제한 체크 (완료된 주문만)
+            // 1일 1잔 제한 체크 (대기 중이거나 완료된 주문 모두)
             const today = new Date().toDateString();
             const todayOrders = data.beverageOrders.filter(order =>
                 order.memberId === memberId &&
                 new Date(order.orderTime).toDateString() === today &&
-                order.status === 'completed'
+                (order.status === 'pending' || order.status === 'completed')
             );
 
             if (todayOrders.length > 0) {
