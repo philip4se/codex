@@ -1403,6 +1403,45 @@
             renderAlerts();
         }
 
+        // 자동으로 사라지는 알림 모달
+        let autoHideTimer = null;
+        function showNotification(message, type = 'success') {
+            // 기존 타이머 제거
+            if (autoHideTimer) {
+                clearTimeout(autoHideTimer);
+            }
+
+            const icon = type === 'success' ? '✓' : '⚠️';
+            const bgColor = type === 'success' ? 'var(--accent-green)' : 'var(--accent-red)';
+
+            document.getElementById('modalContainer').innerHTML = `
+                <div class="modal">
+                    <div class="modal-content" style="max-width: 400px; text-align: center;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">${icon}</div>
+                        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: var(--text-primary);">
+                            ${message}
+                        </h3>
+                        <button class="btn btn-primary btn-full" onclick="closeNotification()" style="background: ${bgColor}; border-color: ${bgColor};">
+                            확인
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // 3초 후 자동으로 닫기
+            autoHideTimer = setTimeout(() => {
+                closeNotification();
+            }, 3000);
+        }
+
+        function closeNotification() {
+            if (autoHideTimer) {
+                clearTimeout(autoHideTimer);
+                autoHideTimer = null;
+            }
+            closeModal();
+        }
+
         function renderAlerts() {
             const container = document.getElementById('alertList');
             if (state.alerts.length === 0) {
@@ -2085,33 +2124,92 @@
         // 음료 주문 탭 렌더링
         function renderBeverage() {
             const data = state.branchData[state.selectedBranch];
-            const today = new Date().toDateString();
 
-            document.getElementById('beverage').innerHTML = `
-                <div class="panel">
-                    <h3 class="panel-title">☕ 음료 주문</h3>
-                    <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 20px;">
-                        음료를 선택하여 상세 정보를 확인하고 주문할 수 있습니다. (1일 1잔 제한)
-                    </p>
-                    <div class="beverages-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
-                        ${data.beverages.map(beverage => `
-                            <div class="beverage-card" style="background: var(--bg-secondary); border: 2px solid var(--border-primary); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.3s; position: relative;">
-                                <div onclick="showBeverageDetail('${beverage.id}')">
-                                    <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">
-                                        ${beverage.name}
-                                    </h4>
-                                    <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin-bottom: 16px;">
-                                        ${beverage.description}
-                                    </p>
-                                </div>
-                                <button class="btn btn-primary btn-full" onclick="event.stopPropagation(); showBeverageOrderModal('${beverage.id}')">
-                                    주문하기
-                                </button>
+            if (state.isAdminMode) {
+                // 관리자 모드: 주문 대기 목록 표시
+                const pendingOrders = data.beverageOrders.filter(o => o.status === 'pending').sort((a, b) =>
+                    new Date(a.orderTime) - new Date(b.orderTime)
+                );
+
+                document.getElementById('beverage').innerHTML = `
+                    <div class="panel">
+                        <h3 class="panel-title">☕ 음료 주문 관리</h3>
+                        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 20px;">
+                            주문을 클릭하여 제조 방법을 확인하고, 완료 버튼을 눌러 제공을 완료하세요.
+                        </p>
+
+                        ${pendingOrders.length === 0 ? `
+                            <div style="text-align: center; padding: 60px 20px; background: var(--bg-tertiary); border-radius: 12px;">
+                                <div style="font-size: 48px; margin-bottom: 16px;">☕</div>
+                                <h4 style="color: var(--text-secondary); margin-bottom: 8px;">대기 중인 주문이 없습니다</h4>
+                                <p style="color: var(--text-tertiary); font-size: 14px;">새로운 주문이 들어오면 여기에 표시됩니다.</p>
                             </div>
-                        `).join('')}
+                        ` : `
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                ${pendingOrders.map((order, idx) => {
+                                    const orderTime = new Date(order.orderTime);
+                                    const elapsed = Math.floor((new Date() - orderTime) / 60000);
+
+                                    return `
+                                        <div class="beverage-order-item" onclick="showBeverageRecipe('${order.beverageId}')"
+                                             style="background: var(--bg-secondary); border: 2px solid var(--border-primary); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.3s; display: flex; justify-content: space-between; align-items: center;">
+                                            <div style="flex: 1;" onclick="event.stopPropagation(); showBeverageRecipe('${order.beverageId}')">
+                                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                                    <div style="background: var(--accent-blue); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px;">
+                                                        ${idx + 1}
+                                                    </div>
+                                                    <div>
+                                                        <h4 style="font-size: 18px; font-weight: 600; margin: 0; color: var(--text-primary);">
+                                                            ${order.beverageName}
+                                                        </h4>
+                                                        <p style="font-size: 14px; color: var(--text-secondary); margin: 4px 0 0 0;">
+                                                            주문자: ${order.memberName} (${order.memberNumber})
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div style="font-size: 13px; color: var(--text-tertiary);">
+                                                    ⏱️ ${elapsed}분 전 주문 · ${orderTime.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-success" onclick="event.stopPropagation(); completeBeverageOrder('${order.id}')"
+                                                    style="padding: 12px 24px; font-size: 15px; font-weight: 600; min-width: 100px;">
+                                                완료
+                                            </button>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        `}
                     </div>
-                </div>
-            `;
+                `;
+            } else {
+                // 회원 모드: 음료 주문 화면
+                document.getElementById('beverage').innerHTML = `
+                    <div class="panel">
+                        <h3 class="panel-title">☕ 음료 주문</h3>
+                        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 20px;">
+                            음료를 선택하여 상세 정보를 확인하고 주문할 수 있습니다. (1일 1잔 제한)
+                        </p>
+                        <div class="beverages-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                            ${data.beverages.map(beverage => `
+                                <div class="beverage-card" style="background: var(--bg-secondary); border: 2px solid var(--border-primary); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.3s; position: relative;">
+                                    <div onclick="showBeverageDetail('${beverage.id}')">
+                                        <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">
+                                            ${beverage.name}
+                                        </h4>
+                                        <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin-bottom: 16px;">
+                                            ${beverage.description}
+                                        </p>
+                                    </div>
+                                    <button class="btn btn-primary btn-full" onclick="event.stopPropagation(); showBeverageOrderModal('${beverage.id}')">
+                                        주문하기
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
         }
 
         // 음료 상세 정보 모달
@@ -2242,7 +2340,8 @@
                     ${results.map(m => {
                         const todayOrders = data.beverageOrders.filter(order =>
                             order.memberId === m.id &&
-                            new Date(order.orderTime).toDateString() === today
+                            new Date(order.orderTime).toDateString() === today &&
+                            order.status === 'completed'
                         );
                         const hasOrderedToday = todayOrders.length > 0;
 
@@ -2276,19 +2375,20 @@
 
             if (!beverage || !member) return;
 
-            // 1일 1잔 제한 체크
+            // 1일 1잔 제한 체크 (완료된 주문만)
             const today = new Date().toDateString();
             const todayOrders = data.beverageOrders.filter(order =>
                 order.memberId === memberId &&
-                new Date(order.orderTime).toDateString() === today
+                new Date(order.orderTime).toDateString() === today &&
+                order.status === 'completed'
             );
 
             if (todayOrders.length > 0) {
-                showAlert('이미 오늘 음료를 주문하셨습니다. (1일 1잔 제한)', 'error');
+                showNotification('1일 1잔 이미 사용', 'error');
                 return;
             }
 
-            // 주문 생성
+            // 주문 생성 (대기 상태)
             const order = {
                 id: 'BO-' + Date.now(),
                 beverageId: beverage.id,
@@ -2297,14 +2397,60 @@
                 memberName: member.name,
                 memberNumber: member.memberNumber,
                 orderTime: new Date().toISOString(),
-                status: 'completed'
+                status: 'pending'
             };
 
             data.beverageOrders.push(order);
             saveData();
             closeModal();
-            showAlert(`${member.name}님의 ${beverage.name} 주문이 완료되었습니다.`, 'success');
+            showNotification('주문이 접수되었습니다', 'success');
             renderBeverage();
+        }
+
+        // 음료 주문 완료 처리
+        function completeBeverageOrder(orderId) {
+            const data = state.branchData[state.selectedBranch];
+            const order = data.beverageOrders.find(o => o.id === orderId);
+
+            if (!order) return;
+
+            order.status = 'completed';
+            order.completedTime = new Date().toISOString();
+            saveData();
+            showNotification('음료 제공이 완료되었습니다', 'success');
+            renderBeverage();
+        }
+
+        // 음료 제조 방법 모달
+        function showBeverageRecipe(beverageId) {
+            const data = state.branchData[state.selectedBranch];
+            const beverage = data.beverages.find(b => b.id === beverageId);
+
+            if (!beverage) return;
+
+            document.getElementById('modalContainer').innerHTML = `
+                <div class="modal">
+                    <div class="modal-content" style="max-width: 500px;">
+                        <h3 class="modal-title">☕ ${beverage.name} 제조 방법</h3>
+
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="font-size: 15px; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">필요 재료</h4>
+                            <p style="color: var(--text-secondary); line-height: 1.6; font-size: 14px;">
+                                ${beverage.ingredients}
+                            </p>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="font-size: 15px; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">만드는 법</h4>
+                            <p style="color: var(--text-secondary); line-height: 1.6; font-size: 14px; white-space: pre-line;">
+                                ${beverage.recipe}
+                            </p>
+                        </div>
+
+                        <button class="btn btn-secondary btn-full" onclick="closeModal()">닫기</button>
+                    </div>
+                </div>
+            `;
         }
 
         function renderMember() {
@@ -3672,7 +3818,8 @@
 
         function renderBeverageStatistics() {
             const data = state.branchData[state.selectedBranch];
-            const allOrders = data.beverageOrders || [];
+            // 완료된 주문만 통계에 포함
+            const allOrders = (data.beverageOrders || []).filter(o => o.status === 'completed');
 
             // 전체 음료 이용 건수
             const totalOrders = allOrders.length;
@@ -3816,7 +3963,8 @@
         // 음료별 선호도 차트
         function updateBeveragePreferenceChart() {
             const data = state.branchData[state.selectedBranch];
-            const allOrders = data.beverageOrders || [];
+            // 완료된 주문만 통계에 포함
+            const allOrders = (data.beverageOrders || []).filter(o => o.status === 'completed');
             const canvas = document.getElementById('beveragePreferenceChart');
             if (!canvas) return;
 
@@ -3879,7 +4027,8 @@
         // 연령별 선호 음료 차트
         function updateAgePreferenceChart() {
             const data = state.branchData[state.selectedBranch];
-            const allOrders = data.beverageOrders || [];
+            // 완료된 주문만 통계에 포함
+            const allOrders = (data.beverageOrders || []).filter(o => o.status === 'completed');
             const canvas = document.getElementById('agePreferenceChart');
             if (!canvas) return;
 
@@ -3965,7 +4114,8 @@
         // 음료 통계 엑셀 다운로드
         function downloadBeverageStatisticsExcel() {
             const data = state.branchData[state.selectedBranch];
-            const allOrders = data.beverageOrders || [];
+            // 완료된 주문만 통계에 포함
+            const allOrders = (data.beverageOrders || []).filter(o => o.status === 'completed');
 
             const rows = [
                 ['음료 통계', '', '', ''],
@@ -3979,7 +4129,7 @@
                     return [bev.name, totalOrders, todayOrders, ''];
                 }),
                 ['', '', '', ''],
-                ['주문 내역', '', '', ''],
+                ['주문 내역 (완료된 주문)', '', '', ''],
                 ['주문 시간', '음료명', '주문자', '회원번호'],
                 ...allOrders.map(order => [
                     new Date(order.orderTime).toLocaleString('ko-KR'),
