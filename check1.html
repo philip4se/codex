@@ -1,0 +1,3218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>당진시청소년재단 시설 통합 관리 시스템 v1.2</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            /* 기본 배경 및 텍스트 */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f3f4f6;
+            --bg-tertiary: #f9fafb;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-tertiary: #374151;
+            --border-primary: #e5e7eb;
+            --border-secondary: #d1d5db;
+            --shadow: rgba(0,0,0,0.1);
+
+            /* 액센트 색상 */
+            --accent-blue: #2563eb;
+            --accent-blue-hover: #1d4ed8;
+            --accent-green: #16a34a;
+            --accent-red: #dc2626;
+
+            /* 시설 카드 - 라이트 모드 */
+            --facility-available-bg: #f0fdf4;
+            --facility-available-border: #86efac;
+            --facility-available-text: #166534;
+            --facility-using-bg: #fef2f2;
+            --facility-using-border: #fca5a5;
+            --facility-using-text: #991b1b;
+            --facility-reserved-bg: #fefce8;
+            --facility-reserved-border: #fde047;
+            --facility-reserved-text: #854d0e;
+            --facility-overtime-bg: #fee2e2;
+            --facility-overtime-border: #dc2626;
+            --facility-name-color: #1f2937;
+            --facility-info-color: #6b7280;
+            --facility-time-color: #ef4444;
+
+            /* 통계 카드 - 라이트 모드 */
+            --stat-blue-bg: #dbeafe;
+            --stat-blue-border: #93c5fd;
+            --stat-blue-label: #1e40af;
+            --stat-blue-value: #1e3a8a;
+            --stat-green-bg: #d1fae5;
+            --stat-green-border: #86efac;
+            --stat-green-label: #15803d;
+            --stat-green-value: #166534;
+            --stat-purple-bg: #e9d5ff;
+            --stat-purple-border: #c084fc;
+            --stat-purple-label: #7e22ce;
+            --stat-purple-value: #6b21a8;
+
+            /* 배지 색상 */
+            --badge-available-bg: #86efac;
+            --badge-available-text: #166534;
+            --badge-using-bg: #fca5a5;
+            --badge-using-text: #991b1b;
+            --badge-reserved-bg: #fde047;
+            --badge-reserved-text: #854d0e;
+            --badge-overtime-bg: #dc2626;
+            --badge-overtime-text: #ffffff;
+
+            /* 알림 색상 */
+            --alert-success-bg: #d1fae5;
+            --alert-success-border: #86efac;
+            --alert-success-text: #166534;
+            --alert-error-bg: #fee2e2;
+            --alert-error-border: #fca5a5;
+            --alert-error-text: #991b1b;
+
+            /* 백업 섹션 */
+            --backup-warning-bg: #fffbeb;
+            --backup-warning-border: #fde047;
+            --backup-warning-text: #78350f;
+            --backup-info-bg: #e0f2fe;
+            --backup-info-border: #0ea5e9;
+            --backup-info-text: #0c4a6e;
+            --backup-guide-bg: #f0fdf4;
+            --backup-guide-border: #86efac;
+            --backup-guide-text: #166534;
+            --backup-config-bg: #e0f2fe;
+            --backup-config-border: #0ea5e9;
+
+            /* 기타 */
+            --dropdown-active-bg: #dbeafe;
+            --search-result-bg: #eff6ff;
+            --search-result-border: #dbeafe;
+            --search-result-hover: #dbeafe;
+            --search-result-selected: #3b82f6;
+            --setting-value-color: #2563eb;
+            --save-indicator-color: #16a34a;
+            --backup-status-bg: #f3f4f6;
+        }
+
+        [data-theme="dark"] {
+            /* 기본 배경 및 텍스트 - 다크 모드 */
+            --bg-primary: #1f2937;
+            --bg-secondary: #111827;
+            --bg-tertiary: #374151;
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --text-tertiary: #e5e7eb;
+            --border-primary: #4b5563;
+            --border-secondary: #6b7280;
+            --shadow: rgba(0,0,0,0.5);
+
+            /* 액센트 색상 - 다크 모드 */
+            --accent-blue: #60a5fa;
+            --accent-blue-hover: #3b82f6;
+            --accent-green: #34d399;
+            --accent-red: #f87171;
+
+            /* 시설 카드 - 다크 모드 */
+            --facility-available-bg: #064e3b;
+            --facility-available-border: #059669;
+            --facility-available-text: #a7f3d0;
+            --facility-using-bg: #7f1d1d;
+            --facility-using-border: #dc2626;
+            --facility-using-text: #fecaca;
+            --facility-reserved-bg: #78350f;
+            --facility-reserved-border: #f59e0b;
+            --facility-reserved-text: #fde68a;
+            --facility-overtime-bg: #991b1b;
+            --facility-overtime-border: #ef4444;
+            --facility-name-color: #f9fafb;
+            --facility-info-color: #d1d5db;
+            --facility-time-color: #fca5a5;
+
+            /* 통계 카드 - 다크 모드 */
+            --stat-blue-bg: #1e3a8a;
+            --stat-blue-border: #3b82f6;
+            --stat-blue-label: #bfdbfe;
+            --stat-blue-value: #dbeafe;
+            --stat-green-bg: #065f46;
+            --stat-green-border: #10b981;
+            --stat-green-label: #a7f3d0;
+            --stat-green-value: #d1fae5;
+            --stat-purple-bg: #581c87;
+            --stat-purple-border: #a855f7;
+            --stat-purple-label: #e9d5ff;
+            --stat-purple-value: #f3e8ff;
+
+            /* 배지 색상 - 다크 모드 */
+            --badge-available-bg: #059669;
+            --badge-available-text: #d1fae5;
+            --badge-using-bg: #dc2626;
+            --badge-using-text: #fecaca;
+            --badge-reserved-bg: #d97706;
+            --badge-reserved-text: #fef3c7;
+            --badge-overtime-bg: #ef4444;
+            --badge-overtime-text: #ffffff;
+
+            /* 알림 색상 - 다크 모드 */
+            --alert-success-bg: #064e3b;
+            --alert-success-border: #059669;
+            --alert-success-text: #a7f3d0;
+            --alert-error-bg: #7f1d1d;
+            --alert-error-border: #dc2626;
+            --alert-error-text: #fecaca;
+
+            /* 백업 섹션 - 다크 모드 */
+            --backup-warning-bg: #78350f;
+            --backup-warning-border: #f59e0b;
+            --backup-warning-text: #fde68a;
+            --backup-info-bg: #0c4a6e;
+            --backup-info-border: #0ea5e9;
+            --backup-info-text: #bae6fd;
+            --backup-guide-bg: #064e3b;
+            --backup-guide-border: #059669;
+            --backup-guide-text: #a7f3d0;
+            --backup-config-bg: #0c4a6e;
+            --backup-config-border: #0284c7;
+
+            /* 기타 - 다크 모드 */
+            --dropdown-active-bg: #1e40af;
+            --search-result-bg: #1e3a8a;
+            --search-result-border: #3b82f6;
+            --search-result-hover: #1e40af;
+            --search-result-selected: #2563eb;
+            --setting-value-color: #93c5fd;
+            --save-indicator-color: #34d399;
+            --backup-status-bg: #374151;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .container { max-width: 1400px; margin: 0 auto; padding: 16px; }
+        .header { background: var(--bg-primary); border-radius: 8px; box-shadow: 0 2px 4px var(--shadow); padding: 24px; margin-bottom: 20px; transition: background-color 0.3s; }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .title { font-size: 28px; font-weight: bold; color: var(--text-primary); }
+        .subtitle { color: var(--text-secondary); margin-top: 4px; font-size: 14px; }
+        .dark-mode-toggle { background: var(--bg-tertiary); border: 2px solid var(--border-primary); border-radius: 20px; padding: 4px 12px; cursor: pointer; font-size: 20px; transition: all 0.3s; margin-left: 12px; }
+        .dark-mode-toggle:hover { transform: scale(1.1); }
+        .branch-selector { margin-top: 12px; position: relative; }
+        .branch-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px; }
+        .branch-btn:hover { background: var(--accent-blue-hover); }
+        .dropdown { position: absolute; top: 100%; left: 0; background: var(--bg-primary); border: 2px solid var(--border-primary); border-radius: 8px; box-shadow: 0 4px 6px var(--shadow); margin-top: 4px; min-width: 300px; z-index: 1000; display: none; transition: background-color 0.3s; }
+        .dropdown.show { display: block; }
+        .dropdown-header { padding: 12px; border-bottom: 1px solid var(--border-primary); font-weight: 600; font-size: 13px; color: var(--text-secondary); }
+        .dropdown-item { padding: 12px; border-bottom: 1px solid var(--border-primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .dropdown-item:hover { background: var(--bg-tertiary); }
+        .dropdown-item.active { background: var(--dropdown-active-bg); color: var(--text-primary); }
+        .time-display { text-align: right; }
+        .time-label { font-size: 12px; color: var(--text-secondary); }
+        .time-value { font-size: 18px; font-weight: bold; color: var(--accent-blue); margin: 4px 0; }
+        .save-indicator { font-size: 11px; color: var(--save-indicator-color); margin-top: 4px; display: flex; align-items: center; gap: 4px; justify-content: flex-end; }
+        .backup-status { margin-top: 8px; padding: 8px; background: var(--backup-status-bg); border-radius: 6px; font-size: 11px; transition: background-color 0.3s; }
+        .backup-status-item { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .status-dot.online { background: #16a34a; animation: pulse-dot 2s infinite; }
+        .status-dot.offline { background: #dc2626; }
+        .status-dot.syncing { background: #f59e0b; animation: blink 1s infinite; }
+        @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .alert-bar { background: var(--bg-primary); border-radius: 8px; box-shadow: 0 2px 4px var(--shadow); margin-bottom: 20px; padding: 12px 24px; min-height: 60px; transition: background-color 0.3s; }
+        .alert-bar-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
+        .alert-list { display: flex; flex-direction: column; gap: 8px; }
+        .alert-item { padding: 10px 12px; border-radius: 6px; display: flex; align-items: center; gap: 10px; font-size: 13px; animation: slideIn 0.3s ease-out; }
+        .alert-item.success { background: var(--alert-success-bg); border: 1px solid var(--alert-success-border); color: var(--alert-success-text); }
+        .alert-item.error { background: var(--alert-error-bg); border: 1px solid var(--alert-error-border); color: var(--alert-error-text); }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .tabs { background: var(--bg-primary); border-radius: 8px; box-shadow: 0 2px 4px var(--shadow); margin-bottom: 20px; overflow-x: auto; transition: background-color 0.3s; }
+        .tabs-flex { display: flex; border-bottom: 2px solid var(--border-primary); min-width: max-content; }
+        .tab { padding: 14px 20px; font-weight: 600; color: var(--text-secondary); background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap; font-size: 14px; }
+        .tab:hover { color: var(--text-primary); background: var(--bg-tertiary); }
+        .tab.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
+        .stat-card { padding: 20px; border-radius: 8px; border: 2px solid; transition: all 0.3s; }
+        .stat-card.blue { background: var(--stat-blue-bg); border-color: var(--stat-blue-border); }
+        .stat-card.green { background: var(--stat-green-bg); border-color: var(--stat-green-border); }
+        .stat-card.purple { background: var(--stat-purple-bg); border-color: var(--stat-purple-border); }
+        .stat-label { font-size: 13px; font-weight: 600; }
+        .stat-card.blue .stat-label { color: var(--stat-blue-label); }
+        .stat-card.green .stat-label { color: var(--stat-green-label); }
+        .stat-card.purple .stat-label { color: var(--stat-purple-label); }
+        .stat-value { font-size: 32px; font-weight: bold; margin-top: 8px; }
+        .stat-card.blue .stat-value { color: var(--stat-blue-value); }
+        .stat-card.green .stat-value { color: var(--stat-green-value); }
+        .stat-card.purple .stat-value { color: var(--stat-purple-value); }
+        .panel { background: var(--bg-primary); border-radius: 8px; border: 2px solid var(--border-primary); padding: 24px; margin-bottom: 20px; transition: background-color 0.3s; }
+        .panel-title { font-size: 18px; font-weight: bold; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; color: var(--text-primary); }
+        .facility-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .facility-card { padding: 16px; border-radius: 8px; border: 2px solid; transition: all 0.3s; cursor: pointer; }
+        .facility-card.available { background: var(--facility-available-bg); border-color: var(--facility-available-border); color: var(--facility-available-text); }
+        .facility-card.using { background: var(--facility-using-bg); border-color: var(--facility-using-border); color: var(--facility-using-text); }
+        .facility-card.reserved { background: var(--facility-reserved-bg); border-color: var(--facility-reserved-border); color: var(--facility-reserved-text); }
+        .facility-card.overtime { background: var(--facility-overtime-bg); border-color: var(--facility-overtime-border); animation: pulse 1s infinite; }
+        .facility-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px var(--shadow); }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        .facility-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; }
+        .facility-name { font-weight: bold; font-size: 15px; color: var(--facility-name-color); }
+        .facility-info { font-size: 12px; color: var(--facility-info-color); margin-top: 4px; }
+        .status-badge { font-size: 11px; padding: 4px 8px; border-radius: 4px; font-weight: 600; }
+        .status-badge.available { background: var(--badge-available-bg); color: var(--badge-available-text); }
+        .status-badge.using { background: var(--badge-using-bg); color: var(--badge-using-text); }
+        .status-badge.reserved { background: var(--badge-reserved-bg); color: var(--badge-reserved-text); }
+        .status-badge.overtime { background: var(--badge-overtime-bg); color: var(--badge-overtime-text); }
+        .facility-details { font-size: 13px; margin-top: 8px; color: var(--text-primary); }
+        .facility-time { color: var(--facility-time-color); font-weight: 600; margin-top: 4px; }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+        .btn-primary { background: var(--accent-blue); color: white; }
+        .btn-primary:hover { background: var(--accent-blue-hover); }
+        .btn-success { background: var(--accent-green); color: white; }
+        .btn-success:hover { background: #15803d; }
+        .btn-danger { background: var(--accent-red); color: white; }
+        .btn-danger:hover { background: #b91c1c; }
+        .btn-secondary { background: #6b7280; color: white; }
+        .btn-secondary:hover { background: #4b5563; }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-warning:hover { background: #d97706; }
+        .btn-full { width: 100%; margin-top: 8px; }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-tertiary); }
+        .form-input { width: 100%; padding: 10px; border: 2px solid var(--border-secondary); border-radius: 6px; font-size: 14px; background: var(--bg-primary); color: var(--text-primary); }
+        .form-input:focus { outline: none; border-color: var(--accent-blue); }
+        .form-row { display: flex; gap: 8px; align-items: center; }
+        .form-input-small { width: 80px; padding: 8px; border: 2px solid var(--border-secondary); border-radius: 6px; text-align: center; font-size: 14px; background: var(--bg-primary); color: var(--text-primary); }
+        .form-select { width: 100%; padding: 10px; border: 2px solid var(--border-secondary); border-radius: 6px; font-size: 14px; background: var(--bg-primary); color: var(--text-primary); }
+        .form-select:focus { outline: none; border-color: var(--accent-blue); }
+        .table { width: 100%; border-collapse: collapse; }
+        .table th { background: var(--bg-tertiary); padding: 12px; text-align: left; font-size: 13px; font-weight: 600; border-bottom: 2px solid var(--border-primary); color: var(--text-primary); }
+        .table td { padding: 12px; border-bottom: 1px solid var(--border-primary); font-size: 14px; color: var(--text-primary); }
+        .table tr:hover { background: var(--bg-tertiary); }
+        .hidden { display: none; }
+        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+        .modal-content { background: var(--bg-primary); border-radius: 12px; padding: 24px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; transition: background-color 0.3s; }
+        .modal-title { font-size: 20px; font-weight: bold; margin-bottom: 20px; color: var(--text-primary); }
+        .search-result { border: 2px solid var(--search-result-border); background: var(--search-result-bg); padding: 12px; border-radius: 6px; margin-bottom: 8px; cursor: pointer; transition: all 0.3s; }
+        .search-result:hover { background: var(--search-result-hover); }
+        .search-result.selected { background: var(--search-result-selected); color: white; border-color: var(--accent-blue); }
+        .radio-group { display: flex; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
+        .radio-label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+        textarea { width: 100%; min-height: 200px; padding: 12px; border: 2px solid var(--border-secondary); border-radius: 6px; font-family: inherit; font-size: 14px; resize: vertical; background: var(--bg-primary); color: var(--text-primary); }
+        textarea:focus { outline: none; border-color: var(--accent-blue); }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .log-item { padding: 12px; border: 1px solid var(--border-primary); border-radius: 6px; margin-bottom: 8px; cursor: pointer; background: var(--bg-primary); transition: background-color 0.3s; }
+        .log-item:hover { background: var(--bg-tertiary); }
+        .log-title { font-weight: 600; font-size: 14px; color: var(--text-primary); }
+        .log-meta { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+        .setting-item { padding: 16px; border: 2px solid var(--border-primary); border-radius: 8px; margin-bottom: 12px; background: var(--bg-primary); transition: background-color 0.3s; }
+        .setting-name { font-weight: bold; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .setting-controls { display: flex; align-items: center; gap: 12px; margin: 8px 0; }
+        .setting-value { font-size: 20px; font-weight: bold; color: var(--setting-value-color); min-width: 80px; text-align: center; }
+        .date-filter { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+        .chart-container { position: relative; height: 300px; margin: 20px 0; }
+        .stats-section { margin-bottom: 32px; padding-bottom: 32px; border-bottom: 2px solid #e5e7eb; }
+        .stats-section:last-child { border-bottom: none; }
+        .backup-section { background: var(--backup-warning-bg); border: 2px solid var(--backup-warning-border); border-radius: 8px; padding: 20px; margin-bottom: 20px; transition: all 0.3s; }
+        .backup-info { font-size: 13px; color: var(--backup-warning-text); margin-bottom: 16px; line-height: 1.6; }
+        .backup-warning { background: var(--backup-warning-bg); border: 2px solid var(--backup-warning-border); padding: 12px; border-radius: 6px; margin-bottom: 16px; font-size: 12px; color: var(--backup-warning-text); transition: all 0.3s; }
+        input[type="file"] { display: none; }
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .toggle-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .toggle-slider { background-color: #2563eb; }
+        input:checked + .toggle-slider:before { transform: translateX(26px); }
+        .backup-config-panel { background: var(--backup-config-bg); border: 2px solid var(--backup-config-border); border-radius: 8px; padding: 20px; margin-bottom: 20px; transition: all 0.3s; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-flex">
+                <div style="flex: 1;">
+                    <h1 class="title">당진시청소년재단</h1>
+                    <p class="subtitle">시설 통합 관리 시스템 v1.2 투트랙 백업</p>
+                    <div class="branch-selector">
+                        <button class="branch-btn" onclick="toggleBranchDropdown()">
+                            <span>🏢</span>
+                            <span id="currentBranchName">당진청소년문화의집</span>
+                            <span>▼</span>
+                        </button>
+                        <div id="branchDropdown" class="dropdown">
+                            <div class="dropdown-header">시설 목록</div>
+                            <div id="branchList"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="time-display">
+                    <button class="dark-mode-toggle" onclick="toggleDarkMode()" title="다크모드 전환">
+                        <span id="darkModeIcon">🌙</span>
+                    </button>
+                    <div class="time-label">현재 시간</div>
+                    <div class="time-value" id="currentTime"></div>
+                    <div class="time-label" id="currentDate"></div>
+                    <div class="save-indicator" id="saveIndicator">
+                        <span>💾</span>
+                        <span>자동 저장됨</span>
+                    </div>
+                    <div class="backup-status">
+                        <div class="backup-status-item">
+                            <span class="status-dot" id="networkStatus"></span>
+                            <span id="networkStatusText">연결 확인중...</span>
+                        </div>
+                        <div class="backup-status-item">
+                            <span>📁</span>
+                            <span id="localBackupStatus">로컬: 대기중</span>
+                        </div>
+                        <div class="backup-status-item">
+                            <span>☁️</span>
+                            <span id="serverBackupStatus">서버: 대기중</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert-bar">
+            <div class="alert-bar-title">📢 최근 알림</div>
+            <div class="alert-list" id="alertList"></div>
+        </div>
+
+        <div class="tabs">
+            <div class="tabs-flex">
+                <button class="tab active" onclick="showTab('dashboard')">대시보드</button>
+                <button class="tab" onclick="showTab('reservation')">이용 신청</button>
+                <button class="tab" onclick="showTab('member')">회원 관리</button>
+                <button class="tab" onclick="showTab('dailylog')">일지</button>
+                <button class="tab" onclick="showTab('statistics')">통계</button>
+                <button class="tab" onclick="showTab('history')">이용 기록</button>
+                <button class="tab" onclick="showTab('settings')">설정</button>
+            </div>
+        </div>
+
+        <div id="dashboard" class="tab-content"></div>
+        <div id="reservation" class="tab-content hidden"></div>
+        <div id="member" class="tab-content hidden"></div>
+        <div id="settings" class="tab-content hidden"></div>
+        <div id="dailylog" class="tab-content hidden"></div>
+        <div id="statistics" class="tab-content hidden"></div>
+        <div id="history" class="tab-content hidden"></div>
+    </div>
+
+    <div id="modalContainer"></div>
+    <input type="file" id="fileInput" accept=".json" onchange="handleFileSelect(event)">
+    <input type="file" id="memberExcelInput" accept=".xlsx,.xls" onchange="handleMemberExcelImport(event)">
+
+    <script>
+        const STORAGE_KEY = 'djyf_facility_management_system';
+        const LAST_SAVE_KEY = 'djyf_last_save_time';
+        const BACKUP_CONFIG_KEY = 'djyf_backup_config';
+        const DARK_MODE_KEY = 'djyf_dark_mode';
+        const SYNC_CONFIG_KEY = 'djyf_sync_config';
+
+        const state = {
+            branches: [
+                { id: 'BR-001', name: '당진청소년문화의집', createdAt: new Date().toISOString() },
+                { id: 'BR-002', name: '합덕청소년문화의집', createdAt: new Date().toISOString() },
+                { id: 'BR-003', name: '송악청소년문화의집', createdAt: new Date().toISOString() },
+                { id: 'BR-004', name: '당진시청소년상담복지센터', createdAt: new Date().toISOString() },
+                { id: 'BR-005', name: '수다벅스 1호점', createdAt: new Date().toISOString() },
+                { id: 'BR-006', name: '수다벅스 2호점', createdAt: new Date().toISOString() },
+                { id: 'BR-007', name: '수다벅스 3호점', createdAt: new Date().toISOString() },
+                { id: 'BR-008', name: '당진시여자단기청소년쉼터', createdAt: new Date().toISOString() }
+            ],
+            selectedBranch: 'BR-001',
+            branchData: {},
+            currentTime: new Date(),
+            editingMemberId: null,
+            alerts: [],
+            editingFacility: {},
+            regions: ['고대면', '당진1동', '당진2동', '당진3동', '대호지면', '면천면', '석문면', '송산면', '송악읍', '석문면', '신평면', '우강면', '정미면', '합덕읍', '기타'],
+            darkMode: false,
+            backupConfig: {
+                localEnabled: false,
+                serverEnabled: false,
+                serverUrl: '',
+                localFolderHandle: null,
+                localFolderPath: null,
+                lastLocalBackup: null,
+                lastServerBackup: null
+            },
+            syncConfig: {
+                nasUrl: '',
+                nasUsername: '',
+                nasPassword: '',
+                syncInterval: 5,
+                lastSync: null,
+                autoSync: false
+            },
+            isOnline: navigator.onLine,
+            pendingSyncData: [],
+            lastDataHash: {}
+        };
+
+        // 백업 설정 로드
+        function loadBackupConfig() {
+            try {
+                const saved = localStorage.getItem(BACKUP_CONFIG_KEY);
+                if (saved) {
+                    const config = JSON.parse(saved);
+                    state.backupConfig.localEnabled = config.localEnabled || false;
+                    state.backupConfig.serverEnabled = config.serverEnabled || false;
+                    state.backupConfig.serverUrl = config.serverUrl || '';
+                    state.backupConfig.lastLocalBackup = config.lastLocalBackup;
+                    state.backupConfig.lastServerBackup = config.lastServerBackup;
+                }
+            } catch (error) {
+                console.error('백업 설정 로드 실패:', error);
+            }
+        }
+
+        // 백업 설정 저장
+        function saveBackupConfig() {
+            try {
+                const config = {
+                    localEnabled: state.backupConfig.localEnabled,
+                    serverEnabled: state.backupConfig.serverEnabled,
+                    serverUrl: state.backupConfig.serverUrl,
+                    lastLocalBackup: state.backupConfig.lastLocalBackup,
+                    lastServerBackup: state.backupConfig.lastServerBackup
+                };
+                localStorage.setItem(BACKUP_CONFIG_KEY, JSON.stringify(config));
+            } catch (error) {
+                console.error('백업 설정 저장 실패:', error);
+            }
+        }
+
+        // 다크모드 로드 및 초기화
+        function loadDarkMode() {
+            try {
+                const saved = localStorage.getItem(DARK_MODE_KEY);
+                state.darkMode = saved === 'true';
+                applyDarkMode();
+            } catch (error) {
+                console.error('다크모드 설정 로드 실패:', error);
+            }
+        }
+
+        // 다크모드 적용
+        function applyDarkMode() {
+            if (state.darkMode) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.getElementById('darkModeIcon').textContent = '☀️';
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                document.getElementById('darkModeIcon').textContent = '🌙';
+            }
+        }
+
+        // 다크모드 토글
+        function toggleDarkMode() {
+            state.darkMode = !state.darkMode;
+            localStorage.setItem(DARK_MODE_KEY, state.darkMode);
+            applyDarkMode();
+        }
+
+        // 동기화 설정 로드
+        function loadSyncConfig() {
+            try {
+                const saved = localStorage.getItem(SYNC_CONFIG_KEY);
+                if (saved) {
+                    const config = JSON.parse(saved);
+                    state.syncConfig = { ...state.syncConfig, ...config };
+                }
+            } catch (error) {
+                console.error('동기화 설정 로드 실패:', error);
+            }
+        }
+
+        // 동기화 설정 저장
+        function saveSyncConfig() {
+            try {
+                localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(state.syncConfig));
+            } catch (error) {
+                console.error('동기화 설정 저장 실패:', error);
+            }
+        }
+
+        // 데이터 해시 생성 (충돌 감지용)
+        function generateDataHash(data) {
+            const str = JSON.stringify(data);
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return hash.toString(36);
+        }
+
+        // WebDAV를 통한 NAS 업로드
+        async function uploadToNAS(branchId, data) {
+            if (!state.syncConfig.nasUrl || !state.syncConfig.nasUsername || !state.syncConfig.nasPassword) {
+                console.warn('NAS 설정이 완료되지 않았습니다.');
+                return false;
+            }
+
+            try {
+                const branch = state.branches.find(b => b.id === branchId);
+                const timestamp = new Date().toISOString();
+                const filename = `${branchId}_${branch.name}_${timestamp.split('T')[0]}.json`;
+
+                const uploadData = {
+                    branchId: branchId,
+                    branchName: branch.name,
+                    timestamp: timestamp,
+                    data: data,
+                    dataHash: generateDataHash(data),
+                    version: '1.2'
+                };
+
+                const auth = btoa(`${state.syncConfig.nasUsername}:${state.syncConfig.nasPassword}`);
+                const nasPath = state.syncConfig.nasUrl.endsWith('/') ? state.syncConfig.nasUrl : state.syncConfig.nasUrl + '/';
+                const fullUrl = `${nasPath}${filename}`;
+
+                const response = await fetch(fullUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Basic ${auth}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(uploadData, null, 2)
+                });
+
+                if (response.ok) {
+                    state.lastDataHash[branchId] = generateDataHash(data);
+                    state.syncConfig.lastSync = timestamp;
+                    saveSyncConfig();
+                    return true;
+                } else {
+                    console.error('NAS 업로드 실패:', response.status, response.statusText);
+                    return false;
+                }
+            } catch (error) {
+                console.error('NAS 업로드 오류:', error);
+                return false;
+            }
+        }
+
+        // NAS에서 다른 지점 데이터 가져오기
+        async function fetchFromNAS(branchId) {
+            if (!state.syncConfig.nasUrl || !state.syncConfig.nasUsername || !state.syncConfig.nasPassword) {
+                return null;
+            }
+
+            try {
+                const auth = btoa(`${state.syncConfig.nasUsername}:${state.syncConfig.nasPassword}`);
+                const nasPath = state.syncConfig.nasUrl.endsWith('/') ? state.syncConfig.nasUrl : state.syncConfig.nasUrl + '/';
+
+                // PROPFIND로 파일 목록 가져오기
+                const response = await fetch(nasPath, {
+                    method: 'PROPFIND',
+                    headers: {
+                        'Authorization': `Basic ${auth}`,
+                        'Depth': '1'
+                    }
+                });
+
+                if (!response.ok) {
+                    console.error('NAS 파일 목록 가져오기 실패:', response.status);
+                    return null;
+                }
+
+                // 해당 branchId의 최신 파일 찾기
+                // 실제로는 XML 파싱이 필요하지만, 간단히 구현
+                const text = await response.text();
+
+                // 최신 파일 URL을 찾았다고 가정하고 다운로드
+                // 실제 구현에서는 XML 파싱 필요
+                return null;
+            } catch (error) {
+                console.error('NAS 데이터 가져오기 오류:', error);
+                return null;
+            }
+        }
+
+        // 서버 백업 수행 (NAS WebDAV)
+        async function performServerBackup() {
+            if (!state.backupConfig.serverEnabled || !state.syncConfig.nasUrl) {
+                return;
+            }
+
+            try {
+                const statusEl = document.getElementById('serverBackupStatus');
+                if (statusEl) statusEl.textContent = '서버: 백업 중...';
+
+                // 현재 지점 데이터만 백업
+                const currentData = state.branchData[state.selectedBranch];
+                const success = await uploadToNAS(state.selectedBranch, currentData);
+
+                if (success) {
+                    state.backupConfig.lastServerBackup = new Date().toISOString();
+                    saveBackupConfig();
+                    updateBackupStatus();
+                    showAlert('NAS 서버에 백업되었습니다.');
+                    if (statusEl) statusEl.textContent = `서버: ${new Date().toLocaleTimeString('ko-KR')}`;
+                } else {
+                    showAlert('NAS 서버 백업에 실패했습니다.', 'error');
+                    if (statusEl) statusEl.textContent = '서버: 실패';
+                }
+            } catch (error) {
+                console.error('서버 백업 오류:', error);
+                showAlert('NAS 서버 백업 중 오류가 발생했습니다.', 'error');
+            }
+        }
+
+        // 모든 지점 데이터 동기화
+        async function syncAllBranches() {
+            if (!state.syncConfig.autoSync) return;
+
+            try {
+                for (const branch of state.branches) {
+                    const branchData = state.branchData[branch.id];
+                    if (branchData) {
+                        const currentHash = generateDataHash(branchData);
+                        const lastHash = state.lastDataHash[branch.id];
+
+                        // 데이터가 변경된 경우에만 업로드
+                        if (currentHash !== lastHash) {
+                            await uploadToNAS(branch.id, branchData);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('전체 동기화 오류:', error);
+            }
+        }
+
+        // 교체할 함수 1: selectLocalBackupFolder
+        async function selectLocalBackupFolder() {
+            try {
+                // Electron의 dialog 모듈을 직접 사용
+                const { dialog } = require('@electron/remote');
+                const result = await dialog.showOpenDialog({
+                    properties: ['openDirectory']
+                });
+
+                if (!result.canceled && result.filePaths.length > 0) {
+                    const folderPath = result.filePaths[0];
+                    state.backupConfig.localFolderPath = folderPath;
+                    showAlert('로컬 백업 폴더가 선택되었습니다.');
+                    await performLocalBackup();
+                }
+            } catch (error) {
+                console.error('폴더 선택 실패:', error);
+                showAlert('폴더 선택에 실패했습니다.', 'error');
+            }
+        }
+
+        // 교체할 함수 2: performLocalBackup
+       async function performLocalBackup() {
+            if (!state.backupConfig.localEnabled || !state.backupConfig.localFolderPath) {
+                return;
+            }
+
+            try {
+                const exportData = {
+                    version: '1.2',
+                    exportDate: new Date().toISOString(),
+                    systemType: 'full',
+                    branches: state.branches,
+                    branchData: state.branchData
+                };
+
+                const jsonString = JSON.stringify(exportData, null, 2);
+                const dateStr = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
+                const timeStr = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/:/g, '');
+                const filename = `백업_${dateStr}_${timeStr}.json`;
+                
+                // 경로 구분자는 Javascript 내에서 슬래시(/)를 사용해도 모든 OS에서 잘 작동합니다.
+                const fullPath = `${state.backupConfig.localFolderPath}/${filename}`;
+
+                // '다리'를 통해 main.js의 파일 저장 기능을 호출
+                const result = await window.electronAPI.saveFile(fullPath, jsonString);
+
+                if (result.success) {
+                    state.backupConfig.lastLocalBackup = new Date().toISOString();
+                    saveBackupConfig();
+                    updateBackupStatus();
+                    showAlert('로컬 폴더에 백업되었습니다.');
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                console.error('로컬 백업 실패:', error);
+                showAlert('로컬 백업에 실패했습니다.', 'error');
+            }
+        }
+
+        // Track 2: 중앙 서버 백업
+        // 교체할 함수 2: performLocalBackup
+        async function performLocalBackup() {
+            if (!state.backupConfig.localEnabled || !state.backupConfig.localFolderPath) {
+                return;
+            }
+
+            try {
+                // Node.js의 'fs'와 'path' 모듈을 직접 사용
+                const fs = require('fs');
+                const path = require('path');
+
+                const exportData = {
+                    version: '1.2',
+                    exportDate: new Date().toISOString(),
+                    systemType: 'full',
+                    branches: state.branches,
+                    branchData: state.branchData
+                };
+
+                const jsonString = JSON.stringify(exportData, null, 2);
+                
+                // ===================================================================
+                // !! 최종 수정 !! : 파일 이름에서 시간 부분을 제거하여 하루에 한 파일만 생성
+                const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+                const filename = `백업_${dateStr}.json`; // <-- 시간(timeStr) 제거!
+                // ===================================================================
+                
+                // path 모듈을 사용하여 전체 파일 경로를 안전하게 생성
+                const fullPath = path.join(state.backupConfig.localFolderPath, filename);
+
+                // fs 모듈로 파일 직접 저장 (같은 이름의 파일이 있으면 자동으로 덮어씁니다)
+                fs.writeFileSync(fullPath, jsonString, 'utf-8');
+
+                state.backupConfig.lastLocalBackup = new Date().toISOString();
+                saveBackupConfig();
+                updateBackupStatus();
+                showAlert('로컬 폴더에 백업되었습니다.');
+
+            } catch (error) {
+                console.error('로컬 백업 실패:', error);
+                showAlert('로컬 백업에 실패했습니다.', 'error');
+            }
+        }
+
+        // 네트워크 상태 감지 및 자동 동기화
+        function setupNetworkMonitoring() {
+            window.addEventListener('online', () => {
+                state.isOnline = true;
+                updateNetworkStatus();
+                showAlert('온라인 상태로 전환되었습니다.');
+                
+                // 대기중인 데이터가 있으면 자동 동기화
+                if (state.pendingSyncData.length > 0) {
+                    performServerBackup();
+                }
+            });
+
+            window.addEventListener('offline', () => {
+                state.isOnline = false;
+                updateNetworkStatus();
+                showAlert('오프라인 상태입니다.', 'error');
+            });
+        }
+
+        // 백업 상태 UI 업데이트
+        function updateBackupStatus() {
+            const localStatus = document.getElementById('localBackupStatus');
+            const serverStatus = document.getElementById('serverBackupStatus');
+
+            if (state.backupConfig.lastLocalBackup) {
+                const time = new Date(state.backupConfig.lastLocalBackup);
+                localStatus.textContent = `로컬: ${time.toLocaleTimeString('ko-KR')}`;
+            } else {
+                localStatus.textContent = '로컬: 대기중';
+            }
+
+            if (state.backupConfig.lastServerBackup) {
+                const time = new Date(state.backupConfig.lastServerBackup);
+                serverStatus.textContent = `서버: ${time.toLocaleTimeString('ko-KR')}`;
+            } else {
+                serverStatus.textContent = '서버: 대기중';
+            }
+        }
+
+        // 네트워크 상태 UI 업데이트
+        function updateNetworkStatus() {
+            const statusDot = document.getElementById('networkStatus');
+            const statusText = document.getElementById('networkStatusText');
+
+            if (state.isOnline) {
+                statusDot.className = 'status-dot online';
+                statusText.textContent = '온라인';
+            } else {
+                statusDot.className = 'status-dot offline';
+                statusText.textContent = '오프라인';
+            }
+        }
+
+        // 자동 백업 타이머 설정
+        // 교체할 함수 1: setupAutoBackup
+        function setupAutoBackup() {
+            // Track 1: 로컬 백업 (10분마다로 수정)
+            setInterval(() => {
+                if (state.backupConfig.localEnabled) {
+                    performLocalBackup();
+                }
+            }, 10 * 60 * 1000); // 10분
+
+            // Track 2: 서버 백업 (10분마다)
+            setInterval(() => {
+                if (state.backupConfig.serverEnabled) {
+                    performServerBackup();
+                }
+            }, 10 * 60 * 1000); // 10분
+        }
+
+        function loadFromStorage() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (parsed.branches) state.branches = parsed.branches;
+                    if (parsed.selectedBranch) state.selectedBranch = parsed.selectedBranch;
+                    if (parsed.branchData) state.branchData = parsed.branchData;
+                    if (parsed.editingFacility) state.editingFacility = parsed.editingFacility;
+                    
+                    const lastSave = localStorage.getItem(LAST_SAVE_KEY);
+                    if (lastSave) {
+                        const saveTime = new Date(lastSave);
+                        showAlert(`저장된 데이터를 불러왔습니다. (${saveTime.toLocaleString('ko-KR')})`);
+                    }
+                }
+            } catch (error) {
+                console.error('데이터 불러오기 실패:', error);
+                showAlert('저장된 데이터를 불러오는데 실패했습니다.', 'error');
+            }
+        }
+
+        function saveToStorage() {
+            try {
+                const dataToSave = {
+                    branches: state.branches,
+                    selectedBranch: state.selectedBranch,
+                    branchData: state.branchData,
+                    editingFacility: state.editingFacility
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+                localStorage.setItem(LAST_SAVE_KEY, new Date().toISOString());
+                
+                const indicator = document.getElementById('saveIndicator');
+                if (indicator) {
+                    indicator.innerHTML = '<span>💾</span><span>자동 저장됨</span>';
+                    indicator.style.color = '#16a34a';
+                }
+            } catch (error) {
+                console.error('데이터 저장 실패:', error);
+            }
+        }
+
+        let saveTimeout;
+        function triggerAutoSave() {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => saveToStorage(), 500);
+        }
+
+        function exportDataToJSON() {
+            try {
+                const branch = state.branches.find(b => b.id === state.selectedBranch);
+                const currentData = state.branchData[state.selectedBranch];
+                
+                const exportData = {
+                    version: '1.2',
+                    exportDate: new Date().toISOString(),
+                    branchInfo: branch,
+                    data: currentData,
+                    metadata: {
+                        totalMembers: currentData.members.length,
+                        totalReservations: currentData.reservations.length,
+                        totalFacilities: currentData.facilities.length,
+                        totalDailyLogs: currentData.dailyLogs.length
+                    }
+                };
+
+                const jsonString = JSON.stringify(exportData, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+                a.href = url;
+                a.download = `${dateStr}_${branch.name}_백업.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showAlert(`데이터가 백업되었습니다.`);
+            } catch (error) {
+                showAlert('데이터 내보내기에 실패했습니다.', 'error');
+            }
+        }
+
+        function triggerFileImport() {
+            document.getElementById('fileInput').click();
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!file.name.endsWith('.json')) {
+                showAlert('JSON 파일만 선택할 수 있습니다.', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    importDataFromJSON(e.target.result);
+                } catch (error) {
+                    showAlert('파일을 읽을 수 없습니다.', 'error');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function importDataFromJSON(jsonString) {
+            try {
+                const importedData = JSON.parse(jsonString);
+                
+                if (!importedData.version || !importedData.branchInfo || !importedData.data) {
+                    throw new Error('올바른 백업 파일이 아닙니다.');
+                }
+                
+                const branchName = importedData.branchInfo.name;
+                const currentBranchName = state.branches.find(b => b.id === state.selectedBranch).name;
+                
+                if (!confirm(`"${currentBranchName}" 지점의 데이터를 "${branchName}" 백업 데이터로 덮어쓰시겠습니까?\n\n⚠️ 현재 데이터는 모두 삭제됩니다!`)) {
+                    showAlert('데이터 가져오기를 취소했습니다.');
+                    return;
+                }
+                
+                state.branchData[state.selectedBranch] = importedData.data;
+                triggerAutoSave();
+                showAlert(`${branchName} 데이터를 성공적으로 불러왔습니다.`);
+                renderCurrentTab();
+            } catch (error) {
+                showAlert('데이터 가져오기에 실패했습니다.', 'error');
+            }
+        }
+
+        function exportAllDataToJSON() {
+            try {
+                const exportData = {
+                    version: '1.2',
+                    exportDate: new Date().toISOString(),
+                    systemType: 'full',
+                    branches: state.branches,
+                    branchData: state.branchData
+                };
+
+                const jsonString = JSON.stringify(exportData, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+                a.href = url;
+                a.download = `${dateStr}_전체시설_백업.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showAlert(`전체 시설 데이터가 백업되었습니다.`);
+            } catch (error) {
+                showAlert('전체 데이터 내보내기에 실패했습니다.', 'error');
+            }
+        }
+
+        function init() {
+            loadFromStorage();
+            loadBackupConfig();
+            loadDarkMode();
+            loadSyncConfig();
+            setupNetworkMonitoring();
+            setupAutoBackup();
+            updateNetworkStatus();
+            updateBackupStatus();
+
+            // 자동 동기화 설정
+            if (state.syncConfig.autoSync) {
+                setInterval(() => {
+                    syncAllBranches();
+                }, state.syncConfig.syncInterval * 60 * 1000);
+            }
+
+            state.branches.forEach(branch => {
+                if (!state.branchData[branch.id]) {
+                    state.branchData[branch.id] = {
+                        facilities: [
+                            { id: 'PC-001', name: '컴퓨터 1번', type: 'computer', capacity: 1, timeLimit: 60 },
+                            { id: 'PC-002', name: '컴퓨터 2번', type: 'computer', capacity: 1, timeLimit: 60 },
+                            { id: 'CLUB-001', name: '동아리실', type: 'room', capacity: 10, timeLimit: 60 }
+                        ],
+                        members: [],
+                        reservations: [],
+                        dailyLogs: []
+                    };
+                }
+            });
+            
+            updateTime();
+            setInterval(updateTime, 1000);
+            renderBranchList();
+            renderDashboard();
+            renderAlerts();
+        }
+
+        function updateTime() {
+            state.currentTime = new Date();
+            document.getElementById('currentTime').textContent = state.currentTime.toLocaleTimeString('ko-KR');
+            document.getElementById('currentDate').textContent = state.currentTime.toLocaleDateString('ko-KR', {
+                year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+            });
+        }
+
+        function showAlert(message, type = 'success') {
+            state.alerts.unshift({ message, type, time: new Date() });
+            if (state.alerts.length > 3) state.alerts = state.alerts.slice(0, 3);
+            renderAlerts();
+        }
+
+        function renderAlerts() {
+            const container = document.getElementById('alertList');
+            if (state.alerts.length === 0) {
+                container.innerHTML = '<div style="color: #6b7280; font-size: 13px;">알림이 없습니다.</div>';
+            } else {
+                container.innerHTML = state.alerts.map(alert => `
+                    <div class="alert-item ${alert.type}">
+                        <span>${alert.type === 'success' ? '✓' : '⚠️'}</span>
+                        <span>${alert.message}</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function generateMemberNumber(birthDate) {
+            const data = state.branchData[state.selectedBranch];
+            const birthYYMMDD = birthDate.replace(/-/g, '').substring(2);
+            const sameBirthMembers = data.members.filter(m => 
+                m.birthDate.replace(/-/g, '').substring(2) === birthYYMMDD
+            );
+            const nextNumber = sameBirthMembers.length + 1;
+            return birthYYMMDD + nextNumber.toString().padStart(3, '0');
+        }
+
+        function toggleBranchDropdown() {
+            document.getElementById('branchDropdown').classList.toggle('show');
+        }
+
+        function renderBranchList() {
+            const list = document.getElementById('branchList');
+            list.innerHTML = state.branches.map(branch => `
+                <div class="dropdown-item ${branch.id === state.selectedBranch ? 'active' : ''}" onclick="selectBranch('${branch.id}')">
+                    <div>
+                        <div style="font-weight: 600;">${branch.name}</div>
+                        <div style="font-size: 11px; color: #6b7280;">개소일: ${new Date(branch.createdAt).toLocaleDateString('ko-KR')}</div>
+                    </div>
+                </div>
+            `).join('') + `
+                <div style="padding: 12px; border-top: 2px solid #e5e7eb;">
+                    <button class="btn btn-primary" style="width: 100%; font-size: 13px;" onclick="showAddBranchModal()">
+                        ➕ 새 시설 추가
+                    </button>
+                </div>
+            `;
+        }
+
+        function selectBranch(branchId) {
+            state.selectedBranch = branchId;
+            const branch = state.branches.find(b => b.id === branchId);
+            document.getElementById('currentBranchName').textContent = branch.name;
+            toggleBranchDropdown();
+            renderBranchList();
+            renderCurrentTab();
+            triggerAutoSave();
+        }
+
+        function showAddBranchModal() {
+            document.getElementById('branchDropdown').classList.remove('show');
+            document.getElementById('modalContainer').innerHTML = `
+                <div class="modal">
+                    <div class="modal-content">
+                        <h3 class="modal-title">➕ 새 시설 추가</h3>
+                        <div class="form-group">
+                            <label class="form-label">시설명</label>
+                            <input type="text" class="form-input" id="newBranchName" placeholder="예: 당진청소년문화의집 2호점">
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-primary" style="flex: 1;" onclick="addNewBranch()">추가</button>
+                            <button class="btn btn-secondary" style="flex: 1;" onclick="closeModal()">취소</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function addNewBranch() {
+            const name = document.getElementById('newBranchName').value.trim();
+            
+            if (!name) {
+                showAlert('시설명을 입력해주세요.', 'error');
+                return;
+            }
+            
+            if (state.branches.find(b => b.name === name)) {
+                showAlert('이미 존재하는 시설명입니다.', 'error');
+                return;
+            }
+            
+            const newBranchId = 'BR-' + String(Date.now()).slice(-3).padStart(3, '0');
+            
+            state.branches.push({
+                id: newBranchId,
+                name: name,
+                createdAt: new Date().toISOString()
+            });
+            
+            // 새 지점 초기 데이터 생성
+            state.branchData[newBranchId] = {
+                facilities: [
+                    { id: 'PC-001', name: '컴퓨터 1번', type: 'computer', capacity: 1, timeLimit: 60 },
+                    { id: 'PC-002', name: '컴퓨터 2번', type: 'computer', capacity: 1, timeLimit: 60 },
+                    { id: 'CLUB-001', name: '동아리실', type: 'room', capacity: 10, timeLimit: 60 }
+                ],
+                members: [],
+                reservations: [],
+                dailyLogs: []
+            };
+            
+            triggerAutoSave();
+            showAlert(`${name} 시설이 추가되었습니다.`);
+            closeModal();
+            renderBranchList();
+        }
+
+        function closeModal() {
+            document.getElementById('modalContainer').innerHTML = '';
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.remove('hidden');
+            event.target.classList.add('active');
+            
+            switch(tabName) {
+                case 'dashboard': renderDashboard(); break;
+                case 'reservation': renderReservation(); break;
+                case 'member': renderMember(); break;
+                case 'settings': renderSettings(); break;
+                case 'dailylog': renderDailyLog(); break;
+                case 'statistics': renderStatistics(); break;
+                case 'history': renderHistory(); break;
+            }
+        }
+
+        function renderCurrentTab() {
+            const activeTab = document.querySelector('.tab.active');
+            if (activeTab) activeTab.click();
+        }
+
+        function renderDashboard() {
+            const data = state.branchData[state.selectedBranch];
+            const usingCount = data.reservations.filter(r => r.status === 'using').length;
+            const reservedCount = data.reservations.filter(r => r.status === 'reserved').length;
+
+            document.getElementById('dashboard').innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card blue">
+                        <div class="stat-label">이용중</div>
+                        <div class="stat-value">${usingCount}</div>
+                    </div>
+                    <div class="stat-card green">
+                        <div class="stat-label">예약중</div>
+                        <div class="stat-value">${reservedCount}</div>
+                    </div>
+                    <div class="stat-card purple">
+                        <div class="stat-label">총 회원</div>
+                        <div class="stat-value">${data.members.length}</div>
+                    </div>
+                </div>
+                <div class="panel">
+                    <h3 class="panel-title"><span>📅</span> 실시간 시설 현황</h3>
+                    <div class="facility-grid" id="facilityStatus"></div>
+                </div>
+            `;
+            
+            renderFacilityStatus();
+            setInterval(renderFacilityStatus, 1000);
+        }
+
+        function renderFacilityStatus() {
+            const data = state.branchData[state.selectedBranch];
+            const container = document.getElementById('facilityStatus');
+            if (!container) return;
+
+            container.innerHTML = data.facilities.map(facility => {
+                const reservation = data.reservations.find(r => 
+                    r.facilityId === facility.id && 
+                    (r.status === 'using' || r.status === 'reserved')
+                );
+
+                let statusClass = 'available';
+                let statusText = '이용가능';
+                let details = '';
+
+                if (reservation) {
+                    const now = state.currentTime;
+                    const endTime = new Date(reservation.endTime);
+                    const diffMs = endTime - now;
+                    const diffMin = Math.floor(diffMs / 60000);
+                    const diffSec = Math.floor((diffMs % 60000) / 1000);
+
+                    if (reservation.status === 'using') {
+                        const startTime = new Date(reservation.checkedInAt);
+                        const usedMs = now - startTime;
+                        const usedHours = Math.floor(usedMs / 3600000);
+                        const usedMin = Math.floor((usedMs % 3600000) / 60000);
+                        const usedSec = Math.floor((usedMs % 60000) / 1000);
+
+                        if (diffMs < 0) {
+                            statusClass = 'overtime';
+                            statusText = '시간초과!';
+                            const overMin = Math.abs(diffMin);
+                            const overSec = Math.abs(diffSec);
+                            details = `
+                                <div class="facility-details">
+                                    <div><span>👤</span> ${reservation.memberName} (${reservation.memberNumber})</div>
+                                    <div><span>⏱️</span> 이용시간: ${usedHours > 0 ? usedHours + '시간 ' : ''}${usedMin}분 ${usedSec}초</div>
+                                    <div class="facility-time" style="color: #dc2626; font-weight: bold;">⚠️ +${overMin}분 ${overSec}초 초과중</div>
+                                </div>
+                                <button class="btn btn-danger btn-full" onclick="event.stopPropagation(); checkOut('${reservation.id}')">퇴실 처리</button>
+                            `;
+                        } else {
+                            statusClass = 'using';
+                            statusText = '이용중';
+                            details = `
+                                <div class="facility-details">
+                                    <div><span>👤</span> ${reservation.memberName} (${reservation.memberNumber})</div>
+                                    <div><span>⏱️</span> 이용시간: ${usedHours > 0 ? usedHours + '시간 ' : ''}${usedMin}분 ${usedSec}초</div>
+                                    <div class="facility-time">남은시간: ${diffMin}분 ${diffSec}초</div>
+                                </div>
+                                <button class="btn btn-danger btn-full" onclick="event.stopPropagation(); checkOut('${reservation.id}')">퇴실 처리</button>
+                            `;
+                        }
+                    } else {
+                        statusClass = 'reserved';
+                        statusText = '예약됨';
+                        details = `
+                            <div class="facility-details">
+                                <div><span>👤</span> ${reservation.memberName} (${reservation.memberNumber})</div>
+                                <div><span>🕐</span> ${new Date(reservation.startTime).toLocaleTimeString('ko-KR')}</div>
+                            </div>
+                            <button class="btn btn-secondary btn-full" onclick="event.stopPropagation(); cancelReservation('${reservation.id}')">예약 취소</button>
+                        `;
+                    }
+                } else {
+                    details = '<div style="text-align: center; padding: 10px 0; color: #6b7280; font-size: 13px;">클릭하여 회원 배정</div>';
+                }
+
+                return `
+                    <div class="facility-card ${statusClass}" onclick="${!reservation ? `showFacilityMemberSearch('${facility.id}')` : ''}">
+                        <div class="facility-header">
+                            <div>
+                                <div class="facility-name">${facility.name}</div>
+                                <div class="facility-info">수용인원: ${facility.capacity}명</div>
+                            </div>
+                            <div class="status-badge ${statusClass}">${statusText}</div>
+                        </div>
+                        ${details}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showFacilityMemberSearch(facilityId) {
+            const data = state.branchData[state.selectedBranch];
+            const facility = data.facilities.find(f => f.id === facilityId);
+            
+            document.getElementById('modalContainer').innerHTML = `
+                <div class="modal">
+                    <div class="modal-content">
+                        <h3 class="modal-title">${facility.name} - 회원 배정</h3>
+                        <div class="form-group">
+                            <label class="form-label">회원 검색</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="dashSearchType" value="name" checked> 이름
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="dashSearchType" value="birth"> 생년월일
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="dashSearchType" value="phone"> 연락처
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="dashSearchType" value="number"> 회원번호
+                                </label>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <input type="text" class="form-input" id="dashSearchValue" placeholder="검색어 입력">
+                                <button class="btn btn-primary" onclick="searchMemberForFacility()">검색</button>
+                            </div>
+                        </div>
+                        <div id="dashSearchResults"></div>
+                        <button class="btn btn-secondary" onclick="closeFacilityModal()">취소</button>
+                    </div>
+                </div>
+            `;
+            window.currentFacilityId = facilityId;
+        }
+
+        function searchMemberForFacility() {
+            const data = state.branchData[state.selectedBranch];
+            const searchValue = document.getElementById('dashSearchValue').value.trim();
+            const searchType = document.querySelector('input[name="dashSearchType"]:checked').value;
+
+            if (!searchValue) {
+                showAlert('검색어를 입력해주세요.', 'error');
+                return;
+            }
+
+            let results = [];
+            if (searchType === 'name') {
+                results = data.members.filter(m => m.name.includes(searchValue));
+            } else if (searchType === 'birth') {
+                results = data.members.filter(m => m.birthDate.replace(/-/g, '').includes(searchValue.replace(/-/g, '')));
+            } else if (searchType === 'phone') {
+                results = data.members.filter(m => m.phone.includes(searchValue));
+            } else if (searchType === 'number') {
+                results = data.members.filter(m => m.memberNumber.includes(searchValue));
+            }
+
+            const container = document.getElementById('dashSearchResults');
+            if (results.length === 0) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center; color: #6b7280;">일치하는 회원이 없습니다.</div>';
+                return;
+            }
+
+            container.innerHTML = `
+                <div style="margin: 16px 0;">
+                    <label class="form-label">검색 결과 (${results.length}명)</label>
+                    ${results.map(m => `
+                        <div class="search-result" onclick="assignMemberToFacility('${m.id}')">
+                            <div style="font-weight: 600; font-size: 15px;">${m.name} (${m.memberNumber})</div>
+                            <div style="font-size: 13px; color: #6b7280; margin-top: 4px;">${m.phone} | ${m.birthDate}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function assignMemberToFacility(memberId) {
+            const data = state.branchData[state.selectedBranch];
+            const member = data.members.find(m => m.id === memberId);
+            const facility = data.facilities.find(f => f.id === window.currentFacilityId);
+            
+            // 해당 회원이 현재 이용 중인 시설 확인
+            const currentReservation = data.reservations.find(r => 
+                r.memberId === memberId && r.status === 'using'
+            );
+            
+            if (currentReservation) {
+                // 이미 다른 시설을 이용 중인 경우 확인 모달 표시
+                const currentFacility = data.facilities.find(f => f.id === currentReservation.facilityId);
+                
+                document.getElementById('modalContainer').innerHTML = `
+                    <div class="modal">
+                        <div class="modal-content">
+                            <h3 class="modal-title">⚠️ 시설 이용 중</h3>
+                            <div style="padding: 20px 0; font-size: 15px; line-height: 1.6;">
+                                <p style="margin-bottom: 12px;"><strong>${member.name}님</strong>은 현재 <strong style="color: #2563eb;">${currentFacility.name}</strong>을(를) 이용 중입니다.</p>
+                                <p style="color: #6b7280;">기존 시설을 자동으로 퇴실 처리하고 새로운 시설로 이동하시겠습니까?</p>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-primary" style="flex: 1;" onclick="confirmFacilityTransfer('${memberId}', '${currentReservation.id}')">동의</button>
+                                <button class="btn btn-secondary" style="flex: 1;" onclick="closeFacilityModal()">비동의</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 이용 중인 시설이 없으면 바로 배정
+            const startTime = new Date();
+            const endTime = new Date(startTime.getTime() + facility.timeLimit * 60000);
+
+            data.reservations.push({
+                id: 'R' + Date.now(),
+                memberId: member.id,
+                memberName: member.name,
+                memberNumber: member.memberNumber,
+                memberGender: member.gender,
+                memberRegion: member.region,
+                facilityId: facility.id,
+                facilityName: facility.name,
+                startTime: startTime.toISOString(),
+                endTime: endTime.toISOString(),
+                status: 'using',
+                checkedInAt: startTime.toISOString(),
+                checkedOutAt: null
+            });
+
+            triggerAutoSave();
+            showAlert(`${member.name}님 - ${facility.name} 이용 시작`);
+            closeFacilityModal();
+            renderFacilityStatus();
+        }
+
+        function confirmFacilityTransfer(memberId, oldReservationId) {
+            const data = state.branchData[state.selectedBranch];
+            const member = data.members.find(m => m.id === memberId);
+            const newFacility = data.facilities.find(f => f.id === window.currentFacilityId);
+            
+            // 기존 시설 퇴실 처리
+            const oldReservationIdx = data.reservations.findIndex(r => r.id === oldReservationId);
+            if (oldReservationIdx !== -1) {
+                data.reservations[oldReservationIdx].status = 'completed';
+                data.reservations[oldReservationIdx].checkedOutAt = new Date().toISOString();
+            }
+            
+            // 새 시설 배정
+            const startTime = new Date();
+            const endTime = new Date(startTime.getTime() + newFacility.timeLimit * 60000);
+
+            data.reservations.push({
+                id: 'R' + Date.now(),
+                memberId: member.id,
+                memberName: member.name,
+                memberNumber: member.memberNumber,
+                memberGender: member.gender,
+                memberRegion: member.region,
+                facilityId: newFacility.id,
+                facilityName: newFacility.name,
+                startTime: startTime.toISOString(),
+                endTime: endTime.toISOString(),
+                status: 'using',
+                checkedInAt: startTime.toISOString(),
+                checkedOutAt: null
+            });
+
+            triggerAutoSave();
+            showAlert(`${member.name}님 - 시설 이동 완료 (${newFacility.name})`);
+            closeFacilityModal();
+            renderFacilityStatus();
+        }
+
+        function closeFacilityModal() {
+            document.getElementById('modalContainer').innerHTML = '';
+        }
+
+        function checkOut(reservationId) {
+            const data = state.branchData[state.selectedBranch];
+            const idx = data.reservations.findIndex(r => r.id === reservationId);
+            if (idx !== -1) {
+                data.reservations[idx].status = 'completed';
+                data.reservations[idx].checkedOutAt = new Date().toISOString();
+                triggerAutoSave();
+                showAlert('퇴실 처리되었습니다.');
+                renderFacilityStatus();
+            }
+        }
+
+        function cancelReservation(reservationId) {
+            const data = state.branchData[state.selectedBranch];
+            const idx = data.reservations.findIndex(r => r.id === reservationId);
+            if (idx !== -1) {
+                data.reservations[idx].status = 'cancelled';
+                triggerAutoSave();
+                showAlert('예약이 취소되었습니다.');
+                renderFacilityStatus();
+            }
+        }
+
+        function renderMember() {
+            const data = state.branchData[state.selectedBranch];
+            const isEditing = state.editingMemberId !== null;
+            const editMember = isEditing ? data.members.find(m => m.id === state.editingMemberId) : null;
+
+            document.getElementById('member').innerHTML = `
+                <div class="panel">
+                    <h3 class="panel-title">${isEditing ? '회원 정보 수정' : '신규 회원 등록'}</h3>
+                    <div style="max-width: 600px;">
+                        <div class="form-group">
+                            <label class="form-label">성명</label>
+                            <input type="text" class="form-input" id="memberName" placeholder="홍길동" value="${editMember ? editMember.name : ''}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">생년월일</label>
+                            <div class="form-row">
+                                <input type="text" class="form-input-small" id="birthYear" placeholder="1987" maxlength="4" value="${editMember ? editMember.birthDate.split('-')[0] : ''}" oninput="if(this.value.length >= 4) document.getElementById('birthMonth').focus()">
+                                <span>년</span>
+                                <input type="text" class="form-input-small" id="birthMonth" placeholder="02" maxlength="2" value="${editMember ? editMember.birthDate.split('-')[1] : ''}" oninput="if(this.value.length >= 2) document.getElementById('birthDay').focus()">
+                                <span>월</span>
+                                <input type="text" class="form-input-small" id="birthDay" placeholder="02" maxlength="2" value="${editMember ? editMember.birthDate.split('-')[2] : ''}">
+                                <span>일</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">성별</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="memberGender" value="남" ${!editMember || editMember.gender === '남' ? 'checked' : ''}> 남
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="memberGender" value="여" ${editMember && editMember.gender === '여' ? 'checked' : ''}> 여
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">연락처</label>
+                            <input type="tel" class="form-input" id="memberPhone" placeholder="010-0000-0000" value="${editMember ? editMember.phone : ''}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">거주지역</label>
+                            <select class="form-select" id="memberRegion">
+                                <option value="">선택해주세요</option>
+                                ${state.regions.map(r => `<option value="${r}" ${editMember && editMember.region === r ? 'selected' : ''}>${r}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-primary" style="flex: 1;" onclick="${isEditing ? 'updateMember()' : 'registerMember()'}">
+                                ${isEditing ? '수정 완료' : '등록하기'}
+                            </button>
+                            ${isEditing ? '<button class="btn btn-secondary" onclick="cancelEditMember()">취소</button>' : ''}
+                        </div>
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="flex-between">
+                        <h4 class="panel-title">등록된 회원 (${data.members.length}명)</h4>
+                        <div class="btn-group">
+                            <button class="btn btn-success" onclick="downloadMembersExcel()">📥 엑셀 다운로드</button>
+                            <button class="btn btn-primary" onclick="triggerMemberExcelImport()">📤 엑셀 업로드</button>
+                        </div>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>회원번호</th>
+                                    <th>성명</th>
+                                    <th>성별</th>
+                                    <th>생년월일</th>
+                                    <th>연락처</th>
+                                    <th>거주지역</th>
+                                    <th>가입일</th>
+                                    <th>관리</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.members.length === 0 ? '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #6b7280;">등록된 회원이 없습니다.</td></tr>' : 
+                                data.members.map(m => `
+                                    <tr>
+                                        <td>${m.memberNumber}</td>
+                                        <td>${m.name}</td>
+                                        <td>${m.gender || '-'}</td>
+                                        <td>${m.birthDate}</td>
+                                        <td>${m.phone}</td>
+                                        <td>${m.region || '-'}</td>
+                                        <td>${new Date(m.registeredAt).toLocaleDateString('ko-KR')}</td>
+                                        <td><button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px;" onclick="editMember('${m.id}')">수정</button></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function registerMember() {
+            const name = document.getElementById('memberName').value.trim();
+            const year = document.getElementById('birthYear').value.trim();
+            const month = document.getElementById('birthMonth').value.trim();
+            const day = document.getElementById('birthDay').value.trim();
+            const gender = document.querySelector('input[name="memberGender"]:checked').value;
+            const phone = document.getElementById('memberPhone').value.trim();
+            const region = document.getElementById('memberRegion').value;
+
+            if (!name || !year || !month || !day || !phone || !region) {
+                showAlert('모든 필드를 입력해주세요.', 'error');
+                return;
+            }
+
+            const data = state.branchData[state.selectedBranch];
+            const birthDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+
+            if (data.members.find(m => m.phone === phone)) {
+                showAlert('이미 등록된 연락처입니다.', 'error');
+                return;
+            }
+
+            const memberNumber = generateMemberNumber(birthDate);
+
+            data.members.push({
+                id: 'M' + Date.now(),
+                memberNumber,
+                name, birthDate, gender, phone, region,
+                registeredAt: new Date().toISOString(),
+                status: 'active'
+            });
+
+            triggerAutoSave();
+            showAlert(`${name}님이 등록되었습니다. (회원번호: ${memberNumber})`);
+            renderMember();
+        }
+
+        function editMember(memberId) {
+            state.editingMemberId = memberId;
+            renderMember();
+        }
+
+        function updateMember() {
+            const name = document.getElementById('memberName').value.trim();
+            const year = document.getElementById('birthYear').value.trim();
+            const month = document.getElementById('birthMonth').value.trim();
+            const day = document.getElementById('birthDay').value.trim();
+            const gender = document.querySelector('input[name="memberGender"]:checked').value;
+            const phone = document.getElementById('memberPhone').value.trim();
+            const region = document.getElementById('memberRegion').value;
+
+            if (!name || !year || !month || !day || !phone || !region) {
+                showAlert('모든 필드를 입력해주세요.', 'error');
+                return;
+            }
+
+            const data = state.branchData[state.selectedBranch];
+            const birthDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+            
+            const duplicatePhone = data.members.find(m => m.phone === phone && m.id !== state.editingMemberId);
+            if (duplicatePhone) {
+                showAlert('이미 등록된 연락처입니다.', 'error');
+                return;
+            }
+
+            const memberIdx = data.members.findIndex(m => m.id === state.editingMemberId);
+            if (memberIdx !== -1) {
+                const oldBirthDate = data.members[memberIdx].birthDate;
+                const newMemberNumber = birthDate !== oldBirthDate ? generateMemberNumber(birthDate) : data.members[memberIdx].memberNumber;
+                
+                data.members[memberIdx] = {
+                    ...data.members[memberIdx],
+                    name, birthDate, gender, phone, region, memberNumber: newMemberNumber
+                };
+                triggerAutoSave();
+                showAlert(`${name}님의 정보가 수정되었습니다.`);
+                state.editingMemberId = null;
+                renderMember();
+            }
+        }
+
+        function cancelEditMember() {
+            state.editingMemberId = null;
+            renderMember();
+        }
+
+        function downloadMembersExcel() {
+            const data = state.branchData[state.selectedBranch];
+            const branch = state.branches.find(b => b.id === state.selectedBranch);
+            
+            if (data.members.length === 0) {
+                showAlert('다운로드할 회원 데이터가 없습니다.', 'error');
+                return;
+            }
+            
+            const excelData = data.members.map(m => ({
+                '회원번호': m.memberNumber,
+                '성명': m.name,
+                '성별': m.gender || '-',
+                '생년월일': m.birthDate,
+                '연락처': m.phone,
+                '거주지역': m.region || '-',
+                '가입일': new Date(m.registeredAt).toLocaleDateString('ko-KR'),
+                '상태': m.status === 'active' ? '활동' : '비활동'
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(excelData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '회원목록');
+            
+            const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+            const filename = `${dateStr}_${branch.name}_회원목록.xlsx`;
+            
+            XLSX.writeFile(wb, filename);
+            showAlert(`회원 목록이 다운로드되었습니다.`);
+        }
+
+        function triggerMemberExcelImport() {
+            document.getElementById('memberExcelInput').click();
+        }
+
+        function handleMemberExcelImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!file.name.match(/\.(xlsx|xls)$/)) {
+                showAlert('엑셀 파일(.xlsx, .xls)만 선택할 수 있습니다.', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                    
+                    if (jsonData.length === 0) {
+                        showAlert('엑셀 파일에 데이터가 없습니다.', 'error');
+                        return;
+                    }
+                    
+                    importMembersFromExcel(jsonData);
+                } catch (error) {
+                    showAlert('엑셀 파일을 읽을 수 없습니다.', 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            event.target.value = '';
+        }
+
+        function importMembersFromExcel(jsonData) {
+            const branchData = state.branchData[state.selectedBranch];
+            let successCount = 0;
+            let skipCount = 0;
+            const errors = [];
+            
+            jsonData.forEach((row, index) => {
+                try {
+                    const name = row['성명']?.toString().trim();
+                    const birthDate = row['생년월일']?.toString().trim();
+                    const gender = row['성별']?.toString().trim();
+                    const phone = row['연락처']?.toString().trim();
+                    const region = row['거주지역']?.toString().trim();
+                    
+                    if (!name || !birthDate || !phone) {
+                        errors.push(`${index + 2}행: 필수 정보 누락`);
+                        skipCount++;
+                        return;
+                    }
+                    
+                    let normalizedBirthDate = birthDate;
+                    if (birthDate.match(/^\d{8}$/)) {
+                        normalizedBirthDate = `${birthDate.substring(0,4)}-${birthDate.substring(4,6)}-${birthDate.substring(6,8)}`;
+                    } else if (!birthDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        errors.push(`${index + 2}행: 생년월일 형식 오류`);
+                        skipCount++;
+                        return;
+                    }
+                    
+                    if (branchData.members.find(m => m.phone === phone)) {
+                        errors.push(`${index + 2}행: 중복 연락처`);
+                        skipCount++;
+                        return;
+                    }
+                    
+                    const memberNumber = generateMemberNumber(normalizedBirthDate);
+                    
+                    branchData.members.push({
+                        id: 'M' + Date.now() + '_' + index,
+                        memberNumber,
+                        name,
+                        birthDate: normalizedBirthDate,
+                        gender: gender || '남',
+                        phone,
+                        region: region || '기타',
+                        registeredAt: new Date().toISOString(),
+                        status: 'active'
+                    });
+                    
+                    successCount++;
+                } catch (error) {
+                    skipCount++;
+                }
+            });
+            
+            if (successCount > 0) {
+                triggerAutoSave();
+                showAlert(`${successCount}명 등록${skipCount > 0 ? `, ${skipCount}명 건너뜀` : ''}`);
+            }
+            
+            if (errors.length > 0 && errors.length <= 10) {
+                alert('일부 데이터 등록 실패:\n\n' + errors.slice(0, 5).join('\n'));
+            }
+            
+            renderMember();
+        }
+
+        function renderReservation() {
+            const data = state.branchData[state.selectedBranch];
+            document.getElementById('reservation').innerHTML = `
+                <div class="panel">
+                    <h3 class="panel-title">시설 이용 신청</h3>
+                    <div style="max-width: 800px;">
+                        <div class="form-group">
+                            <label class="form-label">회원 검색</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="searchType" value="name" checked> 이름
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="searchType" value="birth"> 생년월일
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="searchType" value="phone"> 연락처
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="searchType" value="number"> 회원번호
+                                </label>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <input type="text" class="form-input" id="searchValue" placeholder="검색어 입력">
+                                <button class="btn btn-primary" onclick="searchMember()">검색</button>
+                            </div>
+                        </div>
+                        <div id="searchResults"></div>
+                        <div id="reservationForm"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        let selectedMember = null;
+
+        function searchMember() {
+            const data = state.branchData[state.selectedBranch];
+            const searchValue = document.getElementById('searchValue').value.trim();
+            const searchType = document.querySelector('input[name="searchType"]:checked').value;
+
+            if (!searchValue) {
+                showAlert('검색어를 입력해주세요.', 'error');
+                return;
+            }
+
+            let results = [];
+            if (searchType === 'name') {
+                results = data.members.filter(m => m.name.includes(searchValue));
+            } else if (searchType === 'birth') {
+                results = data.members.filter(m => m.birthDate.replace(/-/g, '').includes(searchValue.replace(/-/g, '')));
+            } else if (searchType === 'phone') {
+                results = data.members.filter(m => m.phone.includes(searchValue));
+            } else if (searchType === 'number') {
+                results = data.members.filter(m => m.memberNumber.includes(searchValue));
+            }
+
+            const container = document.getElementById('searchResults');
+            if (results.length === 0) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center; color: #6b7280;">일치하는 회원이 없습니다.</div>';
+                return;
+            }
+
+            container.innerHTML = `
+                <div style="margin: 16px 0;">
+                    <label class="form-label">검색 결과 (${results.length}명)</label>
+                    ${results.map(m => `
+                        <div class="search-result" onclick="selectMemberForReservation('${m.id}')">
+                            <div style="font-weight: 600; font-size: 15px;">${m.name} (${m.memberNumber})</div>
+                            <div style="font-size: 13px; color: #6b7280; margin-top: 4px;">${m.phone} | ${m.birthDate}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function selectMemberForReservation(memberId) {
+            const data = state.branchData[state.selectedBranch];
+            selectedMember = data.members.find(m => m.id === memberId);
+            
+            document.getElementById('searchResults').innerHTML = `
+                <div class="search-result selected">
+                    <div style="font-weight: 600; font-size: 15px;">${selectedMember.name} (${selectedMember.memberNumber})</div>
+                    <div style="font-size: 13px; margin-top: 4px;">${selectedMember.phone} | ${selectedMember.birthDate}</div>
+                </div>
+            `;
+
+            document.getElementById('reservationForm').innerHTML = `
+                <div class="form-group">
+                    <label class="form-label">이용 유형</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="reservationType" value="immediate" checked onchange="toggleReservationTime()"> 즉시 이용
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="reservationType" value="reserved" onchange="toggleReservationTime()"> 예약
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group hidden" id="reservationTimeGroup">
+                    <label class="form-label">예약 시간</label>
+                    <input type="datetime-local" class="form-input" id="reservationTime">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">시설 선택</label>
+                    <div class="facility-grid">
+                        ${data.facilities.map(f => `
+                            <div class="facility-card available" onclick="selectFacility('${f.id}')" style="cursor: pointer;">
+                                <div class="facility-header">
+                                    <div>
+                                        <div class="facility-name">${f.name}</div>
+                                        <div class="facility-info">${f.timeLimit}분, ${f.capacity}명</div>
+                                    </div>
+                                    <div class="status-badge available">선택</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleReservationTime() {
+            const type = document.querySelector('input[name="reservationType"]:checked').value;
+            const timeGroup = document.getElementById('reservationTimeGroup');
+            if (type === 'reserved') {
+                timeGroup.classList.remove('hidden');
+            } else {
+                timeGroup.classList.add('hidden');
+            }
+        }
+
+        function selectFacility(facilityId) {
+            const data = state.branchData[state.selectedBranch];
+            const facility = data.facilities.find(f => f.id === facilityId);
+            const type = document.querySelector('input[name="reservationType"]:checked').value;
+            
+            const startTime = type === 'immediate' ? new Date() : new Date(document.getElementById('reservationTime').value);
+            const endTime = new Date(startTime.getTime() + facility.timeLimit * 60000);
+
+            data.reservations.push({
+                id: 'R' + Date.now(),
+                memberId: selectedMember.id,
+                memberName: selectedMember.name,
+                memberNumber: selectedMember.memberNumber,
+                memberGender: selectedMember.gender,
+                memberRegion: selectedMember.region,
+                facilityId: facility.id,
+                facilityName: facility.name,
+                startTime: startTime.toISOString(),
+                endTime: endTime.toISOString(),
+                status: type === 'immediate' ? 'using' : 'reserved',
+                checkedInAt: type === 'immediate' ? startTime.toISOString() : null,
+                checkedOutAt: null
+            });
+
+            triggerAutoSave();
+            showAlert(`${selectedMember.name}님 - ${facility.name} ${type === 'immediate' ? '이용 시작' : '예약 완료'}`);
+            selectedMember = null;
+            renderReservation();
+        }
+
+        function renderSettings() {
+            const data = state.branchData[state.selectedBranch];
+            const branch = state.branches.find(b => b.id === state.selectedBranch);
+            
+            document.getElementById('settings').innerHTML = `
+                <div class="backup-config-panel">
+                    <h3 class="panel-title"><span>🔄</span> 투트랙 자동 백업 설정</h3>
+                    
+                    <div style="margin-bottom: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 4px;">Track 1: 로컬 폴더 백업 (10분마다)</div>
+                                <div style="font-size: 12px; color: #0c4a6e;">선택한 폴더에 자동으로 백업 파일 저장</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="localBackupToggle" ${state.backupConfig.localEnabled ? 'checked' : ''} onchange="toggleLocalBackup()">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <button class="btn btn-primary" onclick="selectLocalBackupFolder()">
+                            📁 백업 폴더 선택
+                        </button>
+                        <button class="btn btn-success" onclick="performLocalBackup()" style="margin-left: 8px;">
+                            수동 백업
+                        </button>
+                        ${state.backupConfig.lastLocalBackup ? `
+                            <div style="margin-top: 8px; font-size: 12px; color: #0c4a6e;">
+                                마지막 백업: ${new Date(state.backupConfig.lastLocalBackup).toLocaleString('ko-KR')}
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 4px;">Track 2: NAS 서버 백업 (시놀로지 WebDAV)</div>
+                                <div style="font-size: 12px; color: #0c4a6e;">NAS에 자동 백업 및 멀티 시설 데이터 동기화</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="serverBackupToggle" ${state.backupConfig.serverEnabled ? 'checked' : ''} onchange="toggleServerBackup()">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">NAS WebDAV URL</label>
+                            <input type="text" class="form-input" id="nasUrl" placeholder="http://your-nas-ip:5005/webdav/facility-backup/" value="${state.syncConfig.nasUrl}">
+                            <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">
+                                예: http://192.168.0.100:5005/webdav/facility-backup/
+                            </div>
+                        </div>
+                        <div class="form-row" style="margin-bottom: 12px;">
+                            <div style="flex: 1;">
+                                <label class="form-label">NAS 사용자명</label>
+                                <input type="text" class="form-input" id="nasUsername" placeholder="username" value="${state.syncConfig.nasUsername}">
+                            </div>
+                            <div style="flex: 1; margin-left: 8px;">
+                                <label class="form-label">NAS 비밀번호</label>
+                                <input type="password" class="form-input" id="nasPassword" placeholder="password" value="${state.syncConfig.nasPassword}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">자동 동기화 간격 (분)</label>
+                            <input type="number" class="form-input" id="syncInterval" min="1" max="60" value="${state.syncConfig.syncInterval}">
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <label class="form-label" style="margin: 0;">자동 동기화 활성화</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="autoSyncToggle" ${state.syncConfig.autoSync ? 'checked' : ''} onchange="toggleAutoSync()">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="saveNASConfig()">
+                                💾 NAS 설정 저장
+                            </button>
+                            <button class="btn btn-success" onclick="performServerBackup()">
+                                ☁️ 수동 백업
+                            </button>
+                            <button class="btn btn-warning" onclick="testNASConnection()">
+                                🔌 연결 테스트
+                            </button>
+                        </div>
+                        ${state.backupConfig.lastServerBackup ? `
+                            <div style="margin-top: 8px; font-size: 12px; color: #0c4a6e;">
+                                마지막 백업: ${new Date(state.backupConfig.lastServerBackup).toLocaleString('ko-KR')}
+                            </div>
+                        ` : ''}
+                        ${state.syncConfig.lastSync ? `
+                            <div style="margin-top: 4px; font-size: 12px; color: #059669;">
+                                마지막 동기화: ${new Date(state.syncConfig.lastSync).toLocaleString('ko-KR')}
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div style="margin-top: 20px; padding: 12px; background: #dbeafe; border-radius: 6px; font-size: 12px; color: #1e40af;">
+                        <strong>💡 백업 안내:</strong><br>
+                        • 로컬 백업: 브라우저의 File System Access API를 지원하는 Chrome/Edge에서만 사용 가능<br>
+                        • NAS 서버 백업: 온라인 상태에서만 작동하며, 오프라인 시 자동 대기 후 온라인 전환 시 동기화<br>
+                        • LocalStorage는 항상 자동 저장됩니다<br>
+                        • 멀티 시설 동기화: 각 지점의 데이터를 독립적으로 NAS에 저장하여 데이터 충돌 방지
+                    </div>
+
+                    <div style="margin-top: 16px; padding: 16px; background: #f0fdf4; border: 2px solid #86efac; border-radius: 8px; font-size: 12px; color: #166534;">
+                        <strong>📘 시놀로지 NAS 연결 가이드</strong><br><br>
+
+                        <strong>1단계: WebDAV 활성화</strong><br>
+                        • DSM(DiskStation Manager)에 로그인<br>
+                        • 제어판 → 파일 서비스 → WebDAV 탭<br>
+                        • "WebDAV 활성화" 체크<br>
+                        • HTTP 포트: 5005 (기본값) 또는 원하는 포트<br>
+                        • "적용" 클릭<br><br>
+
+                        <strong>2단계: 공유 폴더 생성</strong><br>
+                        • 제어판 → 공유 폴더<br>
+                        • "생성" 클릭<br>
+                        • 이름: facility-backup (또는 원하는 이름)<br>
+                        • 생성 완료<br><br>
+
+                        <strong>3단계: 사용자 권한 설정</strong><br>
+                        • 공유 폴더 선택 → 편집 → 권한 탭<br>
+                        • 사용자에게 "읽기/쓰기" 권한 부여<br>
+                        • "확인" 클릭<br><br>
+
+                        <strong>4단계: 시스템에 설정 입력</strong><br>
+                        • NAS WebDAV URL: http://NAS_IP:5005/webdav/facility-backup/<br>
+                        &nbsp;&nbsp;예: http://192.168.0.100:5005/webdav/facility-backup/<br>
+                        • NAS 사용자명: DSM 계정 사용자명<br>
+                        • NAS 비밀번호: DSM 계정 비밀번호<br>
+                        • "NAS 설정 저장" 클릭<br>
+                        • "연결 테스트"로 연결 확인<br><br>
+
+                        <strong>5단계: 방화벽 설정 (필요시)</strong><br>
+                        • DSM 제어판 → 보안 → 방화벽<br>
+                        • WebDAV 포트(5005) 허용 규칙 추가<br><br>
+
+                        <strong>💡 동작 원리:</strong><br>
+                        • 각 시설은 독립적인 데이터 파일(BR-001_시설명_날짜.json)로 저장됩니다<br>
+                        • 데이터 변경 시에만 NAS에 업로드하여 효율성 향상<br>
+                        • 각 지점의 데이터를 분리하여 충돌 없이 동시 사용 가능<br>
+                        • 자동 동기화 활성화 시 설정한 간격마다 자동으로 백업됩니다<br><br>
+
+                        <strong>⚠️ 주의사항:</strong><br>
+                        • NAS와 동일한 네트워크에 연결되어 있어야 합니다<br>
+                        • 외부에서 접속 시 HTTPS 및 포트 포워딩 설정 필요<br>
+                        • 보안을 위해 강력한 비밀번호 사용을 권장합니다
+                    </div>
+                </div>
+
+                <div class="backup-section">
+                    <h3 class="panel-title"><span>💾</span> 수동 백업 및 복원</h3>
+                    <div class="backup-info">
+                        <strong>📋 백업 기능 안내</strong><br>
+                        • JSON 형식으로 데이터를 백업하고 복원할 수 있습니다.<br>
+                        • 백업 파일은 회원정보, 예약내역, 시설정보, 일지를 모두 포함합니다.
+                    </div>
+                    <div class="backup-warning">
+                        ⚠️ <strong>주의사항</strong><br>
+                        • 데이터를 복원하면 현재 지점의 모든 데이터가 대체됩니다.<br>
+                        • 복원 전에 현재 데이터를 백업해두는 것을 권장합니다.
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="exportDataToJSON()">
+                            📥 현재 지점 백업 (${branch.name})
+                        </button>
+                        <button class="btn btn-success" onclick="exportAllDataToJSON()">
+                            📦 전체 시설 백업
+                        </button>
+                        <button class="btn btn-warning" onclick="triggerFileImport()">
+                            📤 백업 파일 불러오기
+                        </button>
+                    </div>
+                    <div style="margin-top: 16px; padding: 12px; background: #f3f4f6; border-radius: 6px; font-size: 12px; color: #4b5563;">
+                        <strong>현재 데이터:</strong> 회원 ${data.members.length}명 | 시설 ${data.facilities.length}개 | 예약 ${data.reservations.length}건 | 일지 ${data.dailyLogs.length}개
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h3 class="panel-title"><span>⚙️</span> 시설 설정</h3>
+                    
+                    <div class="setting-item" style="background: #eff6ff; border-color: #3b82f6;">
+                        <div class="setting-name">➕ 새 시설 추가</div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label class="form-label">시설명</label>
+                            <input type="text" class="form-input" id="newFacilityName" placeholder="예: 컴퓨터 3번">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label class="form-label">유형</label>
+                            <select class="form-select" id="newFacilityType">
+                                <option value="computer">개별석</option>
+                                <option value="room">단체실</option>
+                            </select>
+                        </div>
+                        <div class="form-row" style="margin-bottom: 12px;">
+                            <div style="flex: 1;">
+                                <label class="form-label">이용시간 제한 (분)</label>
+                                <input type="number" class="form-input" id="newFacilityTimeLimit" placeholder="60" min="1">
+                            </div>
+                            <div style="flex: 1; margin-left: 8px;">
+                                <label class="form-label">수용 인원 (명)</label>
+                                <input type="number" class="form-input" id="newFacilityCapacity" placeholder="1" min="1">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="addNewFacility()">시설 추가</button>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px;">
+                        ${data.facilities.map((f, idx) => `
+                            <div class="setting-item" id="facility-${f.id}">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                    <div class="setting-name">${f.name}</div>
+                                    <button class="btn btn-secondary" style="padding: 4px 12px; font-size: 12px;" onclick="toggleEditFacility('${f.id}')">수정</button>
+                                </div>
+                                
+                                <div id="view-${f.id}">
+                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 12px;">
+                                        유형: ${f.type === 'computer' ? '개별석' : '단체실'}
+                                    </div>
+                                    <div style="margin-bottom: 16px;">
+                                        <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px;">이용시간 제한</div>
+                                        <div class="setting-value">${f.timeLimit}분</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px;">수용 인원</div>
+                                        <div class="setting-value">${f.capacity}명</div>
+                                    </div>
+                                </div>
+
+                                <div id="edit-${f.id}" class="hidden">
+                                    <div class="form-group" style="margin-bottom: 12px;">
+                                        <label class="form-label">시설명</label>
+                                        <input type="text" class="form-input" id="editName-${f.id}" value="${f.name}">
+                                    </div>
+                                    <div class="form-row" style="margin-bottom: 12px;">
+                                        <div style="flex: 1;">
+                                            <label class="form-label">이용시간 제한 (분)</label>
+                                            <input type="number" class="form-input" id="editTimeLimit-${f.id}" value="${f.timeLimit}" min="1">
+                                        </div>
+                                        <div style="flex: 1; margin-left: 8px;">
+                                            <label class="form-label">수용 인원 (명)</label>
+                                            <input type="number" class="form-input" id="editCapacity-${f.id}" value="${f.capacity}" min="1">
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button class="btn btn-primary" onclick="saveFacilityEdit('${f.id}')">저장</button>
+                                        <button class="btn btn-secondary" onclick="toggleEditFacility('${f.id}')">취소</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleLocalBackup() {
+            state.backupConfig.localEnabled = document.getElementById('localBackupToggle').checked;
+            saveBackupConfig();
+            showAlert(`로컬 백업이 ${state.backupConfig.localEnabled ? '활성화' : '비활성화'}되었습니다.`);
+        }
+
+        function toggleServerBackup() {
+            state.backupConfig.serverEnabled = document.getElementById('serverBackupToggle').checked;
+            saveBackupConfig();
+            showAlert(`서버 백업이 ${state.backupConfig.serverEnabled ? '활성화' : '비활성화'}되었습니다.`);
+        }
+
+        function saveServerUrl() {
+            const url = document.getElementById('serverUrl').value.trim();
+            if (!url) {
+                showAlert('서버 URL을 입력해주세요.', 'error');
+                return;
+            }
+            state.backupConfig.serverUrl = url;
+            saveBackupConfig();
+            showAlert('서버 URL이 저장되었습니다.');
+        }
+
+        // NAS 설정 저장
+        function saveNASConfig() {
+            const nasUrl = document.getElementById('nasUrl').value.trim();
+            const nasUsername = document.getElementById('nasUsername').value.trim();
+            const nasPassword = document.getElementById('nasPassword').value;
+            const syncInterval = parseInt(document.getElementById('syncInterval').value);
+
+            if (!nasUrl) {
+                showAlert('NAS WebDAV URL을 입력해주세요.', 'error');
+                return;
+            }
+            if (!nasUsername || !nasPassword) {
+                showAlert('NAS 사용자 정보를 입력해주세요.', 'error');
+                return;
+            }
+            if (!syncInterval || syncInterval < 1) {
+                showAlert('동기화 간격을 올바르게 입력해주세요.', 'error');
+                return;
+            }
+
+            state.syncConfig.nasUrl = nasUrl;
+            state.syncConfig.nasUsername = nasUsername;
+            state.syncConfig.nasPassword = nasPassword;
+            state.syncConfig.syncInterval = syncInterval;
+
+            saveSyncConfig();
+            showAlert('NAS 설정이 저장되었습니다.');
+
+            // 자동 동기화가 켜져 있으면 재시작
+            if (state.syncConfig.autoSync) {
+                location.reload();
+            }
+        }
+
+        // 자동 동기화 토글
+        function toggleAutoSync() {
+            state.syncConfig.autoSync = document.getElementById('autoSyncToggle').checked;
+            saveSyncConfig();
+            showAlert(`자동 동기화가 ${state.syncConfig.autoSync ? '활성화' : '비활성화'}되었습니다.`);
+
+            if (state.syncConfig.autoSync) {
+                showAlert('자동 동기화를 시작하려면 페이지를 새로고침하세요.', 'success');
+            }
+        }
+
+        // NAS 연결 테스트
+        async function testNASConnection() {
+            const nasUrl = document.getElementById('nasUrl').value.trim();
+            const nasUsername = document.getElementById('nasUsername').value.trim();
+            const nasPassword = document.getElementById('nasPassword').value;
+
+            if (!nasUrl || !nasUsername || !nasPassword) {
+                showAlert('NAS 설정을 모두 입력해주세요.', 'error');
+                return;
+            }
+
+            try {
+                const auth = btoa(`${nasUsername}:${nasPassword}`);
+                const response = await fetch(nasUrl, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Authorization': `Basic ${auth}`
+                    }
+                });
+
+                if (response.ok || response.status === 200 || response.status === 204) {
+                    showAlert('✅ NAS 연결 성공! WebDAV 서버에 접근할 수 있습니다.', 'success');
+                } else if (response.status === 401) {
+                    showAlert('❌ 인증 실패: 사용자명 또는 비밀번호를 확인해주세요.', 'error');
+                } else {
+                    showAlert(`❌ 연결 실패: HTTP ${response.status}`, 'error');
+                }
+            } catch (error) {
+                console.error('NAS 연결 테스트 오류:', error);
+                showAlert('❌ NAS 연결 실패: 네트워크 또는 URL을 확인해주세요.', 'error');
+            }
+        }
+
+        function renderDailyLog() {
+            const data = state.branchData[state.selectedBranch];
+            const today = new Date().toISOString().split('T')[0];
+            const todayLog = data.dailyLogs.find(l => l.date === today);
+
+            document.getElementById('dailylog').innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="panel">
+                        <h3 class="panel-title"><span>📝</span> 업무 일지</h3>
+                        <div class="form-group">
+                            <label class="form-label">날짜</label>
+                            <input type="date" class="form-input" id="logDate" value="${today}" onchange="loadLog()">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">제목</label>
+                            <input type="text" class="form-input" id="logTitle" value="${todayLog?.title || ''}" placeholder="일지 제목">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">내용</label>
+                            <textarea id="logContent" placeholder="오늘의 업무 내용을 기록하세요...">${todayLog?.content || ''}</textarea>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-primary" style="flex: 1;" onclick="saveLog()">저장</button>
+                            ${todayLog ? '<button class="btn btn-danger" onclick="deleteLog()">삭제</button>' : ''}
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <h3 class="panel-title"><span>🔍</span> 일지 검색</h3>
+                        <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                            <input type="text" class="form-input" id="logSearch" placeholder="검색어 입력">
+                            <button class="btn btn-primary" onclick="searchLogs()">검색</button>
+                        </div>
+                        <div id="logList">
+                            <div style="font-weight: 600; margin-bottom: 12px;">최근 일지</div>
+                            ${data.dailyLogs.length === 0 ? '<div style="text-align: center; padding: 40px; color: #6b7280;">작성된 일지가 없습니다.</div>' :
+                            data.dailyLogs.slice().reverse().slice(0, 10).map(log => `
+                                <div class="log-item" onclick="viewLog('${log.date}')">
+                                    <div class="log-title">${log.title}</div>
+                                    <div class="log-meta">${log.date} | ${log.content.substring(0, 50)}...</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function saveLog() {
+            const date = document.getElementById('logDate').value;
+            const title = document.getElementById('logTitle').value.trim();
+            const content = document.getElementById('logContent').value.trim();
+
+            if (!title || !content) {
+                showAlert('제목과 내용을 모두 입력해주세요.', 'error');
+                return;
+            }
+
+            const data = state.branchData[state.selectedBranch];
+            const existingIdx = data.dailyLogs.findIndex(l => l.date === date);
+
+            if (existingIdx !== -1) {
+                data.dailyLogs[existingIdx] = { ...data.dailyLogs[existingIdx], title, content, updatedAt: new Date().toISOString() };
+                showAlert('일지가 수정되었습니다.');
+            } else {
+                data.dailyLogs.push({
+                    id: 'LOG-' + Date.now(),
+                    date, title, content,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                });
+                showAlert('일지가 저장되었습니다.');
+            }
+            triggerAutoSave();
+            renderDailyLog();
+        }
+
+        function deleteLog() {
+            if (!confirm('정말로 이 일지를 삭제하시겠습니까?')) return;
+            const date = document.getElementById('logDate').value;
+            const data = state.branchData[state.selectedBranch];
+            data.dailyLogs = data.dailyLogs.filter(l => l.date !== date);
+            triggerAutoSave();
+            showAlert('일지가 삭제되었습니다.');
+            renderDailyLog();
+        }
+
+        function viewLog(date) {
+            document.getElementById('logDate').value = date;
+            loadLog();
+        }
+
+        function loadLog() {
+            const date = document.getElementById('logDate').value;
+            const data = state.branchData[state.selectedBranch];
+            const log = data.dailyLogs.find(l => l.date === date);
+            document.getElementById('logTitle').value = log?.title || '';
+            document.getElementById('logContent').value = log?.content || '';
+        }
+
+        function searchLogs() {
+            renderDailyLog();
+        }
+
+        let currentChartInstances = {};
+        
+        function renderStatistics() {
+            const data = state.branchData[state.selectedBranch];
+            const completed = data.reservations.filter(r => r.status === 'completed');
+            
+            const currentYear = new Date().getFullYear();
+            const years = [];
+            for (let y = currentYear - 30; y <= currentYear; y++) {
+                years.push(y);
+            }
+            
+            document.getElementById('statistics').innerHTML = `
+                <div class="panel">
+                    <div class="flex-between">
+                        <h3 class="panel-title"><span>📊</span> 이용 통계</h3>
+                        <button class="btn btn-success" onclick="downloadAllStatisticsExcel()">📥 통계 엑셀 다운로드</button>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card blue">
+                            <div class="stat-label">총 이용자</div>
+                            <div class="stat-value">${new Set(completed.map(r => r.memberId)).size}</div>
+                        </div>
+                        <div class="stat-card green">
+                            <div class="stat-label">총 이용 건수</div>
+                            <div class="stat-value">${completed.length}</div>
+                        </div>
+                        <div class="stat-card purple">
+                            <div class="stat-label">등록 회원</div>
+                            <div class="stat-value">${data.members.length}</div>
+                        </div>
+                    </div>
+
+                    <div class="panel" style="background: #fffbeb; border-color: #fde047; margin: 20px 0;">
+                        <h4 class="panel-title">🔍 출생년도 필터</h4>
+                        <div class="date-filter">
+                            <label class="form-label" style="margin: 0;">시작:</label>
+                            <select class="form-select" id="birthYearStart" style="width: 120px;">
+                                <option value="">전체</option>
+                                ${years.map(y => `<option value="${y}">${y}년</option>`).join('')}
+                            </select>
+                            <label class="form-label" style="margin: 0;">~</label>
+                            <label class="form-label" style="margin: 0;">종료:</label>
+                            <select class="form-select" id="birthYearEnd" style="width: 120px;">
+                                <option value="">전체</option>
+                                ${years.map(y => `<option value="${y}">${y}년</option>`).join('')}
+                            </select>
+                            <button class="btn btn-primary" onclick="applyBirthYearFilter()">조회</button>
+                            <button class="btn btn-secondary" onclick="resetBirthYearFilter()">초기화</button>
+                        </div>
+                        <div id="filterInfo" style="margin-top: 12px; font-size: 13px; color: #92400e;"></div>
+                    </div>
+
+                    <div class="stats-section">
+                        <h4 style="font-weight: 600; margin-bottom: 16px;">시설별 이용 현황</h4>
+                        ${data.facilities.map((facility, idx) => `
+                            <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 24px;">
+                                <h5 style="font-weight: 600; font-size: 16px; margin-bottom: 16px; color: #1f2937;">
+                                    📍 ${facility.name}
+                                </h5>
+                                
+                                <div style="margin-bottom: 20px;">
+                                    <div style="font-weight: 600; margin-bottom: 8px;">연령별 이용 분포</div>
+                                    <div class="chart-container" style="height: 250px;">
+                                        <canvas id="facilityAgeChart-${facility.id}"></canvas>
+                                    </div>
+                                </div>
+
+                                <div style="margin-bottom: 20px;">
+                                    <div style="font-weight: 600; margin-bottom: 8px;">성별 이용 분포</div>
+                                    <div class="chart-container" style="height: 250px;">
+                                        <canvas id="facilityGenderChart-${facility.id}"></canvas>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div style="font-weight: 600; margin-bottom: 8px;">지역별 이용 분포</div>
+                                    <div class="chart-container" style="height: 250px;">
+                                        <canvas id="facilityRegionChart-${facility.id}"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="stats-section">
+                        <div class="flex-between">
+                            <h4 style="font-weight: 600;">연령별 분포</h4>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="ageChartType" value="bar" checked onchange="updateAgeChart()"> 막대
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="ageChartType" value="pie" onchange="updateAgeChart()"> 원형
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="ageChartType" value="line" onchange="updateAgeChart()"> 선
+                                </label>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="ageChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="stats-section">
+                        <div class="flex-between">
+                            <h4 style="font-weight: 600;">성별 분포</h4>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="genderChartType" value="bar" checked onchange="updateGenderChart()"> 막대
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="genderChartType" value="pie" onchange="updateGenderChart()"> 원형
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="genderChartType" value="line" onchange="updateGenderChart()"> 선
+                                </label>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="genderChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="stats-section">
+                        <div class="flex-between">
+                            <h4 style="font-weight: 600;">지역별 분포</h4>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="regionChartType" value="bar" checked onchange="updateRegionChart()"> 막대
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="regionChartType" value="pie" onchange="updateRegionChart()"> 원형
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="regionChartType" value="line" onchange="updateRegionChart()"> 선
+                                </label>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="regionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            updateAllCharts();
+        }
+
+        function getFilteredMembers() {
+            const data = state.branchData[state.selectedBranch];
+            const startYear = document.getElementById('birthYearStart')?.value;
+            const endYear = document.getElementById('birthYearEnd')?.value;
+            
+            let filtered = [...data.members];
+            
+            if (startYear || endYear) {
+                filtered = filtered.filter(m => {
+                    const birthYear = parseInt(m.birthDate.split('-')[0]);
+                    if (startYear && birthYear < parseInt(startYear)) return false;
+                    if (endYear && birthYear > parseInt(endYear)) return false;
+                    return true;
+                });
+            }
+            
+            return filtered;
+        }
+
+        function applyBirthYearFilter() {
+            const startYear = document.getElementById('birthYearStart').value;
+            const endYear = document.getElementById('birthYearEnd').value;
+            const filtered = getFilteredMembers();
+            const data = state.branchData[state.selectedBranch];
+            
+            let filterText = '';
+            if (startYear && endYear) {
+                filterText = `📌 ${startYear}년 ~ ${endYear}년생 필터 (${filtered.length}명 / 전체 ${data.members.length}명)`;
+            } else if (startYear) {
+                filterText = `📌 ${startYear}년생 이후 필터 (${filtered.length}명 / 전체 ${data.members.length}명)`;
+            } else if (endYear) {
+                filterText = `📌 ${endYear}년생 이전 필터 (${filtered.length}명 / 전체 ${data.members.length}명)`;
+            }
+            
+            document.getElementById('filterInfo').textContent = filterText;
+            updateAllCharts();
+        }
+
+        function resetBirthYearFilter() {
+            document.getElementById('birthYearStart').value = '';
+            document.getElementById('birthYearEnd').value = '';
+            document.getElementById('filterInfo').textContent = '';
+            updateAllCharts();
+        }
+
+        function updateAllCharts() {
+            updateAgeChart();
+            updateGenderChart();
+            updateRegionChart();
+            updateFacilityDetailCharts();
+        }
+
+        function destroyChart(chartId) {
+            if (currentChartInstances[chartId]) {
+                currentChartInstances[chartId].destroy();
+                delete currentChartInstances[chartId];
+            }
+        }
+
+        function updateFacilityDetailCharts() {
+            const data = state.branchData[state.selectedBranch];
+            const filtered = getFilteredMembers();
+            const filteredIds = new Set(filtered.map(m => m.id));
+            
+            data.facilities.forEach(facility => {
+                const facilityReservations = data.reservations.filter(r => 
+                    r.facilityId === facility.id && 
+                    r.status === 'completed' && 
+                    filteredIds.has(r.memberId)
+                );
+                
+                // 연령별 차트
+                const ageGroups = {};
+                facilityReservations.forEach(r => {
+                    const member = data.members.find(m => m.id === r.memberId);
+                    if (member) {
+                        const birthYear = member.birthDate.split('-')[0];
+                        ageGroups[birthYear] = (ageGroups[birthYear] || 0) + 1;
+                    }
+                });
+                
+                const sortedYears = Object.keys(ageGroups).sort();
+                const ageCanvas = document.getElementById(`facilityAgeChart-${facility.id}`);
+                if (ageCanvas) {
+                    destroyChart(`facilityAgeChart-${facility.id}`);
+                    const ctx = ageCanvas.getContext('2d');
+                    currentChartInstances[`facilityAgeChart-${facility.id}`] = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: sortedYears.map(y => y + '년'),
+                            datasets: [{
+                                label: '이용 횟수',
+                                data: sortedYears.map(y => ageGroups[y]),
+                                backgroundColor: 'rgba(139, 92, 246, 0.7)',
+                                borderColor: 'rgba(139, 92, 246, 1)',
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                        }
+                    });
+                }
+                
+                // 성별 차트
+                const genderCounts = { '남': 0, '여': 0 };
+                facilityReservations.forEach(r => {
+                    const member = data.members.find(m => m.id === r.memberId);
+                    if (member && member.gender) {
+                        genderCounts[member.gender]++;
+                    }
+                });
+                
+                const genderCanvas = document.getElementById(`facilityGenderChart-${facility.id}`);
+                if (genderCanvas) {
+                    destroyChart(`facilityGenderChart-${facility.id}`);
+                    const ctx = genderCanvas.getContext('2d');
+                    currentChartInstances[`facilityGenderChart-${facility.id}`] = new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: ['남성', '여성'],
+                            datasets: [{
+                                data: [genderCounts['남'], genderCounts['여']],
+                                backgroundColor: [
+                                    'rgba(59, 130, 246, 0.7)',
+                                    'rgba(236, 72, 153, 0.7)'
+                                ],
+                                borderColor: [
+                                    'rgba(59, 130, 246, 1)',
+                                    'rgba(236, 72, 153, 1)'
+                                ],
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { position: 'right' } }
+                        }
+                    });
+                }
+                
+                // 지역별 차트
+                const regionCounts = {};
+                facilityReservations.forEach(r => {
+                    const member = data.members.find(m => m.id === r.memberId);
+                    if (member) {
+                        const region = member.region || '기타';
+                        regionCounts[region] = (regionCounts[region] || 0) + 1;
+                    }
+                });
+                
+                const sortedRegions = Object.entries(regionCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 10);
+                
+                const regionCanvas = document.getElementById(`facilityRegionChart-${facility.id}`);
+                if (regionCanvas) {
+                    destroyChart(`facilityRegionChart-${facility.id}`);
+                    const ctx = regionCanvas.getContext('2d');
+                    currentChartInstances[`facilityRegionChart-${facility.id}`] = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: sortedRegions.map(r => r[0]),
+                            datasets: [{
+                                label: '이용 횟수',
+                                data: sortedRegions.map(r => r[1]),
+                                backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                                borderColor: 'rgba(16, 185, 129, 1)',
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                        }
+                    });
+                }
+            });
+        }
+
+        function updateAgeChart() {
+            const filtered = getFilteredMembers();
+            
+            const ageGroups = {};
+            filtered.forEach(m => {
+                const birthYear = m.birthDate.split('-')[0];
+                ageGroups[birthYear] = (ageGroups[birthYear] || 0) + 1;
+            });
+            
+            const sortedYears = Object.keys(ageGroups).sort();
+            
+            const chartType = document.querySelector('input[name="ageChartType"]:checked')?.value || 'bar';
+            const canvas = document.getElementById('ageChart');
+            if (!canvas) return;
+            
+            destroyChart('ageChart');
+            
+            const ctx = canvas.getContext('2d');
+            currentChartInstances['ageChart'] = new Chart(ctx, {
+                type: chartType,
+                data: {
+                    labels: sortedYears.map(y => y + '년'),
+                    datasets: [{
+                        label: '회원 수',
+                        data: sortedYears.map(y => ageGroups[y]),
+                        backgroundColor: 'rgba(139, 92, 246, 0.7)',
+                        borderColor: 'rgba(139, 92, 246, 1)',
+                        borderWidth: 2,
+                        fill: chartType === 'line' ? false : true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: chartType === 'pie', position: 'right' }
+                    },
+                    scales: chartType !== 'pie' ? { y: { beginAtZero: true, ticks: { stepSize: 1 } } } : {}
+                }
+            });
+        }
+
+        function updateGenderChart() {
+            const filtered = getFilteredMembers();
+            
+            const genderCounts = {
+                '남': filtered.filter(m => m.gender === '남').length,
+                '여': filtered.filter(m => m.gender === '여').length
+            };
+            
+            const chartType = document.querySelector('input[name="genderChartType"]:checked')?.value || 'bar';
+            const canvas = document.getElementById('genderChart');
+            if (!canvas) return;
+            
+            destroyChart('genderChart');
+            
+            const ctx = canvas.getContext('2d');
+            currentChartInstances['genderChart'] = new Chart(ctx, {
+                type: chartType,
+                data: {
+                    labels: ['남성', '여성'],
+                    datasets: [{
+                        label: '회원 수',
+                        data: [genderCounts['남'], genderCounts['여']],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.7)',
+                            'rgba(236, 72, 153, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(236, 72, 153, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: chartType === 'pie', position: 'right' }
+                    },
+                    scales: chartType !== 'pie' ? { y: { beginAtZero: true, ticks: { stepSize: 1 } } } : {}
+                }
+            });
+        }
+
+        function updateRegionChart() {
+            const filtered = getFilteredMembers();
+            
+            const regionCounts = {};
+            filtered.forEach(m => {
+                const region = m.region || '기타';
+                regionCounts[region] = (regionCounts[region] || 0) + 1;
+            });
+            
+            const sortedRegions = Object.entries(regionCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+            
+            const chartType = document.querySelector('input[name="regionChartType"]:checked')?.value || 'bar';
+            const canvas = document.getElementById('regionChart');
+            if (!canvas) return;
+            
+            destroyChart('regionChart');
+            
+            const ctx = canvas.getContext('2d');
+            currentChartInstances['regionChart'] = new Chart(ctx, {
+                type: chartType,
+                data: {
+                    labels: sortedRegions.map(r => r[0]),
+                    datasets: [{
+                        label: '회원 수',
+                        data: sortedRegions.map(r => r[1]),
+                        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        borderWidth: 2,
+                        fill: chartType === 'line' ? false : true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: chartType === 'pie', position: 'right' }
+                    },
+                    scales: chartType !== 'pie' ? { y: { beginAtZero: true, ticks: { stepSize: 1 } } } : {}
+                }
+            });
+        }
+
+        function downloadAllStatisticsExcel() {
+            const data = state.branchData[state.selectedBranch];
+            const branch = state.branches.find(b => b.id === state.selectedBranch);
+            const filtered = getFilteredMembers();
+            
+            const wb = XLSX.utils.book_new();
+            
+            // 전체 연령별 통계
+            const ageGroups = {};
+            filtered.forEach(m => {
+                const birthYear = m.birthDate.split('-')[0];
+                ageGroups[birthYear] = (ageGroups[birthYear] || 0) + 1;
+            });
+            const ageStats = Object.keys(ageGroups).sort().map(year => ({
+                '출생년도': year + '년',
+                '회원 수': ageGroups[year]
+            }));
+            const ws1 = XLSX.utils.json_to_sheet(ageStats);
+            XLSX.utils.book_append_sheet(wb, ws1, '전체-연령별');
+            
+            // 전체 성별 통계
+            const genderStats = [
+                { '성별': '남성', '회원 수': filtered.filter(m => m.gender === '남').length },
+                { '성별': '여성', '회원 수': filtered.filter(m => m.gender === '여').length }
+            ];
+            const ws2 = XLSX.utils.json_to_sheet(genderStats);
+            XLSX.utils.book_append_sheet(wb, ws2, '전체-성별');
+            
+            // 전체 지역별 통계
+            const regionCounts = {};
+            filtered.forEach(m => {
+                const region = m.region || '기타';
+                regionCounts[region] = (regionCounts[region] || 0) + 1;
+            });
+            const regionStats = Object.entries(regionCounts)
+                .sort((a, b) => b[1] - a[1])
+                .map(([region, count]) => ({ '지역': region, '회원 수': count }));
+            const ws3 = XLSX.utils.json_to_sheet(regionStats);
+            XLSX.utils.book_append_sheet(wb, ws3, '전체-지역별');
+            
+            // 시설별 세부 통계
+            const filteredIds = new Set(filtered.map(m => m.id));
+            data.facilities.forEach((facility, index) => {
+                const facilityReservations = data.reservations.filter(r => 
+                    r.facilityId === facility.id && 
+                    r.status === 'completed' && 
+                    filteredIds.has(r.memberId)
+                );
+                
+                // 시설별 연령 통계
+                const facilityAgeGroups = {};
+                facilityReservations.forEach(r => {
+                    const member = data.members.find(m => m.id === r.memberId);
+                    if (member) {
+                        const birthYear = member.birthDate.split('-')[0];
+                        facilityAgeGroups[birthYear] = (facilityAgeGroups[birthYear] || 0) + 1;
+                    }
+                });
+                const facilityAgeStats = Object.keys(facilityAgeGroups).sort().map(year => ({
+                    '출생년도': year + '년',
+                    '이용 횟수': facilityAgeGroups[year]
+                }));
+                if (facilityAgeStats.length > 0) {
+                    const wsAge = XLSX.utils.json_to_sheet(facilityAgeStats);
+                    XLSX.utils.book_append_sheet(wb, wsAge, `${facility.name}-연령별`.substring(0, 31));
+                }
+                
+                // 시설별 성별 통계
+                const facilityGenderCounts = { '남': 0, '여': 0 };
+                facilityReservations.forEach(r => {
+                    const member = data.members.find(m => m.id === r.memberId);
+                    if (member && member.gender) {
+                        facilityGenderCounts[member.gender]++;
+                    }
+                });
+                const facilityGenderStats = [
+                    { '성별': '남성', '이용 횟수': facilityGenderCounts['남'] },
+                    { '성별': '여성', '이용 횟수': facilityGenderCounts['여'] }
+                ];
+                const wsGender = XLSX.utils.json_to_sheet(facilityGenderStats);
+                XLSX.utils.book_append_sheet(wb, wsGender, `${facility.name}-성별`.substring(0, 31));
+                
+                // 시설별 지역 통계
+                const facilityRegionCounts = {};
+                facilityReservations.forEach(r => {
+                    const member = data.members.find(m => m.id === r.memberId);
+                    if (member) {
+                        const region = member.region || '기타';
+                        facilityRegionCounts[region] = (facilityRegionCounts[region] || 0) + 1;
+                    }
+                });
+                const facilityRegionStats = Object.entries(facilityRegionCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([region, count]) => ({ '지역': region, '이용 횟수': count }));
+                if (facilityRegionStats.length > 0) {
+                    const wsRegion = XLSX.utils.json_to_sheet(facilityRegionStats);
+                    XLSX.utils.book_append_sheet(wb, wsRegion, `${facility.name}-지역별`.substring(0, 31));
+                }
+            });
+            
+            const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+            const filename = `${dateStr}_${branch.name}_전체통계.xlsx`;
+            
+            XLSX.writeFile(wb, filename);
+            showAlert('전체 통계가 다운로드되었습니다.');
+        }
+
+        function renderHistory() {
+            const data = state.branchData[state.selectedBranch];
+            
+            document.getElementById('history').innerHTML = `
+                <div class="panel">
+                    <h3 class="panel-title">이용 기록</h3>
+                    <div class="date-filter">
+                        <label class="form-label" style="margin: 0;">시작일:</label>
+                        <input type="date" class="form-input" id="startDate" style="width: 180px;">
+                        <label class="form-label" style="margin: 0;">종료일:</label>
+                        <input type="date" class="form-input" id="endDate" style="width: 180px;">
+                        <button class="btn btn-primary" onclick="filterHistory()">조회</button>
+                        <button class="btn btn-secondary" onclick="resetHistoryFilter()">전체보기</button>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>회원번호</th>
+                                    <th>회원명</th>
+                                    <th>시설</th>
+                                    <th>시작시간</th>
+                                    <th>종료시간</th>
+                                    <th>상태</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            displayHistory();
+        }
+
+        function displayHistory(filteredData = null) {
+            const data = state.branchData[state.selectedBranch];
+            const reservations = filteredData || data.reservations;
+            const sorted = [...reservations].sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+            
+            const tbody = document.getElementById('historyTableBody');
+            if (sorted.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #6b7280;">이용 기록이 없습니다.</td></tr>';
+            } else {
+                tbody.innerHTML = sorted.map(r => `
+                    <tr>
+                        <td>${r.memberNumber || '-'}</td>
+                        <td>${r.memberName}</td>
+                        <td>${r.facilityName}</td>
+                        <td>${new Date(r.startTime).toLocaleString('ko-KR')}</td>
+                        <td>${new Date(r.endTime).toLocaleString('ko-KR')}</td>
+                        <td>
+                            <span class="status-badge ${r.status === 'using' ? 'using' : r.status === 'reserved' ? 'reserved' : 'available'}">
+                                ${r.status === 'using' ? '이용중' : r.status === 'reserved' ? '예약중' : r.status === 'completed' ? '완료' : '취소'}
+                            </span>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        function filterHistory() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            if (!startDate || !endDate) {
+                showAlert('시작일과 종료일을 모두 선택해주세요.', 'error');
+                return;
+            }
+            
+            const data = state.branchData[state.selectedBranch];
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+            
+            const filtered = data.reservations.filter(r => {
+                const resDate = new Date(r.startTime);
+                return resDate >= start && resDate <= end;
+            });
+            
+            displayHistory(filtered);
+            showAlert(`${filtered.length}건의 기록을 찾았습니다.`);
+        }
+
+        function resetHistoryFilter() {
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            displayHistory();
+        }
+
+        function addNewFacility() {
+            const name = document.getElementById('newFacilityName').value.trim();
+            const type = document.getElementById('newFacilityType').value;
+            const timeLimit = parseInt(document.getElementById('newFacilityTimeLimit').value);
+            const capacity = parseInt(document.getElementById('newFacilityCapacity').value);
+
+            if (!name || !timeLimit || !capacity) {
+                showAlert('모든 필드를 입력해주세요.', 'error');
+                return;
+            }
+
+            const data = state.branchData[state.selectedBranch];
+            const newId = 'FAC-' + Date.now();
+
+            data.facilities.push({
+                id: newId,
+                name: name,
+                type: type,
+                capacity: capacity,
+                timeLimit: timeLimit
+            });
+
+            triggerAutoSave();
+            showAlert(`${name} 시설이 추가되었습니다.`);
+            renderSettings();
+        }
+
+        function toggleEditFacility(facilityId) {
+            const viewDiv = document.getElementById(`view-${facilityId}`);
+            const editDiv = document.getElementById(`edit-${facilityId}`);
+            
+            if (viewDiv.classList.contains('hidden')) {
+                viewDiv.classList.remove('hidden');
+                editDiv.classList.add('hidden');
+            } else {
+                viewDiv.classList.add('hidden');
+                editDiv.classList.remove('hidden');
+            }
+        }
+
+        function saveFacilityEdit(facilityId) {
+            const name = document.getElementById(`editName-${facilityId}`).value.trim();
+            const timeLimit = parseInt(document.getElementById(`editTimeLimit-${facilityId}`).value);
+            const capacity = parseInt(document.getElementById(`editCapacity-${facilityId}`).value);
+
+            if (!name || !timeLimit || !capacity) {
+                showAlert('모든 필드를 입력해주세요.', 'error');
+                return;
+            }
+
+            const data = state.branchData[state.selectedBranch];
+            const facilityIdx = data.facilities.findIndex(f => f.id === facilityId);
+
+            if (facilityIdx !== -1) {
+                data.facilities[facilityIdx].name = name;
+                data.facilities[facilityIdx].timeLimit = timeLimit;
+                data.facilities[facilityIdx].capacity = capacity;
+
+                triggerAutoSave();
+                showAlert(`${name} 시설이 수정되었습니다.`);
+                renderSettings();
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+        
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.branch-selector')) {
+                document.getElementById('branchDropdown').classList.remove('show');
+            }
+        });
+
+        window.addEventListener('beforeunload', function() {
+            saveToStorage();
+        });
+    </script>
+</body>
+</html>
