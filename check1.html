@@ -521,14 +521,14 @@
 
         const state = {
             branches: [
-                { id: 'BR-001', name: '당진청소년문화의집', createdAt: new Date().toISOString() },
-                { id: 'BR-002', name: '합덕청소년문화의집', createdAt: new Date().toISOString() },
-                { id: 'BR-003', name: '송악청소년문화의집', createdAt: new Date().toISOString() },
-                { id: 'BR-004', name: '당진시청소년상담복지센터', createdAt: new Date().toISOString() },
-                { id: 'BR-005', name: '수다벅스 1호점', createdAt: new Date().toISOString() },
-                { id: 'BR-006', name: '수다벅스 2호점', createdAt: new Date().toISOString() },
-                { id: 'BR-007', name: '수다벅스 3호점', createdAt: new Date().toISOString() },
-                { id: 'BR-008', name: '당진시여자단기청소년쉼터', createdAt: new Date().toISOString() }
+                { id: 'BR-001', name: '당진청소년문화의집', color: '#2d3748', createdAt: new Date().toISOString() },
+                { id: 'BR-002', name: '합덕청소년문화의집', color: '#2d3558', createdAt: new Date().toISOString() },
+                { id: 'BR-003', name: '송악청소년문화의집', color: '#3d2d48', createdAt: new Date().toISOString() },
+                { id: 'BR-004', name: '당진시청소년상담복지센터', color: '#2d4838', createdAt: new Date().toISOString() },
+                { id: 'BR-005', name: '수다벅스 1호점', color: '#2d4448', createdAt: new Date().toISOString() },
+                { id: 'BR-006', name: '수다벅스 2호점', color: '#2d3858', createdAt: new Date().toISOString() },
+                { id: 'BR-007', name: '수다벅스 3호점', color: '#2d3748', createdAt: new Date().toISOString() },
+                { id: 'BR-008', name: '당진시여자단기청소년쉼터', color: '#3d2d48', createdAt: new Date().toISOString() }
             ],
             selectedBranch: 'BR-001',
             branchData: {},
@@ -1229,14 +1229,19 @@
 
         function renderBranchList() {
             const list = document.getElementById('branchList');
-            list.innerHTML = state.branches.map(branch => `
-                <div class="dropdown-item ${branch.id === state.selectedBranch ? 'active' : ''}" onclick="selectBranch('${branch.id}')">
-                    <div>
-                        <div style="font-weight: 600;">${branch.name}</div>
-                        <div style="font-size: 11px; color: #6b7280;">개소일: ${new Date(branch.createdAt).toLocaleDateString('ko-KR')}</div>
+            list.innerHTML = state.branches.map(branch => {
+                const branchColor = branch.color || '#2d3748';
+                return `
+                    <div class="dropdown-item ${branch.id === state.selectedBranch ? 'active' : ''}"
+                         onclick="selectBranch('${branch.id}')"
+                         style="border-left: 4px solid ${branchColor}; background: ${branch.id === state.selectedBranch ? branchColor + '20' : 'transparent'};">
+                        <div>
+                            <div style="font-weight: 600;">${branch.name}</div>
+                            <div style="font-size: 11px; color: #6b7280;">개소일: ${new Date(branch.createdAt).toLocaleDateString('ko-KR')}</div>
+                        </div>
                     </div>
-                </div>
-            `).join('') + `
+                `;
+            }).join('') + `
                 <div style="padding: 12px; border-top: 2px solid #e5e7eb;">
                     <button class="btn btn-primary" style="width: 100%; font-size: 13px;" onclick="showAddBranchModal()">
                         ➕ 새 시설 추가
@@ -1257,6 +1262,15 @@
 
         function showAddBranchModal() {
             document.getElementById('branchDropdown').classList.remove('show');
+            const colorOptions = [
+                { name: '기본', value: '#2d3748' },
+                { name: '블루', value: '#2d3558' },
+                { name: '퍼플', value: '#3d2d48' },
+                { name: '그린', value: '#2d4838' },
+                { name: '틸', value: '#2d4448' },
+                { name: '인디고', value: '#2d3858' }
+            ];
+
             document.getElementById('modalContainer').innerHTML = `
                 <div class="modal">
                     <div class="modal-content">
@@ -1265,6 +1279,30 @@
                             <label class="form-label">시설명</label>
                             <input type="text" class="form-input" id="newBranchName" placeholder="예: 당진청소년문화의집 2호점">
                         </div>
+                        <div class="form-group">
+                            <label class="form-label">배경 색상</label>
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                                ${colorOptions.map((color, idx) => `
+                                    <label style="cursor: pointer;">
+                                        <input type="radio" name="branchColor" value="${color.value}" ${idx === 0 ? 'checked' : ''}
+                                               style="display: none;" onchange="updateColorPreview('${color.value}')">
+                                        <div style="
+                                            background: ${color.value};
+                                            border: 2px solid var(--border-primary);
+                                            border-radius: 8px;
+                                            padding: 12px;
+                                            text-align: center;
+                                            font-size: 12px;
+                                            font-weight: 600;
+                                            color: var(--text-primary);
+                                            transition: all 0.2s;
+                                        " class="color-option ${idx === 0 ? 'selected' : ''}" data-color="${color.value}">
+                                            ${color.name}
+                                        </div>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
                         <div style="display: flex; gap: 8px;">
                             <button class="btn btn-primary" style="flex: 1;" onclick="addNewBranch()">추가</button>
                             <button class="btn btn-secondary" style="flex: 1;" onclick="closeModal()">취소</button>
@@ -1272,26 +1310,56 @@
                     </div>
                 </div>
             `;
+
+            // Add click handlers for color selection
+            document.querySelectorAll('.color-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.color-option').forEach(o => {
+                        o.classList.remove('selected');
+                        o.style.borderColor = 'var(--border-primary)';
+                        o.style.transform = 'scale(1)';
+                    });
+                    this.classList.add('selected');
+                    this.style.borderColor = 'var(--accent-blue)';
+                    this.style.transform = 'scale(1.05)';
+                    const radio = this.parentElement.querySelector('input[type="radio"]');
+                    radio.checked = true;
+                });
+            });
+
+            // Set initial selected style
+            const selectedOption = document.querySelector('.color-option.selected');
+            if (selectedOption) {
+                selectedOption.style.borderColor = 'var(--accent-blue)';
+                selectedOption.style.transform = 'scale(1.05)';
+            }
+        }
+
+        function updateColorPreview(color) {
+            // Reserved for future use if needed
         }
 
         function addNewBranch() {
             const name = document.getElementById('newBranchName').value.trim();
-            
+            const selectedColor = document.querySelector('input[name="branchColor"]:checked');
+            const color = selectedColor ? selectedColor.value : '#2d3748';
+
             if (!name) {
                 showAlert('시설명을 입력해주세요.', 'error');
                 return;
             }
-            
+
             if (state.branches.find(b => b.name === name)) {
                 showAlert('이미 존재하는 시설명입니다.', 'error');
                 return;
             }
-            
+
             const newBranchId = 'BR-' + String(Date.now()).slice(-3).padStart(3, '0');
-            
+
             state.branches.push({
                 id: newBranchId,
                 name: name,
+                color: color,
                 createdAt: new Date().toISOString()
             });
             
@@ -1360,7 +1428,7 @@
                         <div class="stat-value">${data.members.length}</div>
                     </div>
                 </div>
-                <div class="panel">
+                <div class="panel" style="background: var(--bg-tertiary);">
                     <h3 class="panel-title"><span>📅</span> 실시간 시설 현황</h3>
                     <div class="facility-grid" id="facilityStatus"></div>
                 </div>
@@ -2759,7 +2827,7 @@
                         </div>
                     </div>
 
-                    <div class="panel" style="background: #fffbeb; border-color: #fde047; margin: 20px 0;">
+                    <div class="panel" style="background: var(--bg-tertiary); border-color: var(--border-primary); margin: 20px 0;">
                         <h4 class="panel-title">🔍 출생년도 필터</h4>
                         <div class="date-filter">
                             <label class="form-label" style="margin: 0;">시작:</label>
@@ -2776,7 +2844,7 @@
                             <button class="btn btn-primary" onclick="applyBirthYearFilter()">조회</button>
                             <button class="btn btn-secondary" onclick="resetBirthYearFilter()">초기화</button>
                         </div>
-                        <div id="filterInfo" style="margin-top: 12px; font-size: 13px; color: #92400e;"></div>
+                        <div id="filterInfo" style="margin-top: 12px; font-size: 13px; color: var(--text-secondary);"></div>
                     </div>
 
                     <div class="stats-section">
