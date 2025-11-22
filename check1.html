@@ -234,16 +234,51 @@
         .tab { padding: 14px 20px; font-weight: 600; color: var(--text-secondary); background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap; font-size: 14px; }
         .tab:hover { color: var(--text-primary); background: var(--bg-tertiary); }
         .tab.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
-        .stat-card { padding: 20px; border-radius: 8px; border: 2px solid; transition: all 0.3s; }
-        .stat-card.blue { background: var(--stat-blue-bg); border-color: var(--stat-blue-border); }
-        .stat-card.green { background: var(--stat-green-bg); border-color: var(--stat-green-border); }
-        .stat-card.purple { background: var(--stat-purple-bg); border-color: var(--stat-purple-border); }
-        .stat-label { font-size: 13px; font-weight: 600; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .stat-card {
+            padding: 24px;
+            border-radius: 12px;
+            border: 2px solid;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.5), transparent);
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15), 0 6px 12px rgba(0,0,0,0.1);
+        }
+        .stat-card.blue {
+            background: linear-gradient(135deg, var(--stat-blue-bg) 0%, var(--stat-blue-bg) 100%);
+            border-color: var(--stat-blue-border);
+        }
+        .stat-card.green {
+            background: linear-gradient(135deg, var(--stat-green-bg) 0%, var(--stat-green-bg) 100%);
+            border-color: var(--stat-green-border);
+        }
+        .stat-card.purple {
+            background: linear-gradient(135deg, var(--stat-purple-bg) 0%, var(--stat-purple-bg) 100%);
+            border-color: var(--stat-purple-border);
+        }
+        .stat-label { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
         .stat-card.blue .stat-label { color: var(--stat-blue-label); }
         .stat-card.green .stat-label { color: var(--stat-green-label); }
         .stat-card.purple .stat-label { color: var(--stat-purple-label); }
-        .stat-value { font-size: 32px; font-weight: bold; margin-top: 8px; }
+        .stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            margin-top: 12px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
         .stat-card.blue .stat-value { color: var(--stat-blue-value); }
         .stat-card.green .stat-value { color: var(--stat-green-value); }
         .stat-card.purple .stat-value { color: var(--stat-purple-value); }
@@ -312,8 +347,28 @@
         .setting-controls { display: flex; align-items: center; gap: 12px; margin: 8px 0; }
         .setting-value { font-size: 20px; font-weight: bold; color: var(--setting-value-color); min-width: 80px; text-align: center; }
         .date-filter { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
-        .chart-container { position: relative; height: 300px; margin: 20px 0; }
-        .stats-section { margin-bottom: 32px; padding-bottom: 32px; border-bottom: 2px solid #e5e7eb; }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+            padding: 20px;
+            background: var(--bg-primary);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.5);
+            transition: all 0.3s ease;
+        }
+        .chart-container:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.5);
+        }
+        .stats-section {
+            margin-bottom: 32px;
+            padding: 24px;
+            padding-bottom: 32px;
+            border-bottom: 2px solid #e5e7eb;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            transition: background-color 0.3s;
+        }
         .stats-section:last-child { border-bottom: none; }
         .backup-section { background: var(--backup-warning-bg); border: 2px solid var(--backup-warning-border); border-radius: 8px; padding: 20px; margin-bottom: 20px; transition: all 0.3s; }
         .backup-info { font-size: 13px; color: var(--backup-warning-text); margin-bottom: 16px; line-height: 1.6; }
@@ -2710,6 +2765,10 @@
                 if (ageCanvas) {
                     destroyChart(`facilityAgeChart-${facility.id}`);
                     const ctx = ageCanvas.getContext('2d');
+                    const gradient = ctx.createLinearGradient(0, 0, 0, 250);
+                    gradient.addColorStop(0, 'rgba(139, 92, 246, 0.9)');
+                    gradient.addColorStop(0.5, 'rgba(139, 92, 246, 0.7)');
+                    gradient.addColorStop(1, 'rgba(139, 92, 246, 0.4)');
                     currentChartInstances[`facilityAgeChart-${facility.id}`] = new Chart(ctx, {
                         type: 'bar',
                         data: {
@@ -2717,16 +2776,42 @@
                             datasets: [{
                                 label: '이용 횟수',
                                 data: sortedYears.map(y => ageGroups[y]),
-                                backgroundColor: 'rgba(139, 92, 246, 0.7)',
+                                backgroundColor: gradient,
                                 borderColor: 'rgba(139, 92, 246, 1)',
-                                borderWidth: 2
+                                borderWidth: 2,
+                                borderRadius: 8,
+                                shadowOffsetX: 3,
+                                shadowOffsetY: 3,
+                                shadowBlur: 10,
+                                shadowColor: 'rgba(139, 92, 246, 0.3)'
                             }]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
-                            plugins: { legend: { display: false } },
-                            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    padding: 12,
+                                    titleFont: { size: 14, weight: 'bold' },
+                                    bodyFont: { size: 13 },
+                                    cornerRadius: 8
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: { stepSize: 1 },
+                                    grid: {
+                                        color: 'rgba(0, 0, 0, 0.05)',
+                                        drawBorder: false
+                                    }
+                                },
+                                x: {
+                                    grid: { display: false }
+                                }
+                            }
                         }
                     });
                 }
@@ -2751,20 +2836,39 @@
                             datasets: [{
                                 data: [genderCounts['남'], genderCounts['여']],
                                 backgroundColor: [
-                                    'rgba(59, 130, 246, 0.7)',
-                                    'rgba(236, 72, 153, 0.7)'
+                                    'rgba(59, 130, 246, 0.85)',
+                                    'rgba(236, 72, 153, 0.85)'
                                 ],
                                 borderColor: [
                                     'rgba(59, 130, 246, 1)',
                                     'rgba(236, 72, 153, 1)'
                                 ],
-                                borderWidth: 2
+                                borderWidth: 3,
+                                hoverOffset: 15,
+                                hoverBorderWidth: 4
                             }]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
-                            plugins: { legend: { position: 'right' } }
+                            plugins: {
+                                legend: {
+                                    position: 'right',
+                                    labels: {
+                                        padding: 15,
+                                        font: { size: 13, weight: '600' },
+                                        usePointStyle: true,
+                                        pointStyle: 'circle'
+                                    }
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    padding: 12,
+                                    titleFont: { size: 14, weight: 'bold' },
+                                    bodyFont: { size: 13 },
+                                    cornerRadius: 8
+                                }
+                            }
                         }
                     });
                 }
@@ -2787,6 +2891,10 @@
                 if (regionCanvas) {
                     destroyChart(`facilityRegionChart-${facility.id}`);
                     const ctx = regionCanvas.getContext('2d');
+                    const gradient = ctx.createLinearGradient(0, 0, 0, 250);
+                    gradient.addColorStop(0, 'rgba(16, 185, 129, 0.9)');
+                    gradient.addColorStop(0.5, 'rgba(16, 185, 129, 0.7)');
+                    gradient.addColorStop(1, 'rgba(16, 185, 129, 0.4)');
                     currentChartInstances[`facilityRegionChart-${facility.id}`] = new Chart(ctx, {
                         type: 'bar',
                         data: {
@@ -2794,16 +2902,38 @@
                             datasets: [{
                                 label: '이용 횟수',
                                 data: sortedRegions.map(r => r[1]),
-                                backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                                backgroundColor: gradient,
                                 borderColor: 'rgba(16, 185, 129, 1)',
-                                borderWidth: 2
+                                borderWidth: 2,
+                                borderRadius: 8
                             }]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
-                            plugins: { legend: { display: false } },
-                            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    padding: 12,
+                                    titleFont: { size: 14, weight: 'bold' },
+                                    bodyFont: { size: 13 },
+                                    cornerRadius: 8
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: { stepSize: 1 },
+                                    grid: {
+                                        color: 'rgba(0, 0, 0, 0.05)',
+                                        drawBorder: false
+                                    }
+                                },
+                                x: {
+                                    grid: { display: false }
+                                }
+                            }
                         }
                     });
                 }
@@ -2828,6 +2958,19 @@
             destroyChart('ageChart');
             
             const ctx = canvas.getContext('2d');
+            let bgColor = 'rgba(139, 92, 246, 0.7)';
+            if (chartType === 'bar') {
+                const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                gradient.addColorStop(0, 'rgba(139, 92, 246, 0.9)');
+                gradient.addColorStop(0.5, 'rgba(139, 92, 246, 0.7)');
+                gradient.addColorStop(1, 'rgba(139, 92, 246, 0.4)');
+                bgColor = gradient;
+            } else if (chartType === 'line') {
+                const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                gradient.addColorStop(0, 'rgba(139, 92, 246, 0.3)');
+                gradient.addColorStop(1, 'rgba(139, 92, 246, 0.05)');
+                bgColor = gradient;
+            }
             currentChartInstances['ageChart'] = new Chart(ctx, {
                 type: chartType,
                 data: {
@@ -2835,19 +2978,54 @@
                     datasets: [{
                         label: '회원 수',
                         data: sortedYears.map(y => ageGroups[y]),
-                        backgroundColor: 'rgba(139, 92, 246, 0.7)',
+                        backgroundColor: bgColor,
                         borderColor: 'rgba(139, 92, 246, 1)',
-                        borderWidth: 2,
-                        fill: chartType === 'line' ? false : true
+                        borderWidth: chartType === 'line' ? 3 : 2,
+                        borderRadius: chartType === 'bar' ? 8 : 0,
+                        fill: chartType === 'line' ? true : true,
+                        tension: chartType === 'line' ? 0.4 : 0,
+                        pointRadius: chartType === 'line' ? 5 : 0,
+                        pointHoverRadius: chartType === 'line' ? 7 : 0,
+                        pointBackgroundColor: 'rgba(139, 92, 246, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        hoverOffset: chartType === 'pie' ? 15 : 0
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: chartType === 'pie', position: 'right' }
+                        legend: {
+                            display: chartType === 'pie',
+                            position: 'right',
+                            labels: {
+                                padding: 15,
+                                font: { size: 13, weight: '600' },
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 13 },
+                            cornerRadius: 8
+                        }
                     },
-                    scales: chartType !== 'pie' ? { y: { beginAtZero: true, ticks: { stepSize: 1 } } } : {}
+                    scales: chartType !== 'pie' ? {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)',
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    } : {}
                 }
             });
         }
@@ -2867,6 +3045,19 @@
             destroyChart('genderChart');
             
             const ctx = canvas.getContext('2d');
+            let bgColors = [
+                'rgba(59, 130, 246, 0.85)',
+                'rgba(236, 72, 153, 0.85)'
+            ];
+            if (chartType === 'bar') {
+                const gradient1 = ctx.createLinearGradient(0, 0, 0, 300);
+                gradient1.addColorStop(0, 'rgba(59, 130, 246, 0.9)');
+                gradient1.addColorStop(1, 'rgba(59, 130, 246, 0.4)');
+                const gradient2 = ctx.createLinearGradient(0, 0, 0, 300);
+                gradient2.addColorStop(0, 'rgba(236, 72, 153, 0.9)');
+                gradient2.addColorStop(1, 'rgba(236, 72, 153, 0.4)');
+                bgColors = [gradient1, gradient2];
+            }
             currentChartInstances['genderChart'] = new Chart(ctx, {
                 type: chartType,
                 data: {
@@ -2874,24 +3065,52 @@
                     datasets: [{
                         label: '회원 수',
                         data: [genderCounts['남'], genderCounts['여']],
-                        backgroundColor: [
-                            'rgba(59, 130, 246, 0.7)',
-                            'rgba(236, 72, 153, 0.7)'
-                        ],
+                        backgroundColor: bgColors,
                         borderColor: [
                             'rgba(59, 130, 246, 1)',
                             'rgba(236, 72, 153, 1)'
                         ],
-                        borderWidth: 2
+                        borderWidth: chartType === 'pie' ? 3 : 2,
+                        borderRadius: chartType === 'bar' ? 8 : 0,
+                        hoverOffset: chartType === 'pie' ? 15 : 0,
+                        hoverBorderWidth: chartType === 'pie' ? 4 : 2
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: chartType === 'pie', position: 'right' }
+                        legend: {
+                            display: chartType === 'pie',
+                            position: 'right',
+                            labels: {
+                                padding: 15,
+                                font: { size: 13, weight: '600' },
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 13 },
+                            cornerRadius: 8
+                        }
                     },
-                    scales: chartType !== 'pie' ? { y: { beginAtZero: true, ticks: { stepSize: 1 } } } : {}
+                    scales: chartType !== 'pie' ? {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)',
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    } : {}
                 }
             });
         }
@@ -2916,6 +3135,19 @@
             destroyChart('regionChart');
             
             const ctx = canvas.getContext('2d');
+            let bgColor = 'rgba(16, 185, 129, 0.7)';
+            if (chartType === 'bar') {
+                const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                gradient.addColorStop(0, 'rgba(16, 185, 129, 0.9)');
+                gradient.addColorStop(0.5, 'rgba(16, 185, 129, 0.7)');
+                gradient.addColorStop(1, 'rgba(16, 185, 129, 0.4)');
+                bgColor = gradient;
+            } else if (chartType === 'line') {
+                const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                gradient.addColorStop(0, 'rgba(16, 185, 129, 0.3)');
+                gradient.addColorStop(1, 'rgba(16, 185, 129, 0.05)');
+                bgColor = gradient;
+            }
             currentChartInstances['regionChart'] = new Chart(ctx, {
                 type: chartType,
                 data: {
@@ -2923,19 +3155,54 @@
                     datasets: [{
                         label: '회원 수',
                         data: sortedRegions.map(r => r[1]),
-                        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                        backgroundColor: bgColor,
                         borderColor: 'rgba(16, 185, 129, 1)',
-                        borderWidth: 2,
-                        fill: chartType === 'line' ? false : true
+                        borderWidth: chartType === 'line' ? 3 : 2,
+                        borderRadius: chartType === 'bar' ? 8 : 0,
+                        fill: chartType === 'line' ? true : true,
+                        tension: chartType === 'line' ? 0.4 : 0,
+                        pointRadius: chartType === 'line' ? 5 : 0,
+                        pointHoverRadius: chartType === 'line' ? 7 : 0,
+                        pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        hoverOffset: chartType === 'pie' ? 15 : 0
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: chartType === 'pie', position: 'right' }
+                        legend: {
+                            display: chartType === 'pie',
+                            position: 'right',
+                            labels: {
+                                padding: 15,
+                                font: { size: 13, weight: '600' },
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 13 },
+                            cornerRadius: 8
+                        }
                     },
-                    scales: chartType !== 'pie' ? { y: { beginAtZero: true, ticks: { stepSize: 1 } } } : {}
+                    scales: chartType !== 'pie' ? {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)',
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    } : {}
                 }
             });
         }
@@ -3049,15 +3316,19 @@
 
         function renderHistory() {
             const data = state.branchData[state.selectedBranch];
-            
+
+            // 오늘 날짜를 YYYY-MM-DD 형식으로 가져오기
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+
             document.getElementById('history').innerHTML = `
                 <div class="panel">
                     <h3 class="panel-title">이용 기록</h3>
                     <div class="date-filter">
                         <label class="form-label" style="margin: 0;">시작일:</label>
-                        <input type="date" class="form-input" id="startDate" style="width: 180px;">
+                        <input type="date" class="form-input" id="startDate" style="width: 180px;" value="${todayStr}">
                         <label class="form-label" style="margin: 0;">종료일:</label>
-                        <input type="date" class="form-input" id="endDate" style="width: 180px;">
+                        <input type="date" class="form-input" id="endDate" style="width: 180px;" value="${todayStr}">
                         <button class="btn btn-primary" onclick="filterHistory()">조회</button>
                         <button class="btn btn-secondary" onclick="resetHistoryFilter()">전체보기</button>
                     </div>
@@ -3079,8 +3350,9 @@
                     </div>
                 </div>
             `;
-            
-            displayHistory();
+
+            // 당일 데이터로 자동 필터링
+            filterHistory();
         }
 
         function displayHistory(filteredData = null) {
