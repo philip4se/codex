@@ -2165,28 +2165,20 @@
                                     const elapsed = Math.floor((new Date() - orderTime) / 60000);
 
                                     return `
-                                        <div class="beverage-order-item" onclick="showBeverageRecipe('${order.beverageId}')"
-                                             style="background: var(--bg-secondary); border: 2px solid var(--border-primary); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.3s; display: flex; justify-content: space-between; align-items: center;">
-                                            <div style="flex: 1;" onclick="event.stopPropagation(); showBeverageRecipe('${order.beverageId}')">
-                                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                                                    <div style="background: var(--accent-blue); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px;">
-                                                        ${idx + 1}
-                                                    </div>
-                                                    <div>
-                                                        <h4 style="font-size: 18px; font-weight: 600; margin: 0; color: var(--text-primary);">
-                                                            ${order.beverageName}
-                                                        </h4>
-                                                        <p style="font-size: 14px; color: var(--text-secondary); margin: 4px 0 0 0;">
-                                                            주문자: ${order.memberName} (${order.memberNumber})
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <div style="font-size: 13px; color: var(--text-tertiary);">
-                                                    ⏱️ ${elapsed}분 전 주문 · ${orderTime.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
-                                                </div>
+                                        <div class="beverage-order-item"
+                                             style="background: var(--bg-secondary); border: 2px solid var(--border-primary); border-radius: 12px; padding: 20px; transition: all 0.3s; display: flex; align-items: center; gap: 16px;">
+                                            <div style="background: var(--accent-blue); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; flex-shrink: 0;">
+                                                ${idx + 1}
+                                            </div>
+                                            <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); cursor: pointer; flex-shrink: 0;" onclick="showBeverageRecipe('${order.beverageId}')">
+                                                ${order.beverageName}
+                                            </div>
+                                            <div style="flex: 1;"></div>
+                                            <div style="font-size: 18px; font-weight: 600; color: #fbbf24; flex-shrink: 0;">
+                                                ${order.memberName}
                                             </div>
                                             <button class="btn btn-success" onclick="event.stopPropagation(); completeBeverageOrder('${order.id}')"
-                                                    style="padding: 12px 24px; font-size: 15px; font-weight: 600; min-width: 100px;">
+                                                    style="padding: 12px 24px; font-size: 15px; font-weight: 600; min-width: 100px; flex-shrink: 0;">
                                                 완료
                                             </button>
                                         </div>
