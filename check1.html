@@ -2371,7 +2371,7 @@
                                             불가능
                                         </button>
                                     ` : `
-                                        <button class="btn btn-primary" onclick="orderBeverage('${beverageId}', '${m.id}')" style="padding: 8px 16px; font-size: 14px;">
+                                        <button class="btn btn-primary" onclick="confirmBeverageOrder('${beverageId}', '${m.id}')" style="padding: 8px 16px; font-size: 14px;">
                                             주문
                                         </button>
                                     `}
@@ -2379,6 +2379,38 @@
                             </div>
                         `;
                     }).join('')}
+                </div>
+            `;
+        }
+
+        // 음료 주문 확인 모달
+        function confirmBeverageOrder(beverageId, memberId) {
+            const data = state.branchData[state.selectedBranch];
+            const beverage = data.beverages.find(b => b.id === beverageId);
+            const member = data.members.find(m => m.id === memberId);
+
+            if (!beverage || !member) return;
+
+            document.getElementById('modalContainer').innerHTML = `
+                <div class="modal">
+                    <div class="modal-content" style="max-width: 400px; text-align: center;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">☕</div>
+                        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">
+                            주문 완료
+                        </h3>
+                        <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin-bottom: 24px;">
+                            <strong>${member.name}</strong> 회원님의<br>
+                            <strong>${beverage.name}</strong> 주문을 진행하시겠습니까?
+                        </p>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-secondary" onclick="closeModal()" style="flex: 1;">
+                                취소
+                            </button>
+                            <button class="btn btn-primary" onclick="orderBeverage('${beverageId}', '${memberId}')" style="flex: 1;">
+                                확인
+                            </button>
+                        </div>
+                    </div>
                 </div>
             `;
         }
