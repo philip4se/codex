@@ -2443,7 +2443,7 @@
             data.beverageOrders.push(order);
             saveData();
             closeModal();
-            showNotification('주문 성공', 'success', false);
+            showNotification('정상 주문 완료', 'success', false);
             renderBeverage();
         }
 
@@ -2454,11 +2454,18 @@
 
             if (!order) return;
 
+            // 상태 업데이트
             order.status = 'completed';
             order.completedTime = new Date().toISOString();
             saveData();
+
+            // 목록 즉시 갱신
             renderBeverage();
-            showNotification('음료 제공이 완료되었습니다', 'success');
+
+            // 완료 알림 표시
+            setTimeout(() => {
+                showNotification('음료 제공이 완료되었습니다', 'success');
+            }, 100);
         }
 
         // 음료 제조 방법 모달
