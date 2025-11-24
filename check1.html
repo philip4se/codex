@@ -944,27 +944,18 @@
         // 교체할 함수 1: selectLocalBackupFolder
         async function selectLocalBackupFolder() {
             try {
-                // Electron의 dialog 모듈을 직접 사용
-                const { dialog } = require('@electron/remote');
-                const result = await dialog.showOpenDialog({
-                    properties: ['openDirectory']
-                });
-
-                if (!result.canceled && result.filePaths.length > 0) {
-                    const folderPath = result.filePaths[0];
-                    state.backupConfig.localFolderPath = folderPath;
-                    showAlert('로컬 백업 폴더가 선택되었습니다.');
-                    await performLocalBackup();
-                }
+                // 브라우저 환경에서는 파일 다운로드로 백업 수행
+                showAlert('로컬 백업을 시작합니다. 파일이 다운로드됩니다.', 'success');
+                await performLocalBackup();
             } catch (error) {
-                console.error('폴더 선택 실패:', error);
-                showAlert('폴더 선택에 실패했습니다.', 'error');
+                console.error('로컬 백업 실패:', error);
+                showAlert('로컬 백업에 실패했습니다.', 'error');
             }
         }
 
         // 교체할 함수 2: performLocalBackup
        async function performLocalBackup() {
-            if (!state.backupConfig.localEnabled || !state.backupConfig.localFolderPath) {
+            if (!state.backupConfig.localEnabled) {
                 return;
             }
 
@@ -981,66 +972,22 @@
                 const dateStr = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
                 const timeStr = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/:/g, '');
                 const filename = `백업_${dateStr}_${timeStr}.json`;
-                
-                // 경로 구분자는 Javascript 내에서 슬래시(/)를 사용해도 모든 OS에서 잘 작동합니다.
-                const fullPath = `${state.backupConfig.localFolderPath}/${filename}`;
 
-                // '다리'를 통해 main.js의 파일 저장 기능을 호출
-                const result = await window.electronAPI.saveFile(fullPath, jsonString);
-
-                if (result.success) {
-                    state.backupConfig.lastLocalBackup = new Date().toISOString();
-                    saveBackupConfig();
-                    updateBackupStatus();
-                    showAlert('로컬 폴더에 백업되었습니다.');
-                } else {
-                    throw new Error(result.error);
-                }
-            } catch (error) {
-                console.error('로컬 백업 실패:', error);
-                showAlert('로컬 백업에 실패했습니다.', 'error');
-            }
-        }
-
-        // Track 2: 중앙 서버 백업
-        // 교체할 함수 2: performLocalBackup
-        async function performLocalBackup() {
-            if (!state.backupConfig.localEnabled || !state.backupConfig.localFolderPath) {
-                return;
-            }
-
-            try {
-                // Node.js의 'fs'와 'path' 모듈을 직접 사용
-                const fs = require('fs');
-                const path = require('path');
-
-                const exportData = {
-                    version: '1.2',
-                    exportDate: new Date().toISOString(),
-                    systemType: 'full',
-                    branches: state.branches,
-                    branchData: state.branchData
-                };
-
-                const jsonString = JSON.stringify(exportData, null, 2);
-                
-                // ===================================================================
-                // !! 최종 수정 !! : 파일 이름에서 시간 부분을 제거하여 하루에 한 파일만 생성
-                const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
-                const filename = `백업_${dateStr}.json`; // <-- 시간(timeStr) 제거!
-                // ===================================================================
-                
-                // path 모듈을 사용하여 전체 파일 경로를 안전하게 생성
-                const fullPath = path.join(state.backupConfig.localFolderPath, filename);
-
-                // fs 모듈로 파일 직접 저장 (같은 이름의 파일이 있으면 자동으로 덮어씁니다)
-                fs.writeFileSync(fullPath, jsonString, 'utf-8');
+                // 브라우저 환경에서는 파일 다운로드로 백업
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
 
                 state.backupConfig.lastLocalBackup = new Date().toISOString();
                 saveBackupConfig();
                 updateBackupStatus();
-                showAlert('로컬 폴더에 백업되었습니다.');
-
+                showAlert('로컬 백업 파일이 다운로드되었습니다.');
             } catch (error) {
                 console.error('로컬 백업 실패:', error);
                 showAlert('로컬 백업에 실패했습니다.', 'error');
@@ -3603,7 +3550,10 @@
             }
 
             try {
-                const auth = btoa(`${nasUsername}:${nasPassword}`);
+                // UTF-8 문자열을 Base64로 안전하게 인코딩 (한글 지원)
+                const credentials = `${nasUsername}:${nasPassword}`;
+                const auth = btoa(unescape(encodeURIComponent(credentials)));
+
                 const response = await fetch(nasUrl, {
                     method: 'OPTIONS',
                     headers: {
