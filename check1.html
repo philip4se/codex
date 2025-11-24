@@ -2456,7 +2456,7 @@
 
             console.log('주문 생성:', order);
             data.beverageOrders.push(order);
-            saveData();
+            triggerAutoSave();
 
             // 성공 알림 표시 (DOM 업데이트 후 실행)
             console.log('주문 성공 알림 표시');
@@ -2490,8 +2490,8 @@
             order.completedTime = new Date().toISOString();
             console.log('상태 변경 후:', order.status);
 
-            saveData();
-            console.log('saveData() 완료');
+            triggerAutoSave();
+            console.log('triggerAutoSave() 완료');
 
             // 목록 즉시 갱신
             console.log('renderBeverage() 호출 전');
