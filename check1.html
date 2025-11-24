@@ -2443,7 +2443,8 @@
 
             data.beverageOrders.push(order);
             saveData();
-            closeModal();
+
+            // 성공 알림 표시 (모달은 자동으로 대체됨)
             showNotification('정상 주문 완료', 'success', false);
             renderBeverage();
         }
