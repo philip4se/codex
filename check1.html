@@ -2138,13 +2138,18 @@
 
         // 음료 주문 탭 렌더링
         function renderBeverage() {
+            console.log('=== renderBeverage 호출됨 ===');
             const data = state.branchData[state.selectedBranch];
+            console.log('전체 음료 주문 수:', data.beverageOrders.length);
+            console.log('모든 주문:', data.beverageOrders.map(o => ({id: o.id, status: o.status, name: o.beverageName})));
 
             if (state.isAdminMode) {
                 // 관리자 모드: 주문 대기 목록 표시
                 const pendingOrders = data.beverageOrders.filter(o => o.status === 'pending').sort((a, b) =>
                     new Date(a.orderTime) - new Date(b.orderTime)
                 );
+                console.log('pending 주문 수:', pendingOrders.length);
+                console.log('pending 주문:', pendingOrders);
 
                 document.getElementById('beverage').innerHTML = `
                     <div class="panel">
@@ -2463,25 +2468,40 @@
 
         // 음료 주문 완료 처리
         function completeBeverageOrder(orderId) {
+            console.log('=== completeBeverageOrder 호출됨 ===');
+            console.log('orderId:', orderId);
+
             const data = state.branchData[state.selectedBranch];
             const order = data.beverageOrders.find(o => o.id === orderId);
 
-            if (!order) return;
+            console.log('찾은 주문:', order);
+
+            if (!order) {
+                console.log('주문을 찾을 수 없음!');
+                return;
+            }
 
             // 모달이 열려있으면 먼저 닫기
             closeModal();
 
             // 상태 업데이트
+            console.log('상태 변경 전:', order.status);
             order.status = 'completed';
             order.completedTime = new Date().toISOString();
+            console.log('상태 변경 후:', order.status);
+
             saveData();
+            console.log('saveData() 완료');
 
             // 목록 즉시 갱신
+            console.log('renderBeverage() 호출 전');
             renderBeverage();
+            console.log('renderBeverage() 호출 완료');
 
             // 완료 알림 표시
             setTimeout(() => {
-                showNotification('음료 제공이 완료되었습니다', 'success');
+                console.log('알림 표시');
+                showNotification('음료 제공이 완료되었습니다', 'success', false);
             }, 100);
         }
 
