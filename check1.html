@@ -2410,11 +2410,16 @@
 
         // 음료 주문 처리
         function orderBeverage(beverageId, memberId) {
+            console.log('orderBeverage 호출됨:', beverageId, memberId);
+
             const data = state.branchData[state.selectedBranch];
             const beverage = data.beverages.find(b => b.id === beverageId);
             const member = data.members.find(m => m.id === memberId);
 
-            if (!beverage || !member) return;
+            if (!beverage || !member) {
+                console.log('beverage 또는 member를 찾을 수 없음');
+                return;
+            }
 
             // 1일 1잔 제한 체크 (대기 중이거나 완료된 주문 모두)
             const today = new Date().toDateString();
@@ -2424,7 +2429,10 @@
                 (order.status === 'pending' || order.status === 'completed')
             );
 
+            console.log('오늘의 주문 수:', todayOrders.length);
+
             if (todayOrders.length > 0) {
+                console.log('1일 1잔 제한 - 이미 주문함');
                 showNotification('1일 1잔 이미 사용', 'error', false);
                 return;
             }
@@ -2441,10 +2449,12 @@
                 status: 'pending'
             };
 
+            console.log('주문 생성:', order);
             data.beverageOrders.push(order);
             saveData();
 
-            // 성공 알림 표시 (모달은 자동으로 대체됨)
+            // 성공 알림 표시
+            console.log('주문 성공 알림 표시');
             showNotification('정상 주문 완료', 'success', false);
             renderBeverage();
         }
