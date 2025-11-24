@@ -2399,7 +2399,7 @@
                             <button class="btn btn-secondary" onclick="closeModal()" style="flex: 1;">
                                 취소
                             </button>
-                            <button class="btn btn-primary" onclick="orderBeverage('${beverageId}', '${memberId}')" style="flex: 1;">
+                            <button class="btn btn-primary" onclick="event.stopPropagation(); event.preventDefault(); orderBeverage('${beverageId}', '${memberId}');" style="flex: 1;">
                                 확인
                             </button>
                         </div>
@@ -2453,9 +2453,11 @@
             data.beverageOrders.push(order);
             saveData();
 
-            // 성공 알림 표시
+            // 성공 알림 표시 (DOM 업데이트 후 실행)
             console.log('주문 성공 알림 표시');
-            showNotification('정상 주문 완료', 'success', false);
+            setTimeout(() => {
+                showNotification('정상 주문 완료', 'success', false);
+            }, 50);
             renderBeverage();
         }
 
