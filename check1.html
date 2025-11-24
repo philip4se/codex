@@ -1389,8 +1389,9 @@
                             }
                         ];
                     }
-                    // beverageOrders 초기화 (기존 주문 내역 제거)
+                    // 회원 이용 내역 초기화 (기존 주문/예약 내역 모두 제거)
                     state.branchData[branch.id].beverageOrders = [];
+                    state.branchData[branch.id].reservations = [];
                 }
             });
             
@@ -2388,7 +2389,7 @@
                     <div class="modal-content" style="max-width: 400px; text-align: center;">
                         <div style="font-size: 48px; margin-bottom: 16px;">☕</div>
                         <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">
-                            주문 완료
+                            주문 확인
                         </h3>
                         <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin-bottom: 24px;">
                             <strong>${member.name}</strong> 회원님의<br>
@@ -2453,6 +2454,9 @@
             const order = data.beverageOrders.find(o => o.id === orderId);
 
             if (!order) return;
+
+            // 모달이 열려있으면 먼저 닫기
+            closeModal();
 
             // 상태 업데이트
             order.status = 'completed';
