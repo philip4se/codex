@@ -824,7 +824,9 @@
                     version: '1.2'
                 };
 
-                const auth = btoa(`${state.syncConfig.nasUsername}:${state.syncConfig.nasPassword}`);
+                // UTF-8 문자열을 Base64로 안전하게 인코딩 (한글 지원)
+                const credentials = `${state.syncConfig.nasUsername}:${state.syncConfig.nasPassword}`;
+                const auth = btoa(unescape(encodeURIComponent(credentials)));
                 const nasPath = state.syncConfig.nasUrl.endsWith('/') ? state.syncConfig.nasUrl : state.syncConfig.nasUrl + '/';
                 const fullUrl = `${nasPath}${filename}`;
 
@@ -859,7 +861,9 @@
             }
 
             try {
-                const auth = btoa(`${state.syncConfig.nasUsername}:${state.syncConfig.nasPassword}`);
+                // UTF-8 문자열을 Base64로 안전하게 인코딩 (한글 지원)
+                const credentials = `${state.syncConfig.nasUsername}:${state.syncConfig.nasPassword}`;
+                const auth = btoa(unescape(encodeURIComponent(credentials)));
                 const nasPath = state.syncConfig.nasUrl.endsWith('/') ? state.syncConfig.nasUrl : state.syncConfig.nasUrl + '/';
 
                 // PROPFIND로 파일 목록 가져오기
