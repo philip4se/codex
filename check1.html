@@ -2089,18 +2089,13 @@
 
         // 음료 주문 탭 렌더링
         function renderBeverage() {
-            console.log('=== renderBeverage 호출됨 ===');
             const data = state.branchData[state.selectedBranch];
-            console.log('전체 음료 주문 수:', data.beverageOrders.length);
-            console.log('모든 주문:', data.beverageOrders.map(o => ({id: o.id, status: o.status, name: o.beverageName})));
 
             if (state.isAdminMode) {
                 // 관리자 모드: 주문 대기 목록 표시
                 const pendingOrders = data.beverageOrders.filter(o => o.status === 'pending').sort((a, b) =>
                     new Date(a.orderTime) - new Date(b.orderTime)
                 );
-                console.log('pending 주문 수:', pendingOrders.length);
-                console.log('pending 주문:', pendingOrders);
 
                 document.getElementById('beverage').innerHTML = `
                     <div class="panel">
@@ -2366,16 +2361,11 @@
 
         // 음료 주문 처리
         function orderBeverage(beverageId, memberId) {
-            console.log('orderBeverage 호출됨:', beverageId, memberId);
-
             const data = state.branchData[state.selectedBranch];
             const beverage = data.beverages.find(b => b.id === beverageId);
             const member = data.members.find(m => m.id === memberId);
 
-            if (!beverage || !member) {
-                console.log('beverage 또는 member를 찾을 수 없음');
-                return;
-            }
+            if (!beverage || !member) return;
 
             // 1일 1잔 제한 체크 (대기 중이거나 완료된 주문 모두)
             const today = new Date().toDateString();
@@ -2385,10 +2375,7 @@
                 (order.status === 'pending' || order.status === 'completed')
             );
 
-            console.log('오늘의 주문 수:', todayOrders.length);
-
             if (todayOrders.length > 0) {
-                console.log('1일 1잔 제한 - 이미 주문함');
                 showNotification('1일 1잔 이미 사용', 'error', false);
                 return;
             }
@@ -2405,12 +2392,10 @@
                 status: 'pending'
             };
 
-            console.log('주문 생성:', order);
             data.beverageOrders.push(order);
             triggerAutoSave();
 
             // 성공 알림 표시 (DOM 업데이트 후 실행)
-            console.log('주문 성공 알림 표시');
             setTimeout(() => {
                 showNotification('정상 주문 완료', 'success', false);
             }, 50);
@@ -2419,39 +2404,24 @@
 
         // 음료 주문 완료 처리
         function completeBeverageOrder(orderId) {
-            console.log('=== completeBeverageOrder 호출됨 ===');
-            console.log('orderId:', orderId);
-
             const data = state.branchData[state.selectedBranch];
             const order = data.beverageOrders.find(o => o.id === orderId);
 
-            console.log('찾은 주문:', order);
-
-            if (!order) {
-                console.log('주문을 찾을 수 없음!');
-                return;
-            }
+            if (!order) return;
 
             // 모달이 열려있으면 먼저 닫기
             closeModal();
 
             // 상태 업데이트
-            console.log('상태 변경 전:', order.status);
             order.status = 'completed';
             order.completedTime = new Date().toISOString();
-            console.log('상태 변경 후:', order.status);
-
             triggerAutoSave();
-            console.log('triggerAutoSave() 완료');
 
             // 목록 즉시 갱신
-            console.log('renderBeverage() 호출 전');
             renderBeverage();
-            console.log('renderBeverage() 호출 완료');
 
             // 완료 알림 표시
             setTimeout(() => {
-                console.log('알림 표시');
                 showNotification('음료 제공이 완료되었습니다', 'success', false);
             }, 100);
         }
