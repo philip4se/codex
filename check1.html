@@ -607,7 +607,8 @@
                 password: '1388'
             },
             pendingSyncData: [],
-            lastDataHash: {}
+            lastDataHash: {},
+            formDrafts: {}  // 폼 입력값 임시 저장소
         };
 
         // 백업 설정 로드
@@ -1117,6 +1118,140 @@
         function triggerAutoSave() {
             clearTimeout(saveTimeout);
             saveTimeout = setTimeout(() => saveToStorage(), 500);
+        }
+
+        // ============================================
+        // 폼 입력값 임시 저장 시스템 (동시 사용 지원)
+        // ============================================
+
+        /**
+         * 현재 페이지의 모든 폼 입력값을 캡처하여 임시 저장
+         */
+        function captureFormDrafts() {
+            const drafts = {};
+
+            // 회원 등록 폼
+            const memberName = document.getElementById('memberName');
+            const birthYear = document.getElementById('birthYear');
+            const birthMonth = document.getElementById('birthMonth');
+            const birthDay = document.getElementById('birthDay');
+            const memberPhone = document.getElementById('memberPhone');
+            const memberRegion = document.getElementById('memberRegion');
+            const memberGender = document.querySelector('input[name="memberGender"]:checked');
+
+            if (memberName) {
+                drafts.member = {
+                    name: memberName.value,
+                    birthYear: birthYear ? birthYear.value : '',
+                    birthMonth: birthMonth ? birthMonth.value : '',
+                    birthDay: birthDay ? birthDay.value : '',
+                    phone: memberPhone ? memberPhone.value : '',
+                    region: memberRegion ? memberRegion.value : '',
+                    gender: memberGender ? memberGender.value : '남'
+                };
+            }
+
+            // 대시보드/시설 검색 입력
+            const dashSearchValue = document.getElementById('dashSearchValue');
+            const dashSearchType = document.querySelector('input[name="dashSearchType"]:checked');
+            if (dashSearchValue) {
+                drafts.dashSearch = {
+                    searchValue: dashSearchValue.value,
+                    searchType: dashSearchType ? dashSearchType.value : 'name'
+                };
+            }
+
+            // 시설 검색 모달 (회원 검색)
+            const facilitySearchInput = document.getElementById('facilitySearchInput');
+            if (facilitySearchInput) {
+                drafts.facilitySearch = {
+                    searchQuery: facilitySearchInput.value
+                };
+            }
+
+            // 음료 주문용 회원 검색
+            const bevSearchValue = document.getElementById('bevSearchValue');
+            const bevSearchType = document.querySelector('input[name="bevSearchType"]:checked');
+            if (bevSearchValue) {
+                drafts.bevSearch = {
+                    searchValue: bevSearchValue.value,
+                    searchType: bevSearchType ? bevSearchType.value : 'name'
+                };
+            }
+
+            state.formDrafts = drafts;
+        }
+
+        /**
+         * 저장된 폼 입력값을 복원
+         */
+        function restoreFormDrafts() {
+            if (!state.formDrafts || Object.keys(state.formDrafts).length === 0) {
+                return;
+            }
+
+            const drafts = state.formDrafts;
+
+            // 회원 등록 폼 복원
+            if (drafts.member) {
+                const memberName = document.getElementById('memberName');
+                const birthYear = document.getElementById('birthYear');
+                const birthMonth = document.getElementById('birthMonth');
+                const birthDay = document.getElementById('birthDay');
+                const memberPhone = document.getElementById('memberPhone');
+                const memberRegion = document.getElementById('memberRegion');
+
+                if (memberName && drafts.member.name) memberName.value = drafts.member.name;
+                if (birthYear && drafts.member.birthYear) birthYear.value = drafts.member.birthYear;
+                if (birthMonth && drafts.member.birthMonth) birthMonth.value = drafts.member.birthMonth;
+                if (birthDay && drafts.member.birthDay) birthDay.value = drafts.member.birthDay;
+                if (memberPhone && drafts.member.phone) memberPhone.value = drafts.member.phone;
+                if (memberRegion && drafts.member.region) memberRegion.value = drafts.member.region;
+
+                if (drafts.member.gender) {
+                    const genderRadio = document.querySelector(`input[name="memberGender"][value="${drafts.member.gender}"]`);
+                    if (genderRadio) genderRadio.checked = true;
+                }
+            }
+
+            // 대시보드/시설 검색 복원
+            if (drafts.dashSearch) {
+                const dashSearchValue = document.getElementById('dashSearchValue');
+                if (dashSearchValue && drafts.dashSearch.searchValue) {
+                    dashSearchValue.value = drafts.dashSearch.searchValue;
+                }
+                if (drafts.dashSearch.searchType) {
+                    const searchTypeRadio = document.querySelector(`input[name="dashSearchType"][value="${drafts.dashSearch.searchType}"]`);
+                    if (searchTypeRadio) searchTypeRadio.checked = true;
+                }
+            }
+
+            // 시설 검색 복원
+            if (drafts.facilitySearch) {
+                const facilitySearchInput = document.getElementById('facilitySearchInput');
+                if (facilitySearchInput && drafts.facilitySearch.searchQuery) {
+                    facilitySearchInput.value = drafts.facilitySearch.searchQuery;
+                }
+            }
+
+            // 음료 주문용 회원 검색 복원
+            if (drafts.bevSearch) {
+                const bevSearchValue = document.getElementById('bevSearchValue');
+                if (bevSearchValue && drafts.bevSearch.searchValue) {
+                    bevSearchValue.value = drafts.bevSearch.searchValue;
+                }
+                if (drafts.bevSearch.searchType) {
+                    const searchTypeRadio = document.querySelector(`input[name="bevSearchType"][value="${drafts.bevSearch.searchType}"]`);
+                    if (searchTypeRadio) searchTypeRadio.checked = true;
+                }
+            }
+        }
+
+        /**
+         * 폼 입력값 초기화 (등록/수정 완료 후 호출)
+         */
+        function clearFormDrafts() {
+            state.formDrafts = {};
         }
 
         function exportDataToJSON() {
@@ -2463,6 +2598,9 @@
             const isEditing = state.editingMemberId !== null;
             const editMember = isEditing ? data.members.find(m => m.id === state.editingMemberId) : null;
 
+            // 현재 입력 중인 폼 값 캡처
+            captureFormDrafts();
+
             document.getElementById('member').innerHTML = `
                 <div class="panel">
                     <h3 class="panel-title">${isEditing ? '회원 정보 수정' : '신규 회원 등록'}</h3>
@@ -2561,6 +2699,9 @@
                     </div>
                 `}
             `;
+
+            // DOM 렌더링 후 입력값 복원
+            setTimeout(() => restoreFormDrafts(), 0);
         }
 
         function registerMember() {
@@ -2596,6 +2737,7 @@
             });
 
             triggerAutoSave();
+            clearFormDrafts();  // 등록 완료 후 임시 데이터 삭제
             showAlert(`${name}님이 등록되었습니다. (회원번호: ${memberNumber})`);
             renderMember();
         }
@@ -2638,6 +2780,7 @@
                     name, birthDate, gender, phone, region, memberNumber: newMemberNumber
                 };
                 triggerAutoSave();
+                clearFormDrafts();  // 수정 완료 후 임시 데이터 삭제
                 showAlert(`${name}님의 정보가 수정되었습니다.`);
                 state.editingMemberId = null;
                 renderMember();
