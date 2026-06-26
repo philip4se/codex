@@ -1,5 +1,6 @@
 node_modules/
 heyday-preview.png
-shot.mjs
+prev-*.png
+shot*.mjs
 package-lock.json
 package.json

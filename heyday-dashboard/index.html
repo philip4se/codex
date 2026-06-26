@@ -4,282 +4,31 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>MK CREATIVE'S HEYDAY · 대시보드</title>
-<style>
-  /* ============================================================
-     MK CREATIVE'S HEYDAY — Dashboard prototype (single file)
-     의존성 없음: 인라인 CSS, 시스템/Pretendard 폰트 폴백
-     원본 영상(빌더 조쉬 x 김미경) 36분 지점 대시보드 화면 재현
-     ============================================================ */
-
-  :root{
-    --purple:        #7c5cff;
-    --purple-600:    #6d4bf0;
-    --purple-tint:   #f1eefe;
-    --purple-tint-2: #ede9fe;
-    --bg:            #f6f6f8;
-    --card:          #ffffff;
-    --border:        #ececf1;
-    --border-soft:   #f2f2f6;
-    --ink:           #15161a;
-    --ink-2:         #41434c;
-    --muted:         #8a8f98;
-    --muted-2:       #aab0ba;
-    --red:           #ef4444;
-    --teal:          #10b981;
-    --amber:         #f59e0b;
-    --blue:          #3b82f6;
-    --radius:        14px;
-    --shadow:        0 1px 2px rgba(20,22,30,.04), 0 1px 3px rgba(20,22,30,.05);
-    --font: "Pretendard","Pretendard Variable",-apple-system,BlinkMacSystemFont,
-            "Apple SD Gothic Neo","Malgun Gothic","Segoe UI",Roboto,sans-serif;
-  }
-
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%}
-  body{
-    font-family:var(--font);
-    background:var(--bg);
-    color:var(--ink);
-    -webkit-font-smoothing:antialiased;
-    font-size:14px;
-    line-height:1.5;
-  }
-  .app{display:flex;min-height:100vh}
-
-  /* ---------------- Sidebar ---------------- */
-  .sidebar{
-    width:236px;flex:0 0 236px;
-    background:#fcfcfd;
-    border-right:1px solid var(--border);
-    display:flex;flex-direction:column;
-    padding:22px 16px 16px;
-    position:sticky;top:0;height:100vh;
-  }
-  .logo{padding:0 8px;margin-bottom:20px;line-height:1.25}
-  .logo .l1{font-weight:800;font-size:15px;letter-spacing:-.2px}
-  .logo .l1 b{color:var(--purple)}
-  .logo .l2{font-weight:800;font-size:15px;letter-spacing:-.2px;color:var(--ink)}
-
-  .search{
-    display:flex;align-items:center;gap:8px;
-    background:#fff;border:1px solid var(--border);
-    border-radius:10px;padding:8px 10px;margin-bottom:22px;
-    color:var(--muted-2);font-size:13px;
-  }
-  .search .ico{width:15px;height:15px;opacity:.6}
-  .search .kbd{
-    margin-left:auto;font-size:11px;color:var(--muted);
-    background:#f4f4f7;border:1px solid var(--border);
-    border-radius:6px;padding:1px 6px;font-weight:600;
-  }
-
-  .nav-label{
-    font-size:10.5px;font-weight:700;letter-spacing:.12em;
-    color:var(--muted-2);padding:0 10px;margin:4px 0 8px;
-  }
-  .nav{display:flex;flex-direction:column;gap:2px}
-  .nav a{
-    display:flex;align-items:center;gap:11px;
-    padding:9px 11px;border-radius:10px;
-    color:var(--ink-2);text-decoration:none;font-weight:500;font-size:13.5px;
-    position:relative;transition:background .12s;
-  }
-  .nav a .ico{width:17px;height:17px;color:var(--muted);stroke-width:1.8}
-  .nav a:hover{background:#f4f4f7}
-  .nav a.active{
-    background:var(--purple-tint);color:var(--purple-600);font-weight:600;
-  }
-  .nav a.active .ico{color:var(--purple-600)}
-  .nav a.active::before{
-    content:"";position:absolute;left:-16px;top:8px;bottom:8px;width:3px;
-    background:var(--purple);border-radius:0 3px 3px 0;
-  }
-  .nav .divider{height:1px;background:var(--border-soft);margin:12px 6px}
-
-  .sidebar .foot{margin-top:auto;padding-top:14px;border-top:1px solid var(--border-soft)}
-  .userrow{display:flex;align-items:center;gap:10px;padding:6px 8px}
-  .avatar{
-    width:30px;height:30px;border-radius:50%;flex:0 0 30px;
-    display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff;
-  }
-  .avatar.me{background:linear-gradient(135deg,#8b6cff,#6d4bf0)}
-  .userrow .nm{font-weight:600;font-size:13px}
-  .userrow .rl{font-size:10.5px;color:var(--muted);letter-spacing:.08em}
-  .logout{
-    display:flex;align-items:center;gap:9px;margin-top:6px;padding:8px;
-    color:var(--muted);font-size:12.5px;border-radius:8px;cursor:pointer;
-  }
-  .logout:hover{background:#f4f4f7}
-  .logout .ico{width:15px;height:15px}
-
-  /* ---------------- Main ---------------- */
-  .main{flex:1;min-width:0;padding:30px 40px 60px}
-  .container{max-width:1180px;margin:0 auto}
-
-  /* banner */
-  .banner{
-    background:linear-gradient(90deg,var(--purple-tint) 0%,#faf9ff 60%);
-    border:1px solid #e7e1fb;border-left:3px solid var(--purple);
-    border-radius:var(--radius);padding:18px 22px;margin-bottom:22px;
-  }
-  .banner .tag{
-    font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--purple-600);
-    margin-bottom:7px;
-  }
-  .banner .msg{font-size:15px;font-weight:600;color:var(--ink)}
-
-  /* kpi */
-  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
-  .kpi{
-    background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
-    padding:18px 20px;box-shadow:var(--shadow);
-  }
-  .kpi .lab{font-size:11px;font-weight:700;letter-spacing:.09em;color:var(--muted)}
-  .kpi .val{font-size:34px;font-weight:800;letter-spacing:-1px;margin-top:10px;line-height:1}
-  .kpi .val.red{color:var(--red)}
-  .kpi .sub{font-size:11.5px;color:var(--muted-2);margin-top:8px}
-
-  /* card */
-  .card{
-    background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
-    box-shadow:var(--shadow);margin-bottom:22px;
-  }
-  .card .hd{padding:20px 22px 0}
-  .card .bd{padding:6px 22px 20px}
-  .title{font-size:21px;font-weight:800;letter-spacing:-.4px;display:inline-flex;align-items:baseline}
-  .title .dot{color:var(--purple);margin-left:1px}
-
-  /* filter tabs */
-  .tabs{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:16px}
-  .tab{font-size:13px;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:5px;padding-bottom:2px}
-  .tab .cnt{font-size:11px;color:var(--muted-2);font-weight:600}
-  .tab.on{color:var(--ink);font-weight:700}
-  .tab.on .cnt{color:var(--purple-600)}
-
-  .cat-row{
-    display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap;
-    margin-top:14px;padding-top:14px;border-top:1px solid var(--border-soft);
-  }
-  .cat-label{font-size:10.5px;font-weight:700;letter-spacing:.1em;color:var(--muted-2);margin-right:2px}
-  .chip{
-    font-size:12.5px;color:var(--muted);cursor:pointer;
-    padding:3px 4px;display:inline-flex;gap:5px;align-items:center;
-  }
-  .chip .cnt{font-size:11px;color:var(--muted-2)}
-  .chip.on{color:#fff;background:var(--purple);border-radius:8px;padding:4px 10px;font-weight:600}
-  .chip.on .cnt{color:#fff;opacity:.85}
-
-  /* table */
-  table{width:100%;border-collapse:collapse;margin-top:14px}
-  thead th{
-    text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.09em;
-    color:var(--muted-2);padding:10px 14px;border-bottom:1px solid var(--border);
-  }
-  tbody td{padding:16px 14px;border-bottom:1px solid var(--border-soft);vertical-align:middle}
-  tbody tr:last-child td{border-bottom:none}
-  .proj-nm{font-weight:600;font-size:14px;color:var(--ink)}
-  .proj-cat{font-size:11.5px;color:var(--muted-2);margin-top:3px}
-  .status-pill{
-    display:inline-block;font-size:11.5px;font-weight:600;
-    background:var(--purple-tint);color:var(--purple-600);
-    padding:3px 11px;border-radius:20px;
-  }
-  .prog{display:flex;align-items:center;gap:10px;min-width:130px}
-  .prog .bar{flex:1;height:5px;background:#eceaf6;border-radius:4px;overflow:hidden}
-  .prog .bar i{display:block;height:100%;background:var(--purple);border-radius:4px}
-  .prog .pct{font-size:12.5px;font-weight:600;color:var(--ink-2);width:34px;text-align:right}
-  .owner{display:flex;align-items:center;gap:8px}
-  .owner .avatar{width:24px;height:24px;flex:0 0 24px;font-size:10px;background:#e7e4f6;color:var(--purple-600)}
-  .owner .avatar.dark{background:#3a3b42}
-  .owner span{font-size:13px;color:var(--ink-2)}
-  .due,.tasks{font-size:13px;color:var(--ink-2)}
-  .nextup{font-size:13px;color:var(--ink-2)}
-
-  /* wbs mini gantt */
-  .gantt-range{font-size:12px;color:var(--muted);margin-top:4px}
-  .gantt{margin-top:18px}
-  .gantt .axis{
-    display:grid;grid-template-columns:160px 1fr;align-items:center;
-    font-size:11px;color:var(--muted-2);border-bottom:1px solid var(--border-soft);
-    padding-bottom:8px;
-  }
-  .gantt .axis .ticks{display:flex;justify-content:space-between;position:relative}
-  .gantt .axis .today{color:#fff;background:var(--purple);border-radius:6px;padding:1px 8px;font-weight:700;font-size:10.5px}
-  .grow{
-    display:grid;grid-template-columns:160px 1fr;align-items:center;
-    padding:9px 0;border-bottom:1px solid var(--border-soft);
-  }
-  .grow:last-child{border-bottom:none}
-  .grow .gn{font-size:12.5px;color:var(--ink-2);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:12px}
-  .track{position:relative;height:14px}
-  .seg{position:absolute;height:8px;top:3px;border-radius:5px}
-
-  @media (max-width:1080px){
-    .kpis{grid-template-columns:repeat(2,1fr)}
-  }
-  @media (max-width:760px){
-    .sidebar{display:none}
-    .main{padding:20px}
-  }
-</style>
+<link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 <div class="app">
 
   <!-- ========== SIDEBAR ========== -->
   <aside class="sidebar">
-    <div class="logo">
-      <div class="l1"><b>MK CREATIVE'S</b></div>
-      <div class="l2">HEYDAY</div>
-    </div>
-
+    <div class="logo"><div class="l1"><b>MK CREATIVE'S</b></div><div class="l2">HEYDAY</div></div>
     <div class="search">
       <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
-      <span>검색</span>
-      <span class="kbd">⌘K</span>
+      <span>검색</span><span class="kbd">⌘K</span>
     </div>
-
     <div class="nav-label">WORKSPACE</div>
     <nav class="nav">
-      <a href="#" class="active">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-        대시보드
-      </a>
-      <a href="#">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v16"/></svg>
-        WBS
-      </a>
-      <a href="#">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>
-        Our Tasks
-      </a>
-      <a href="#">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
-        회의록
-      </a>
-      <a href="#">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 17l6-6 4 4 7-7"/><path d="M17 8h4v4"/></svg>
-        매출
-      </a>
+      <a href="index.html" class="active"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>대시보드</a>
+      <a href="pages/wbs.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v16"/></svg>WBS</a>
+      <a href="pages/tasks.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>Our Tasks</a>
+      <a href="pages/meetings.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>회의록</a>
+      <a href="pages/revenue.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 17l6-6 4 4 7-7"/><path d="M17 8h4v4"/></svg>매출</a>
       <div class="divider"></div>
-      <a href="#">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 5a2 2 0 0 1 2-2h7v18H6a2 2 0 0 0-2 2z"/><path d="M13 3h5a2 2 0 0 1 2 2v16a2 2 0 0 0-2-2h-5"/></svg>
-        이용가이드
-      </a>
+      <a href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 5a2 2 0 0 1 2-2h7v18H6a2 2 0 0 0-2 2z"/><path d="M13 3h5a2 2 0 0 1 2 2v16a2 2 0 0 0-2-2h-5"/></svg>이용가이드</a>
     </nav>
-
     <div class="foot">
-      <div class="userrow">
-        <div class="avatar me">미</div>
-        <div>
-          <div class="nm">미경</div>
-          <div class="rl">ADMIN</div>
-        </div>
-      </div>
-      <div class="logout">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
-        로그아웃
-      </div>
+      <div class="userrow"><div class="avatar me">미</div><div><div class="nm">미경</div><div class="rl">ADMIN</div></div></div>
+      <div class="logout"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>로그아웃</div>
     </div>
   </aside>
 
@@ -287,13 +36,11 @@
   <main class="main">
     <div class="container">
 
-      <!-- banner -->
       <div class="banner">
         <div class="tag">TEAM MODE · WEEK OF 2026.06.01</div>
         <div class="msg">이번 주는 신규강좌 오픈에 화력을 모읍니다. 흩어지지 말고 런칭에 집중해요.</div>
       </div>
 
-      <!-- KPIs -->
       <div class="kpis">
         <div class="kpi"><div class="lab">ACTIVE PROJECTS</div><div class="val">7</div><div class="sub">전체 10건 중 활성</div></div>
         <div class="kpi"><div class="lab">OPEN TASKS</div><div class="val">31</div><div class="sub">이번 주 마감 12건</div></div>
@@ -301,10 +48,9 @@
         <div class="kpi"><div class="lab">MTD REVENUE</div><div class="val">₩48.2M</div><div class="sub">목표 대비 86%</div></div>
       </div>
 
-      <!-- 포트폴리오 -->
       <div class="card">
         <div class="hd">
-          <span class="title">포트폴리오<span class="dot">.</span></span>
+          <span class="title sm">포트폴리오<span class="dot">.</span></span>
           <div class="tabs">
             <div class="tab">전체 <span class="cnt">10</span></div>
             <div class="tab on">활성 <span class="cnt">5</span></div>
@@ -325,118 +71,73 @@
         </div>
         <div class="bd">
           <table>
-            <thead>
-              <tr>
-                <th>PROJECT</th><th>STATUS</th><th>PROGRESS</th>
-                <th>OWNER</th><th>DUE</th><th>TASKS</th><th>NEXT UP</th>
-              </tr>
-            </thead>
+            <thead><tr><th>PROJECT</th><th>STATUS</th><th>PROGRESS</th><th>OWNER</th><th>DUE</th><th>TASKS</th><th>NEXT UP</th></tr></thead>
             <tbody>
               <tr>
                 <td><div class="proj-nm">김미경의 20분 과외</div><div class="proj-cat">기타</div></td>
                 <td><span class="status-pill">활성</span></td>
                 <td><div class="prog"><div class="bar"><i style="width:25%"></i></div><span class="pct">25%</span></div></td>
                 <td><div class="owner"><div class="avatar dark">하</div><span>하루</span></div></td>
-                <td class="due">2026.07.16</td><td class="tasks">2/8</td>
-                <td class="nextup">'돈 공부' 편 촬영</td>
+                <td class="due">2026.07.16</td><td class="tasks">2/8</td><td class="nextup">'돈 공부' 편 촬영</td>
               </tr>
               <tr>
                 <td><div class="proj-nm">언니의 따뜻한 독설</div><div class="proj-cat">기타</div></td>
                 <td><span class="status-pill">활성</span></td>
                 <td><div class="prog"><div class="bar"><i style="width:20%"></i></div><span class="pct">20%</span></div></td>
                 <td><div class="owner"><div class="avatar">온</div><span>온돌</span></div></td>
-                <td class="due">2026.07.21</td><td class="tasks">1/5</td>
-                <td class="nextup">선정 사연 3건 구성안</td>
+                <td class="due">2026.07.21</td><td class="tasks">1/5</td><td class="nextup">선정 사연 3건 구성안</td>
               </tr>
               <tr>
                 <td><div class="proj-nm">MKYU 5월 신규 강좌 런칭</div><div class="proj-cat">강의 상품</div></td>
                 <td><span class="status-pill">활성</span></td>
                 <td><div class="prog"><div class="bar"><i style="width:33%"></i></div><span class="pct">33%</span></div></td>
                 <td><div class="owner"><div class="avatar">지</div><span>지나</span></div></td>
-                <td class="due">2026.07.06</td><td class="tasks">2/6</td>
-                <td class="nextup">오픈 안내 메일 · SNS 발송</td>
+                <td class="due">2026.07.06</td><td class="tasks">2/6</td><td class="nextup">오픈 안내 메일 · SNS 발송</td>
               </tr>
               <tr>
                 <td><div class="proj-nm">김미경 북클럽 시즌3</div><div class="proj-cat">커뮤니티</div></td>
                 <td><span class="status-pill">활성</span></td>
                 <td><div class="prog"><div class="bar"><i style="width:25%"></i></div><span class="pct">25%</span></div></td>
                 <td><div class="owner"><div class="avatar">온</div><span>온돌</span></div></td>
-                <td class="due">2026.07.31</td><td class="tasks">1/4</td>
-                <td class="nextup">격주 라이브 모임 진행</td>
+                <td class="due">2026.07.31</td><td class="tasks">1/4</td><td class="nextup">격주 라이브 모임 진행</td>
               </tr>
               <tr>
                 <td><div class="proj-nm">5월 멤버십 라이브 특강</div><div class="proj-cat">이벤트</div></td>
                 <td><span class="status-pill">활성</span></td>
                 <td><div class="prog"><div class="bar"><i style="width:25%"></i></div><span class="pct">25%</span></div></td>
                 <td><div class="owner"><div class="avatar dark">하</div><span>하루</span></div></td>
-                <td class="due">2026.06.13</td><td class="tasks">1/4</td>
-                <td class="nextup">특강 리허설</td>
+                <td class="due">2026.06.13</td><td class="tasks">1/4</td><td class="nextup">특강 리허설</td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
 
-      <!-- WBS mini gantt -->
       <div class="card">
-        <div class="hd">
-          <span class="title">WBS<span class="dot">.</span></span>
-          <div class="gantt-range">2026.05.25 → 2026.07.01</div>
-        </div>
+        <div class="hd"><span class="title sm">WBS<span class="dot">.</span></span><div class="gantt-range">2026.05.25 → 2026.07.01</div></div>
         <div class="bd">
           <div class="gantt">
-            <div class="axis">
-              <div></div>
-              <div class="ticks">
-                <span>2026.05</span>
-                <span class="today">오늘</span>
-                <span>2026.06</span>
-                <span>7/8</span>
-                <span>7/15</span>
-                <span>7/22</span>
-              </div>
-            </div>
-
-            <div class="grow">
-              <div class="gn">김미경의 20분 과외</div>
-              <div class="track">
-                <div class="seg" style="left:2%;width:14%;background:#9aa0ab"></div>
-                <div class="seg" style="left:18%;width:12%;background:#c7c3ec"></div>
-                <div class="seg" style="left:32%;width:10%;background:#3b82f6"></div>
-                <div class="seg" style="left:44%;width:26%;background:#7c5cff"></div>
-              </div>
-            </div>
-            <div class="grow">
-              <div class="gn">언니의 따뜻한 독설</div>
-              <div class="track">
-                <div class="seg" style="left:6%;width:18%;background:#ef4444"></div>
-                <div class="seg" style="left:26%;width:30%;background:#9aa0ab"></div>
-              </div>
-            </div>
-            <div class="grow">
-              <div class="gn">MKYU 5월 신규 강좌 런칭</div>
-              <div class="track">
-                <div class="seg" style="left:8%;width:16%;background:#f59e0b"></div>
-                <div class="seg" style="left:26%;width:14%;background:#9aa0ab"></div>
-                <div class="seg" style="left:42%;width:8%;background:#ef4444"></div>
-              </div>
-            </div>
-            <div class="grow">
-              <div class="gn">김미경 북클럽 시즌3</div>
-              <div class="track">
-                <div class="seg" style="left:14%;width:10%;background:#c7c3ec"></div>
-                <div class="seg" style="left:26%;width:20%;background:#9aa0ab"></div>
-                <div class="seg" style="left:50%;width:24%;background:#10b981"></div>
-              </div>
-            </div>
-            <div class="grow">
-              <div class="gn">5월 멤버십 라이브 특강</div>
-              <div class="track">
-                <div class="seg" style="left:10%;width:12%;background:#c7c3ec"></div>
-                <div class="seg" style="left:24%;width:4%;background:#3b82f6"></div>
-                <div class="seg" style="left:30%;width:18%;background:#9aa0ab"></div>
-              </div>
-            </div>
+            <div class="axis"><div></div><div class="ticks"><span>2026.05</span><span class="today">오늘</span><span>2026.06</span><span>7/8</span><span>7/15</span><span>7/22</span></div></div>
+            <div class="grow"><div class="gn">김미경의 20분 과외</div><div class="track">
+              <div class="seg" style="left:2%;width:14%;background:#9aa0ab"></div>
+              <div class="seg" style="left:18%;width:12%;background:#c7c3ec"></div>
+              <div class="seg" style="left:32%;width:10%;background:#3b82f6"></div>
+              <div class="seg" style="left:44%;width:26%;background:#7c5cff"></div></div></div>
+            <div class="grow"><div class="gn">언니의 따뜻한 독설</div><div class="track">
+              <div class="seg" style="left:6%;width:18%;background:#ef4444"></div>
+              <div class="seg" style="left:26%;width:30%;background:#9aa0ab"></div></div></div>
+            <div class="grow"><div class="gn">MKYU 5월 신규 강좌 런칭</div><div class="track">
+              <div class="seg" style="left:8%;width:16%;background:#f59e0b"></div>
+              <div class="seg" style="left:26%;width:14%;background:#9aa0ab"></div>
+              <div class="seg" style="left:42%;width:8%;background:#ef4444"></div></div></div>
+            <div class="grow"><div class="gn">김미경 북클럽 시즌3</div><div class="track">
+              <div class="seg" style="left:14%;width:10%;background:#c7c3ec"></div>
+              <div class="seg" style="left:26%;width:20%;background:#9aa0ab"></div>
+              <div class="seg" style="left:50%;width:24%;background:#10b981"></div></div></div>
+            <div class="grow"><div class="gn">5월 멤버십 라이브 특강</div><div class="track">
+              <div class="seg" style="left:10%;width:12%;background:#c7c3ec"></div>
+              <div class="seg" style="left:24%;width:4%;background:#3b82f6"></div>
+              <div class="seg" style="left:30%;width:18%;background:#9aa0ab"></div></div></div>
           </div>
         </div>
       </div>

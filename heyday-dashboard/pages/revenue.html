@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MK CREATIVE'S HEYDAY · 매출</title>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo"><div class="l1"><b>MK CREATIVE'S</b></div><div class="l2">HEYDAY</div></div>
+    <div class="search"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><span>검색</span><span class="kbd">⌘K</span></div>
+    <div class="nav-label">WORKSPACE</div>
+    <nav class="nav">
+      <a href="../index.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>대시보드</a>
+      <a href="wbs.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v16"/></svg>WBS</a>
+      <a href="tasks.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>Our Tasks</a>
+      <a href="meetings.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>회의록</a>
+      <a href="revenue.html" class="active"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 17l6-6 4 4 7-7"/><path d="M17 8h4v4"/></svg>매출</a>
+      <div class="divider"></div>
+      <a href="#"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 5a2 2 0 0 1 2-2h7v18H6a2 2 0 0 0-2 2z"/><path d="M13 3h5a2 2 0 0 1 2 2v16a2 2 0 0 0-2-2h-5"/></svg>이용가이드</a>
+    </nav>
+    <div class="foot">
+      <div class="userrow"><div class="avatar me">미</div><div><div class="nm">미경</div><div class="rl">ADMIN</div></div></div>
+      <div class="logout"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>로그아웃</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="container">
+
+      <div class="toptabs">
+        <a href="#" class="on">KPI</a><a href="#">일간</a><a href="#">주간</a><a href="#">코호트</a><a href="#">거래</a>
+      </div>
+
+      <div class="page-head">
+        <div class="top">
+          <div>
+            <span class="title">REVENUE<span class="dot">.</span></span>
+            <div class="subtitle">2026년 매출 흐름 — 회사 월평균 <span class="b">₩40.1M</span></div>
+          </div>
+          <button class="btn ghost"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L14.5 2h-4l-.3 2.6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7 7 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.6h4l.3-2.6a7 7 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6c.1-.3.1-.7.1-1z"/></svg>목표 편집</button>
+        </div>
+      </div>
+
+      <div class="ytd">
+        <div class="tag">YTD · YEAR-TO-DATE (6월까지)</div>
+        <div class="nums">
+          <div class="n"><div class="k">누적 매출</div><div class="v">₩240.6M</div></div>
+          <div class="n"><div class="k">목표 대비</div><div class="v">86%</div></div>
+          <div class="n"><div class="k">전년 동기 대비</div><div class="v" style="color:var(--teal)">+34%</div></div>
+          <div class="n"><div class="k">월평균</div><div class="v">₩40.1M</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="hd row">
+          <span class="title sm">매출 흐름<span class="dot">.</span></span>
+          <div class="seg-toggle">
+            <a href="#">일간</a><a href="#">주간</a><a href="#" class="on">월간</a><a href="#">분기</a><a href="#">반기</a><a href="#">연간</a>
+          </div>
+        </div>
+        <div class="bd">
+          <div class="barchart">
+            <div class="target"></div>
+            <div class="col"><div class="bar" style="height:55%"></div><div class="xl">1월</div></div>
+            <div class="col"><div class="bar" style="height:57%"></div><div class="xl">2월</div></div>
+            <div class="col"><div class="bar" style="height:64%"></div><div class="xl">3월</div></div>
+            <div class="col"><div class="bar" style="height:74%"></div><div class="xl">4월</div></div>
+            <div class="col"><div class="bar" style="height:69%"></div><div class="xl">5월</div></div>
+            <div class="col"><div class="bar" style="height:80%"></div><div class="xl">6월</div></div>
+            <div class="col"><div class="bar ghost" style="height:0"></div><div class="xl">7월</div></div>
+            <div class="col"><div class="bar ghost" style="height:0"></div><div class="xl">8월</div></div>
+            <div class="col"><div class="bar ghost" style="height:0"></div><div class="xl">9월</div></div>
+            <div class="col"><div class="bar ghost" style="height:0"></div><div class="xl">10월</div></div>
+            <div class="col"><div class="bar ghost" style="height:0"></div><div class="xl">11월</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts2">
+        <div class="card">
+          <div class="hd row"><span class="title sm">월별 프로젝트 매출<span class="dot">.</span></span><span class="section-label">STACKED BY PROJECT</span></div>
+          <div class="bd">
+            <div class="legend" style="margin-bottom:6px">
+              <span class="lg"><span class="dot" style="background:#7c5cff"></span>5월 신규강좌</span>
+              <span class="lg"><span class="dot" style="background:#10b981"></span>북클럽 S3</span>
+              <span class="lg"><span class="dot" style="background:#f59e0b"></span>20분 과외</span>
+              <span class="lg"><span class="dot" style="background:#3b82f6"></span>5월 라이브특강</span>
+              <span class="lg"><span class="dot" style="background:#ef4444"></span>원픽</span>
+            </div>
+            <div class="stack">
+              <div class="col"><div class="seg" style="height:30%;background:#7c5cff"></div><div class="seg" style="height:14%;background:#10b981"></div><div class="seg" style="height:10%;background:#f59e0b"></div><div class="xl">1월</div></div>
+              <div class="col"><div class="seg" style="height:34%;background:#7c5cff"></div><div class="seg" style="height:12%;background:#10b981"></div><div class="seg" style="height:14%;background:#3b82f6"></div><div class="xl">2월</div></div>
+              <div class="col"><div class="seg" style="height:38%;background:#7c5cff"></div><div class="seg" style="height:16%;background:#10b981"></div><div class="seg" style="height:10%;background:#f59e0b"></div><div class="seg" style="height:8%;background:#ef4444"></div><div class="xl">3월</div></div>
+              <div class="col"><div class="seg" style="height:44%;background:#7c5cff"></div><div class="seg" style="height:18%;background:#10b981"></div><div class="seg" style="height:12%;background:#3b82f6"></div><div class="xl">4월</div></div>
+              <div class="col"><div class="seg" style="height:40%;background:#7c5cff"></div><div class="seg" style="height:14%;background:#10b981"></div><div class="seg" style="height:10%;background:#f59e0b"></div><div class="seg" style="height:8%;background:#ef4444"></div><div class="xl">5월</div></div>
+              <div class="col"><div class="seg" style="height:48%;background:#7c5cff"></div><div class="seg" style="height:20%;background:#10b981"></div><div class="seg" style="height:14%;background:#3b82f6"></div><div class="xl">6월</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="hd"><span class="title sm">프로젝트 비중<span class="dot">.</span></span></div>
+          <div class="bd">
+            <div class="donut-wrap">
+              <div class="donut" style="background:conic-gradient(#7c5cff 0 42%,#10b981 42% 64%,#f59e0b 64% 79%,#3b82f6 79% 92%,#ef4444 92% 100%)"></div>
+              <div class="kv">
+                <div class="row"><span class="dot" style="background:#7c5cff"></span>5월 신규강좌 <b style="margin-left:auto">42%</b></div>
+                <div class="row"><span class="dot" style="background:#10b981"></span>북클럽 S3 <b style="margin-left:auto">22%</b></div>
+                <div class="row"><span class="dot" style="background:#f59e0b"></span>20분 과외 <b style="margin-left:auto">15%</b></div>
+                <div class="row"><span class="dot" style="background:#3b82f6"></span>5월 라이브특강 <b style="margin-left:auto">13%</b></div>
+                <div class="row"><span class="dot" style="background:#ef4444"></span>원픽 <b style="margin-left:auto">8%</b></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>
