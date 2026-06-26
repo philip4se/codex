@@ -4,3 +4,4 @@ prev-*.png
 shot*.mjs
 package-lock.json
 package.json
+*.zip
